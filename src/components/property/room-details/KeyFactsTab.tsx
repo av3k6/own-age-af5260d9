@@ -1,4 +1,3 @@
-
 import React from "react";
 import { formatDate } from "@/lib/formatters";
 import { PropertyRoomDetails as PropertyRoomDetailsType } from "@/types";
@@ -58,42 +57,6 @@ const KeyFactsTab = ({ propertyTitle, propertyDetails, listingStatus }: KeyFacts
           />
           
           <PropertyDetailSection 
-            label="Data Source"
-            value={propertyDetails?.dataSource}
-          />
-          
-          <PropertyDetailSection 
-            label="Predicted Days on Market"
-            value={propertyDetails?.predictedDaysOnMarket}
-          />
-          
-          {propertyDetails?.predictedDaysOnMarket !== undefined && (
-            <div className="mt-4">
-              <div className="w-full bg-gray-200 rounded-full h-2.5">
-                <div className="relative w-full">
-                  <span 
-                    className="absolute top-4 left-0 text-xs">
-                    Fast
-                  </span>
-                  <span 
-                    className="absolute top-4 left-1/2 -translate-x-1/2 text-xs">
-                    {propertyDetails?.predictedDaysOnMarket || 20} days
-                  </span>
-                  <span 
-                    className="absolute top-4 right-0 text-xs">
-                    Very Slow
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
-          
-          <PropertyDetailSection 
-            label="Listing Brokerage"
-            value={propertyDetails?.listingBrokerage}
-          />
-          
-          <PropertyDetailSection 
             label="Days on Market"
             value={propertyDetails?.daysOnMarket ? `${propertyDetails.daysOnMarket} days` : undefined}
             hidden={isPending}
@@ -125,21 +88,6 @@ const KeyFactsTab = ({ propertyTitle, propertyDetails, listingStatus }: KeyFacts
         </div>
       </div>
       
-      {propertyDetails?.marketDemand && (
-        <div className="mt-8">
-          <p className="text-muted-foreground mb-2">Market Demand:</p>
-          <div className="w-full bg-gradient-to-r from-blue-400 via-green-400 to-red-400 rounded-full h-2.5 relative">
-            <div className="absolute -top-1 left-1/2 transform -translate-x-1/2">
-              <div className="w-4 h-4 bg-teal-500 rounded-full"></div>
-            </div>
-            <div className="flex justify-between mt-4">
-              <span className="text-xs">Buyer's Market</span>
-              <span className="text-xs">Balanced</span>
-              <span className="text-xs">Seller's Market</span>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
