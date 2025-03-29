@@ -14,10 +14,12 @@ import Sell from './pages/Sell';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Auth/Login';
 import Signup from './pages/Auth/Signup';
-import Profile from './pages/UserProfile'; // Changed from './pages/Profile' to './pages/UserProfile'
+import Profile from './pages/UserProfile';
 import PropertyDetail from './pages/PropertyDetail';
 import MakeOffer from "./pages/MakeOffer";
 import EditListing from "./pages/EditListing";
+import Layout from './pages/Layout';
+import NotFound from './pages/NotFound';
 
 function App() {
   return (
@@ -51,39 +53,51 @@ function AppContent() {
 
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/buy" element={<Buy />} />
-      <Route path="/property/:id" element={<PropertyDetail />} />
-      <Route
-        path="/sell"
-        element={
-          user ? (
-            <Sell />
-          ) : (
-            <Navigate to="/login" replace />
-          )
-        }
-      />
-      <Route
-        path="/dashboard"
-        element={
-          user ? (
-            <Dashboard />
-          ) : (
-            <Navigate to="/login" replace />
-          )
-        }
-      />
-      <Route
-        path="/profile"
-        element={
-          user ? (
-            <Profile />
-          ) : (
-            <Navigate to="/login" replace />
-          )
-        }
-      />
+      <Route element={<Layout />}>
+        <Route path="/" element={<Home />} />
+        <Route path="/buy" element={<Buy />} />
+        <Route path="/property/:id" element={<PropertyDetail />} />
+        <Route
+          path="/sell"
+          element={
+            user ? (
+              <Sell />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
+        <Route
+          path="/dashboard"
+          element={
+            user ? (
+              <Dashboard />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            user ? (
+              <Profile />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
+        <Route
+          path="/property/:id/make-offer"
+          element={user ? <MakeOffer /> : <Navigate to="/login" replace />}
+        />
+        <Route
+          path="/property/:id/edit"
+          element={user ? <EditListing /> : <Navigate to="/login" replace />}
+        />
+      </Route>
+      
+      {/* Auth routes don't need the Layout with header/footer */}
       <Route
         path="/login"
         element={user ? <Navigate to="/dashboard" replace /> : <Login />}
@@ -92,14 +106,8 @@ function AppContent() {
         path="/signup"
         element={user ? <Navigate to="/dashboard" replace /> : <Signup />}
       />
-      <Route
-        path="/property/:id/make-offer"
-        element={user ? <MakeOffer /> : <Navigate to="/login" replace />}
-      />
-      <Route
-        path="/property/:id/edit"
-        element={user ? <EditListing /> : <Navigate to="/login" replace />}
-      />
+      
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }
