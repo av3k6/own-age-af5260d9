@@ -1,11 +1,33 @@
 
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Search, Home, User, Bell, Menu } from "lucide-react";
+import { Search, Home, User, Bell, Menu, LogOut } from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/components/ui/use-toast";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast({
+        title: "Signed out",
+        description: "You have been successfully signed out.",
+      });
+      navigate("/");
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An error occurred while signing out.",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <header className="sticky top-0 z-50 bg-white border-b shadow-sm">
@@ -26,9 +48,11 @@ const Header = () => {
             <Link to="/professionals" className="text-zen-gray-600 hover:text-zen-blue-500 font-medium">
               Professionals
             </Link>
-            <Link to="/dashboard" className="text-zen-gray-600 hover:text-zen-blue-500 font-medium">
-              Dashboard
-            </Link>
+            {user && (
+              <Link to="/dashboard" className="text-zen-gray-600 hover:text-zen-blue-500 font-medium">
+                Dashboard
+              </Link>
+            )}
           </nav>
         </div>
 
@@ -46,17 +70,32 @@ const Header = () => {
             <Bell className="h-5 w-5" />
           </Button>
           
-          <Link to="/login">
-            <Button variant="ghost" size="sm" className="ml-2">
-              Log in
-            </Button>
-          </Link>
-          
-          <Link to="/signup">
-            <Button size="sm" className="bg-zen-blue-500 hover:bg-zen-blue-600">
-              Sign up
-            </Button>
-          </Link>
+          {user ? (
+            <>
+              <Button variant="ghost" size="sm" className="flex items-center gap-2">
+                <User className="h-4 w-4" />
+                <span className="text-sm font-medium">{user.email?.split('@')[0]}</span>
+              </Button>
+              <Button variant="ghost" size="sm" onClick={handleSignOut} className="flex items-center gap-2">
+                <LogOut className="h-4 w-4" />
+                <span>Sign out</span>
+              </Button>
+            </>
+          ) : (
+            <>
+              <Link to="/login">
+                <Button variant="ghost" size="sm" className="ml-2">
+                  Log in
+                </Button>
+              </Link>
+              
+              <Link to="/signup">
+                <Button size="sm" className="bg-zen-blue-500 hover:bg-zen-blue-600">
+                  Sign up
+                </Button>
+              </Link>
+            </>
+          )}
         </div>
 
         <button
@@ -80,9 +119,11 @@ const Header = () => {
             <Link to="/professionals" className="text-zen-gray-600 hover:text-zen-blue-500 py-2">
               Professionals
             </Link>
-            <Link to="/dashboard" className="text-zen-gray-600 hover:text-zen-blue-500 py-2">
-              Dashboard
-            </Link>
+            {user && (
+              <Link to="/dashboard" className="text-zen-gray-600 hover:text-zen-blue-500 py-2">
+                Dashboard
+              </Link>
+            )}
             
             <div className="relative my-2">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-zen-gray-400 h-4 w-4" />
@@ -93,19 +134,32 @@ const Header = () => {
               />
             </div>
             
-            <div className="flex space-x-2 pt-2">
-              <Link to="/login" className="w-1/2">
-                <Button variant="outline" className="w-full">
-                  Log in
+            {user ? (
+              <div className="flex flex-col space-y-2 pt-2">
+                <div className="text-zen-gray-600 py-2 flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  <span>{user.email?.split('@')[0]}</span>
+                </div>
+                <Button onClick={handleSignOut} className="flex items-center justify-center gap-2">
+                  <LogOut className="h-4 w-4" />
+                  <span>Sign out</span>
                 </Button>
-              </Link>
-              
-              <Link to="/signup" className="w-1/2">
-                <Button className="w-full bg-zen-blue-500 hover:bg-zen-blue-600">
-                  Sign up
-                </Button>
-              </Link>
-            </div>
+              </div>
+            ) : (
+              <div className="flex space-x-2 pt-2">
+                <Link to="/login" className="w-1/2">
+                  <Button variant="outline" className="w-full">
+                    Log in
+                  </Button>
+                </Link>
+                
+                <Link to="/signup" className="w-1/2">
+                  <Button className="w-full bg-zen-blue-500 hover:bg-zen-blue-600">
+                    Sign up
+                  </Button>
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       )}

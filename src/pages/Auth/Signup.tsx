@@ -1,6 +1,5 @@
-
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,6 +7,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/components/ui/use-toast";
 import { Eye, EyeOff } from "lucide-react";
 import { UserRole } from "@/types";
+import { useSupabase } from "@/hooks/useSupabase";
 
 const Signup = () => {
   const [name, setName] = useState("");
@@ -19,6 +19,8 @@ const Signup = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { supabase } = useSupabase();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,20 +46,78 @@ const Signup = () => {
     try {
       setIsLoading(true);
       
-      // Simulate authentication
-      // In a real app, you'd make an API call here
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      // Register user with Supabase
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: name,
+            role: role,
+          },
+        },
+      });
+      
+      if (error) {
+        throw error;
+      }
       
       toast({
         title: "Success",
-        description: "Your account has been created successfully",
+        description: "Your account has been created successfully. Please check your email for verification.",
       });
       
-      // Redirect to dashboard in a real app
-    } catch (error) {
+      // Redirect to login page after successful registration
+      navigate("/login");
+    } catch (error: any) {
+      console.error("Signup error:", error);
       toast({
         title: "Error",
-        description: "Failed to create account. Please try again.",
+        description: error?.message || "Failed to create account. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignUp = async () => {
+    try {
+      setIsLoading(true);
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/`,
+        },
+      });
+      
+      if (error) throw error;
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error?.message || "Failed to sign up with Google",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleFacebookSignUp = async () => {
+    try {
+      setIsLoading(true);
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "facebook",
+        options: {
+          redirectTo: `${window.location.origin}/`,
+        },
+      });
+      
+      if (error) throw error;
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error?.message || "Failed to sign up with Facebook",
         variant: "destructive",
       });
     } finally {
@@ -241,6 +301,8 @@ const Signup = () => {
                 <Button
                   variant="outline"
                   className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-zen-gray-500 hover:bg-gray-50"
+                  onClick={handleGoogleSignUp}
+                  disabled={isLoading}
                 >
                   <span className="sr-only">Sign up with Google</span>
                   <svg className="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 24 24">
@@ -253,6 +315,8 @@ const Signup = () => {
                 <Button
                   variant="outline"
                   className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-zen-gray-500 hover:bg-gray-50"
+                  onClick={handleFacebookSignUp}
+                  disabled={isLoading}
                 >
                   <span className="sr-only">Sign up with Facebook</span>
                   <svg className="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 24 24">

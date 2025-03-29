@@ -1,11 +1,11 @@
-
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { Eye, EyeOff } from "lucide-react";
+import { useSupabase } from "@/hooks/useSupabase";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -13,6 +13,8 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { supabase } = useSupabase();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,20 +31,70 @@ const Login = () => {
     try {
       setIsLoading(true);
       
-      // Simulate authentication
-      // In a real app, you'd make an API call here
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      if (error) {
+        throw error;
+      }
       
       toast({
         title: "Success",
         description: "You have successfully logged in",
       });
       
-      // Redirect to dashboard in a real app
-    } catch (error) {
+      navigate("/");
+    } catch (error: any) {
+      console.error("Login error:", error);
       toast({
         title: "Error",
-        description: "Failed to log in. Please try again.",
+        description: error?.message || "Failed to log in. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      setIsLoading(true);
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/`,
+        },
+      });
+      
+      if (error) throw error;
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error?.message || "Failed to sign in with Google",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleFacebookSignIn = async () => {
+    try {
+      setIsLoading(true);
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "facebook",
+        options: {
+          redirectTo: `${window.location.origin}/`,
+        },
+      });
+      
+      if (error) throw error;
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error?.message || "Failed to sign in with Facebook",
         variant: "destructive",
       });
     } finally {
@@ -155,6 +207,8 @@ const Login = () => {
                 <Button
                   variant="outline"
                   className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-zen-gray-500 hover:bg-gray-50"
+                  onClick={handleGoogleSignIn}
+                  disabled={isLoading}
                 >
                   <span className="sr-only">Sign in with Google</span>
                   <svg className="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 24 24">
@@ -167,6 +221,8 @@ const Login = () => {
                 <Button
                   variant="outline"
                   className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-zen-gray-500 hover:bg-gray-50"
+                  onClick={handleFacebookSignIn}
+                  disabled={isLoading}
                 >
                   <span className="sr-only">Sign in with Facebook</span>
                   <svg className="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 24 24">
