@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,7 +62,60 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+				// Custom theme colors
+				"zen-blue": {
+					DEFAULT: "#235789",
+					50: "#e6f0f9",
+					100: "#cce0f2",
+					200: "#99c2e6",
+					300: "#66a3d9",
+					400: "#3385cd",
+					500: "#235789",
+					600: "#1c466e",
+					700: "#153452",
+					800: "#0e2337",
+					900: "#07111b",
+				},
+				"zen-teal": {
+					DEFAULT: "#2AA198",
+					50: "#e6f6f5",
+					100: "#ccedea",
+					200: "#99dbd5",
+					300: "#66c9c0",
+					400: "#33b7ab",
+					500: "#2AA198",
+					600: "#22817a",
+					700: "#19615c",
+					800: "#11403d",
+					900: "#08201f",
+				},
+				"zen-green": {
+					DEFAULT: "#8BC34A",
+					50: "#f4f9ea",
+					100: "#e9f3d5",
+					200: "#d3e7ac",
+					300: "#bddb82",
+					400: "#a7cf59",
+					500: "#8BC34A",
+					600: "#6f9c3b",
+					700: "#53752c",
+					800: "#384e1d",
+					900: "#1c270e",
+				},
+				"zen-gray": {
+					DEFAULT: "#585563",
+					50: "#edeef0",
+					100: "#dbdde1",
+					200: "#b7bac3",
+					300: "#9398a5",
+					400: "#6f7587",
+					500: "#585563",
+					600: "#46444f",
+					700: "#35333c",
+					800: "#232228",
+					900: "#121114",
+				},
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
