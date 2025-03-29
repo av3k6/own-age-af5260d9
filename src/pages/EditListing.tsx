@@ -22,10 +22,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { useSupabase } from "@/hooks/useSupabase";
 import { useAuth } from "@/contexts/AuthContext";
-import { PropertyType } from "@/types";
+import { PropertyType, Room } from "@/types";
+import { levelOptions } from "@/components/listing/steps/property-features/utils/propertyFeatures";
 
 const formSchema = z.object({
   title: z.string().min(5, {
@@ -58,6 +60,15 @@ export default function EditListing() {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [activeTab, setActiveTab] = useState("basic");
+  const [bedroomRooms, setBedroomRooms] = useState<Room[]>([]);
+  const [otherRooms, setOtherRooms] = useState<Room[]>([]);
+  
+  // Room management state
+  const [roomName, setRoomName] = useState("");
+  const [roomLevel, setRoomLevel] = useState(levelOptions[0]);
+  const [roomDimensions, setRoomDimensions] = useState("");
+  const [roomType, setRoomType] = useState("bedroom");
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -78,6 +89,16 @@ export default function EditListing() {
       status: "active",
     },
   });
+
+  // Update bedroom count effect
+  useEffect(() => {
+    const bedroomCount = form.watch("bedrooms");
+    
+    // If bedrooms decreased, trim the array
+    if (bedroomCount < bedroomRooms.length) {
+      setBedroomRooms(prev => prev.slice(0, bedroomCount));
+    }
+  }, [form.watch("bedrooms"), bedroomRooms.length]);
 
   useEffect(() => {
     const fetchProperty = async () => {
@@ -101,6 +122,15 @@ export default function EditListing() {
           });
           navigate(`/property/${id}`);
           return;
+        }
+
+        // Initialize room details
+        if (data.room_details?.bedrooms) {
+          setBedroomRooms(data.room_details.bedrooms);
+        }
+        
+        if (data.room_details?.otherRooms) {
+          setOtherRooms(data.room_details.otherRooms);
         }
 
         // Populate form with existing data
@@ -140,6 +170,52 @@ export default function EditListing() {
     fetchProperty();
   }, [id, supabase, navigate, toast, user, form]);
 
+  const addRoom = () => {
+    if (!roomName.trim()) return;
+    
+    const newRoom: Room = {
+      name: roomName,
+      level: roomLevel,
+      dimensions: roomDimensions.trim() || undefined
+    };
+    
+    if (roomType === "bedroom") {
+      // Check if we're already at the max bedrooms
+      const bedroomsCount = form.getValues("bedrooms");
+      if (bedroomRooms.length >= bedroomsCount) {
+        toast({
+          title: "Cannot Add More Bedrooms",
+          description: `You've specified ${bedroomsCount} bedrooms in total. Increase the bedroom count to add more room details.`,
+          variant: "destructive",
+        });
+        return;
+      }
+      setBedroomRooms(prev => [...prev, newRoom]);
+    } else {
+      setOtherRooms(prev => [...prev, newRoom]);
+    }
+    
+    // Reset form
+    setRoomName("");
+    setRoomDimensions("");
+  };
+
+  const removeRoom = (index: number, type: "bedroom" | "otherRoom") => {
+    if (type === "bedroom") {
+      setBedroomRooms(prev => {
+        const updated = [...prev];
+        updated.splice(index, 1);
+        return updated;
+      });
+    } else {
+      setOtherRooms(prev => {
+        const updated = [...prev];
+        updated.splice(index, 1);
+        return updated;
+      });
+    }
+  };
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     if (!id || !user) {
       toast({
@@ -178,6 +254,10 @@ export default function EditListing() {
           },
           features: featuresArray,
           status: values.status,
+          room_details: {
+            bedrooms: bedroomRooms,
+            otherRooms: otherRooms,
+          },
           updated_at: new Date().toISOString(),
         })
         .eq("id", id)
@@ -225,243 +305,380 @@ export default function EditListing() {
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Property Title</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., Modern Beach House" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="grid grid-cols-2 mb-4">
+                <TabsTrigger value="basic">Basic Details</TabsTrigger>
+                <TabsTrigger value="rooms">Room Details</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="basic">
+                <div className="space-y-6">
+                  <FormField
+                    control={form.control}
+                    name="title"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Property Title</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., Modern Beach House" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Describe the property"
-                      className="min-h-[200px]"
-                      {...field}
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Describe the property"
+                            className="min-h-[200px]"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="price"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Price ($)</FormLabel>
+                          <FormControl>
+                            <Input type="number" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="price"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Price ($)</FormLabel>
-                    <FormControl>
-                      <Input type="number" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                    <FormField
+                      control={form.control}
+                      name="propertyType"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Property Type</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select property type" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {Object.values(PropertyType).map((type) => (
+                                <SelectItem key={type} value={type}>
+                                  {type.charAt(0).toUpperCase() + type.slice(1)}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
 
-              <FormField
-                control={form.control}
-                name="propertyType"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Property Type</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select property type" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {Object.values(PropertyType).map((type) => (
-                          <SelectItem key={type} value={type}>
-                            {type.charAt(0).toUpperCase() + type.slice(1)}
-                          </SelectItem>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="bedrooms"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Bedrooms</FormLabel>
+                          <FormControl>
+                            <Input type="number" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="bathrooms"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Bathrooms</FormLabel>
+                          <FormControl>
+                            <Input type="number" step="0.5" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="squareFeet"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Square Feet</FormLabel>
+                          <FormControl>
+                            <Input type="number" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="yearBuilt"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Year Built</FormLabel>
+                          <FormControl>
+                            <Input type="number" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="street"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Street</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="city"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>City</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="state"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>State/Province</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="zipCode"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Zip/Postal Code</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <FormField
+                    control={form.control}
+                    name="features"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Features (comma-separated)</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="e.g., Garage, Fireplace, Pool"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="status"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Listing Status</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select status" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="active">Active</SelectItem>
+                            <SelectItem value="pending">Pending</SelectItem>
+                            <SelectItem value="sold">Sold</SelectItem>
+                            <SelectItem value="expired">Expired</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="rooms">
+                <div className="space-y-4">
+                  <div className="p-4 bg-muted/40 rounded-md">
+                    <div className="mb-4">
+                      <p className="text-sm mb-2">
+                        You have specified <strong>{form.watch("bedrooms")}</strong> bedrooms for this property. 
+                        Add details for each bedroom below.
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {bedroomRooms.length} of {form.watch("bedrooms")} bedrooms have details added.
+                      </p>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <FormLabel htmlFor="roomType">Room Type</FormLabel>
+                        <Select
+                          value={roomType}
+                          onValueChange={setRoomType}
+                        >
+                          <SelectTrigger id="roomType">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="bedroom">Bedroom</SelectItem>
+                            <SelectItem value="other">Other Room</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div>
+                        <FormLabel htmlFor="roomName">Room Name</FormLabel>
+                        <Input
+                          id="roomName"
+                          placeholder="e.g. Primary Bedroom"
+                          value={roomName}
+                          onChange={(e) => setRoomName(e.target.value)}
+                        />
+                      </div>
+                      
+                      <div>
+                        <FormLabel htmlFor="roomLevel">Room Level</FormLabel>
+                        <Select
+                          value={roomLevel}
+                          onValueChange={setRoomLevel}
+                        >
+                          <SelectTrigger id="roomLevel">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {levelOptions.map(level => (
+                              <SelectItem key={level} value={level}>
+                                {level}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div>
+                        <FormLabel htmlFor="roomDimensions">Dimensions</FormLabel>
+                        <Input
+                          id="roomDimensions"
+                          placeholder="e.g. 12 x 14"
+                          value={roomDimensions}
+                          onChange={(e) => setRoomDimensions(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="mt-4">
+                      <Button type="button" onClick={addRoom} disabled={!roomName}>
+                        Add Room
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  {/* Display rooms */}
+                  {bedroomRooms.length > 0 && (
+                    <div className="space-y-2">
+                      <h4 className="font-medium">Bedrooms</h4>
+                      <div className="space-y-2">
+                        {bedroomRooms.map((room, index) => (
+                          <div key={`bedroom-${index}`} className="flex justify-between items-center p-3 border rounded-md">
+                            <div>
+                              <p className="font-medium">{room.name}</p>
+                              <p className="text-sm text-muted-foreground">Level: {room.level}{room.dimensions ? `, Dimensions: ${room.dimensions}` : ''}</p>
+                            </div>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => removeRoom(index, "bedroom")}
+                            >
+                              Remove
+                            </Button>
+                          </div>
                         ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <FormField
-                control={form.control}
-                name="bedrooms"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Bedrooms</FormLabel>
-                    <FormControl>
-                      <Input type="number" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="bathrooms"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Bathrooms</FormLabel>
-                    <FormControl>
-                      <Input type="number" step="0.5" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="squareFeet"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Square Feet</FormLabel>
-                    <FormControl>
-                      <Input type="number" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="yearBuilt"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Year Built</FormLabel>
-                    <FormControl>
-                      <Input type="number" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="street"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Street</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="city"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>City</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="state"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>State/Province</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="zipCode"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Zip/Postal Code</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <FormField
-              control={form.control}
-              name="features"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Features (comma-separated)</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="e.g., Garage, Fireplace, Pool"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="status"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Listing Status</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select status" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="sold">Sold</SelectItem>
-                      <SelectItem value="expired">Expired</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                      </div>
+                    </div>
+                  )}
+                  
+                  {otherRooms.length > 0 && (
+                    <div className="space-y-2">
+                      <h4 className="font-medium">Other Rooms</h4>
+                      <div className="space-y-2">
+                        {otherRooms.map((room, index) => (
+                          <div key={`otherRoom-${index}`} className="flex justify-between items-center p-3 border rounded-md">
+                            <div>
+                              <p className="font-medium">{room.name}</p>
+                              <p className="text-sm text-muted-foreground">Level: {room.level}{room.dimensions ? `, Dimensions: ${room.dimensions}` : ''}</p>
+                            </div>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => removeRoom(index, "otherRoom")}
+                            >
+                              Remove
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+            </Tabs>
 
             <div className="flex justify-end space-x-4 pt-4">
               <Button
