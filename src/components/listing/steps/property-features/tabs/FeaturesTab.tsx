@@ -6,40 +6,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useFormContext } from "../../../context/FormContext";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { commonPropertyFeatures } from "../utils/propertyFeatures";
-import { GarageIcon, Flame, Home, AirVent, Bath, Bed, WifiIcon, Tv, Waves, Shield, Cat, PalmtreeIcon, Warehouse, Building, Accessibility, HeartPulse } from "lucide-react";
-
-const featureIconMap: Record<string, any> = {
-  "Garage": GarageIcon,
-  "Fireplace": Flame,
-  "Basement": Home,
-  "Air Conditioning": AirVent,
-  "Swimming Pool": Waves,
-  "Central Heating": Flame,
-  "Bathroom": Bath,
-  "Bedroom": Bed,
-  "Wifi": WifiIcon,
-  "Smart TV": Tv,
-  "Security System": Shield,
-  "Pet Friendly": Cat,
-  "Garden": PalmtreeIcon,
-  "Storage Space": Warehouse,
-  "Elevator": Building,
-  "Wheelchair Accessible": Accessibility,
-  "Gym": HeartPulse,
-};
-
-const getFeatureIcon = (feature: string) => {
-  if (featureIconMap[feature]) {
-    return featureIconMap[feature];
-  }
-
-  const key = Object.keys(featureIconMap).find(k => 
-    feature.toLowerCase().includes(k.toLowerCase()) || 
-    k.toLowerCase().includes(feature.toLowerCase())
-  );
-  
-  return key ? featureIconMap[key] : Home;
-};
+import { icons } from "lucide-react";
+import { getFeatureIcon } from "@/utils/featureIcons";
 
 const FeaturesTab = () => {
   const { formData, updateFormData } = useFormContext();
