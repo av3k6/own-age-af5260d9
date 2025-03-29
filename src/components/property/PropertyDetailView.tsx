@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { PropertyListing } from "@/types";
@@ -11,7 +10,7 @@ import PropertyLocation from "./PropertyLocation";
 import PropertyProfessionals from "./PropertyProfessionals";
 import PropertySimilar from "./PropertySimilar";
 import MortgageCalculator from "./MortgageCalculator";
-import PropertyRoomDetails from "./PropertyRoomDetails";
+import PropertyRoomDetails from "./room-details/PropertyRoomDetails";
 
 interface PropertyDetailViewProps {
   property: PropertyListing;

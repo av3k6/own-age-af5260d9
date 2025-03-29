@@ -1,4 +1,3 @@
-
 export enum UserRole {
   BUYER = "buyer",
   SELLER = "seller",
@@ -114,6 +113,9 @@ export interface PropertyRoomDetails {
   predictedDaysOnMarket?: number;
   marketDemand?: 'buyer' | 'balanced' | 'seller';
   listingBrokerage?: string;
+  bathrooms?: number;
+  squareFeet?: number;
+  yearBuilt?: number;
 }
 
 export interface Address {
