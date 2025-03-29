@@ -1,9 +1,10 @@
-
 import React, { createContext, useState, useContext } from "react";
 import { ListingStatus, PropertyType } from "@/types";
 import { provinces } from "@/utils/provinceData";
 
 export type FormSteps = "basic" | "features" | "media" | "documents" | "review";
+
+export type PropertyCondition = "excellent" | "good" | "fair" | "needs_renovation";
 
 export interface ListingFormData {
   title: string;
@@ -26,6 +27,14 @@ export interface ListingFormData {
   documents: File[];
   documentNames: string[];
   status: ListingStatus;
+  propertyCondition?: PropertyCondition;
+  recentUpgrades?: string;
+  utilityInformation?: string;
+  fees?: string;
+  energyEfficient?: boolean;
+  parkingDetails?: string;
+  specialAmenities?: string;
+  confirmationChecked: boolean;
 }
 
 const initialFormData: ListingFormData = {
@@ -49,6 +58,7 @@ const initialFormData: ListingFormData = {
   documents: [],
   documentNames: [],
   status: ListingStatus.PENDING,
+  confirmationChecked: false,
 };
 
 interface FormContextType {

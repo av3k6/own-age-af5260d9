@@ -32,6 +32,32 @@ const FormProgress = ({ currentStep, steps }: FormProgressProps) => {
           style={{ width: `${percentage}%` }}
         ></div>
       </div>
+      
+      <div className="flex justify-between mt-2">
+        {steps.map((step) => (
+          <div 
+            key={step.id} 
+            className={`flex flex-col items-center ${
+              step.position < currentPosition
+                ? "text-primary"
+                : step.position === currentPosition
+                ? "text-foreground"
+                : "text-muted-foreground"
+            }`}
+          >
+            <div 
+              className={`w-4 h-4 rounded-full ${
+                step.position < currentPosition
+                  ? "bg-primary"
+                  : step.position === currentPosition
+                  ? "border-2 border-primary"
+                  : "border-2 border-muted"
+              }`}
+            ></div>
+            <span className="text-xs mt-1 hidden sm:block">{step.title}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };

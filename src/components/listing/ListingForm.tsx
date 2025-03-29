@@ -4,13 +4,14 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSupabase } from "@/hooks/useSupabase";
 import { useToast } from "@/hooks/use-toast";
-import { FormProvider, useFormContext, FormSteps } from "./context/FormContext";
+import { FormProvider, useFormContext } from "./context/FormContext";
 import FormProgress from "./components/FormProgress";
 import BasicDetails from "./steps/BasicDetails";
 import PropertyFeatures from "./steps/PropertyFeatures";
 import MediaUpload from "./steps/MediaUpload";
 import DocumentUpload from "./steps/DocumentUpload";
 import ReviewAndPublish from "./steps/ReviewAndPublish";
+import OptionalPropertyDetails from "./components/OptionalPropertyDetails";
 
 const steps = [
   { id: "basic", title: "Basic Details", position: 1 },
@@ -21,7 +22,7 @@ const steps = [
 ];
 
 const ListingFormContent = () => {
-  const { currentStep, formData, updateFormData, goToNextStep, goToPreviousStep, isSubmitting, setIsSubmitting } = useFormContext();
+  const { currentStep, formData, goToNextStep, goToPreviousStep, isSubmitting, setIsSubmitting } = useFormContext();
   const { user } = useAuth();
   const { supabase, buckets } = useSupabase();
   const { toast } = useToast();
@@ -32,6 +33,15 @@ const ListingFormContent = () => {
       toast({
         title: "Error",
         description: "You must be logged in to publish a property",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!formData.confirmationChecked) {
+      toast({
+        title: "Confirmation Required",
+        description: "Please confirm that your listing information is accurate",
         variant: "destructive",
       });
       return;
@@ -108,7 +118,7 @@ const ListingFormContent = () => {
         }
       }
 
-      // 3. Insert the listing in the database
+      // 3. Insert the listing in the database with optional fields included
       const { data, error } = await supabase
         .from('property_listings')
         .insert({
@@ -126,6 +136,14 @@ const ListingFormContent = () => {
           documents: documentData,
           seller_id: user.id,
           status: formData.status,
+          // Optional fields
+          property_condition: formData.propertyCondition,
+          recent_upgrades: formData.recentUpgrades,
+          utility_information: formData.utilityInformation,
+          fees: formData.fees,
+          energy_efficient: formData.energyEfficient,
+          parking_details: formData.parkingDetails,
+          special_amenities: formData.specialAmenities,
           created_at: new Date(),
           updated_at: new Date()
         })
@@ -158,7 +176,10 @@ const ListingFormContent = () => {
       
       <div className="p-6">
         {currentStep === "basic" && (
-          <BasicDetails />
+          <>
+            <BasicDetails />
+            <OptionalPropertyDetails />
+          </>
         )}
         
         {currentStep === "features" && (
