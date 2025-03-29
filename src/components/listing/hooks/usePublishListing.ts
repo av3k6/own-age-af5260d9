@@ -138,7 +138,16 @@ export const usePublishListing = () => {
         })
         .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database error details:', error);
+        
+        // Check if the error is related to missing table
+        if (error.code === '42P01' || error.message.includes('relation') || error.statusCode === 404) {
+          throw new Error("The property_listings table doesn't exist in the database. Please create it first.");
+        }
+        
+        throw error;
+      }
 
       toast({
         title: "Success!",
@@ -149,11 +158,33 @@ export const usePublishListing = () => {
       navigate('/dashboard');
     } catch (error: any) {
       console.error('Error publishing listing:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to publish your listing",
-        variant: "destructive",
-      });
+      
+      // Provide more specific error messages based on error type
+      let errorMessage = "Failed to publish your listing";
+      
+      if (error.message && error.message.includes("property_listings table doesn't exist")) {
+        errorMessage = "The database is not set up correctly. The property_listings table needs to be created.";
+        
+        toast({
+          title: "Database Setup Required",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      } else if (error.code === "PGRST116" || error.statusCode === 404) {
+        errorMessage = "The property_listings table doesn't exist in your Supabase database. Please create it before publishing.";
+        
+        toast({
+          title: "Database Setup Required",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: error.message || errorMessage,
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsSubmitting(false);
     }
