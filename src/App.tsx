@@ -1,57 +1,106 @@
+import React, { useEffect, useState } from 'react';
+import {
+  BrowserRouter as Router,
+  Route,
+  Routes,
+  Navigate,
+} from 'react-router-dom';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { Toaster } from '@/components/ui/toaster';
+import Home from './pages/Home';
+import Buy from './pages/Buy';
+import Sell from './pages/Sell';
+import Dashboard from './pages/Dashboard';
+import Login from './pages/Login';
+import Signup from './pages/Signup';
+import Profile from './pages/Profile';
+import PropertyDetail from './pages/PropertyDetail';
+import MakeOffer from "./pages/MakeOffer";
+import EditListing from "./pages/EditListing";
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+function App() {
+  return (
+    <AuthProvider>
+      <Router>
+        <AppContent />
+      </Router>
+      <Toaster />
+    </AuthProvider>
+  );
+}
 
-// Auth Provider
-import { AuthProvider } from "./contexts/AuthContext";
-// Theme Provider
-import { ThemeProvider } from "./contexts/ThemeContext";
+function AppContent() {
+  const { user, loading } = useAuth();
+  const [isInitialized, setIsInitialized] = useState(false);
 
-// Layouts
-import Layout from "./pages/Layout";
+  useEffect(() => {
+    // Simulate initialization delay
+    setTimeout(() => {
+      setIsInitialized(true);
+    }, 500);
+  }, []);
 
-// Pages
-import Index from "./pages/Index";
-import Buy from "./pages/Buy";
-import Sell from "./pages/Sell";
-import PropertyDetail from "./pages/PropertyDetail";
-import Login from "./pages/Auth/Login";
-import Signup from "./pages/Auth/Signup";
-import Dashboard from "./pages/Dashboard";
-import Professionals from "./pages/Professionals";
-import NotFound from "./pages/NotFound";
+  if (!isInitialized) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p className="text-lg font-semibold">Loading...</p>
+      </div>
+    );
+  }
 
-const queryClient = new QueryClient();
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider>
-      <TooltipProvider>
-        <AuthProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Layout />}>
-                <Route index element={<Index />} />
-                <Route path="buy" element={<Buy />} />
-                <Route path="sell" element={<Sell />} />
-                <Route path="property/:id" element={<PropertyDetail />} />
-                <Route path="dashboard" element={<Dashboard />} />
-                <Route path="professionals" element={<Professionals />} />
-              </Route>
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </AuthProvider>
-      </TooltipProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
-);
+  return (
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/buy" element={<Buy />} />
+      <Route path="/property/:id" element={<PropertyDetail />} />
+      <Route
+        path="/sell"
+        element={
+          user ? (
+            <Sell />
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+      <Route
+        path="/dashboard"
+        element={
+          user ? (
+            <Dashboard />
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          user ? (
+            <Profile />
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        }
+      />
+      <Route
+        path="/login"
+        element={user ? <Navigate to="/dashboard" replace /> : <Login />}
+      />
+      <Route
+        path="/signup"
+        element={user ? <Navigate to="/dashboard" replace /> : <Signup />}
+      />
+      <Route
+        path="/property/:id/make-offer"
+        element={user ? <MakeOffer /> : <Navigate to="/login" replace />}
+      />
+      <Route
+        path="/property/:id/edit"
+        element={user ? <EditListing /> : <Navigate to="/login" replace />}
+      />
+    </Routes>
+  );
+}
 
 export default App;
