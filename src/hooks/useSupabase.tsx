@@ -12,14 +12,26 @@ export const useSupabase = () => {
         const { data, error } = await supabase.storage.listBuckets();
         if (error) {
           console.error('Error fetching buckets:', error);
+          // Set default "storage" bucket which is available in all Supabase projects
+          setBuckets(['storage']);
           return;
         }
         
         if (data) {
-          setBuckets(data.map(bucket => bucket.name));
+          const bucketNames = data.map(bucket => bucket.name);
+          // Make sure we always include the "storage" bucket as a fallback
+          if (!bucketNames.includes('storage')) {
+            bucketNames.push('storage');
+          }
+          setBuckets(bucketNames);
+        } else {
+          // If no data returned, default to "storage" bucket
+          setBuckets(['storage']);
         }
       } catch (err) {
         console.error('Failed to fetch buckets:', err);
+        // Set default "storage" bucket as fallback
+        setBuckets(['storage']);
       }
     };
     

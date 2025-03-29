@@ -50,29 +50,33 @@ const ListingFormContent = () => {
     setIsSubmitting(true);
 
     try {
-      // 1. Upload images to storage - use public folder as fallback if no dedicated bucket
+      // 1. Upload images to storage
       const imageUrls = [];
+      
+      // Try to use the default storage bucket as most Supabase projects will have this
+      const defaultBucket = 'storage';
       
       for (let i = 0; i < formData.images.length; i++) {
         const image = formData.images[i];
         const fileName = `${user.id}-${Date.now()}-${i}`;
-        
-        // Try to use property-images bucket if it exists, otherwise use public bucket
-        const bucketName = buckets.includes('property-images') ? 'property-images' : 'storage';
-        const folderPath = buckets.includes('property-images') ? 'public' : `${user.id}/property-images`;
+        const folderPath = `${user.id}/property-images`;
         
         try {
+          // Upload the image to the default bucket
           const { data, error } = await supabase.storage
-            .from(bucketName)
+            .from(defaultBucket)
             .upload(`${folderPath}/${fileName}`, image);
 
           if (error) throw error;
           
+          // Get the public URL
           const { data: urlData } = supabase.storage
-            .from(bucketName)
+            .from(defaultBucket)
             .getPublicUrl(`${folderPath}/${fileName}`);
           
           imageUrls.push(urlData.publicUrl);
+          
+          console.log(`Successfully uploaded image ${i+1}:`, urlData.publicUrl);
         } catch (uploadError: any) {
           console.error('Image upload error:', uploadError);
           toast({
@@ -93,24 +97,25 @@ const ListingFormContent = () => {
       for (let i = 0; i < formData.documents.length; i++) {
         const doc = formData.documents[i];
         const fileName = `${user.id}-${Date.now()}-${i}-${doc.name}`;
-        
-        // Try to use property-documents bucket if it exists, otherwise use regular storage
-        const bucketName = buckets.includes('property-documents') ? 'property-documents' : 'storage';
         const folderPath = `${user.id}/documents`;
         
         try {
           const { data, error } = await supabase.storage
-            .from(bucketName)
+            .from(defaultBucket)
             .upload(`${folderPath}/${fileName}`, doc);
 
           if (error) throw error;
+          
+          // Get the public URL
+          const { data: urlData } = supabase.storage
+            .from(defaultBucket)
+            .getPublicUrl(`${folderPath}/${fileName}`);
           
           documentData.push({
             name: doc.name,
             type: doc.type,
             size: doc.size,
-            url: `${folderPath}/${fileName}`,
-            bucket: bucketName
+            url: urlData.publicUrl
           });
         } catch (uploadError: any) {
           console.error('Document upload error:', uploadError);
