@@ -3,12 +3,11 @@ import React, { useState } from "react";
 import { formatDate } from "@/lib/formatters";
 import { PropertyRoomDetails as PropertyRoomDetailsType, Room } from "@/types";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { levelOptions } from "@/components/listing/steps/property-features/utils/propertyFeatures";
-import { Pencil, X, Plus, Save } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import RoomList from "./rooms/RoomList";
+import AddRoomForm from "./rooms/AddRoomForm";
+import MeasurementUnitSelector from "./rooms/MeasurementUnitSelector";
 
 interface RoomsTabProps {
   bedrooms?: Room[];
@@ -34,38 +33,19 @@ const RoomsTab = ({
   onRoomChange,
 }: RoomsTabProps) => {
   const { toast } = useToast();
-  const [editingRoomIndex, setEditingRoomIndex] = useState<number | null>(null);
-  const [editingRoomType, setEditingRoomType] = useState<'bedroom' | 'otherRoom' | null>(null);
-  const [editedRoom, setEditedRoom] = useState<Room | null>(null);
   const [isAddingRoom, setIsAddingRoom] = useState(false);
-  const [newRoomType, setNewRoomType] = useState<'bedroom' | 'otherRoom'>('bedroom');
-  const [newRoom, setNewRoom] = useState<Room>({ name: '', level: 'Main Floor', dimensions: '' });
   
-  // Start editing a room
-  const startEditRoom = (index: number, type: 'bedroom' | 'otherRoom', room: Room) => {
-    setEditingRoomIndex(index);
-    setEditingRoomType(type);
-    setEditedRoom({ ...room });
-  };
-  
-  // Cancel editing
-  const cancelEdit = () => {
-    setEditingRoomIndex(null);
-    setEditingRoomType(null);
-    setEditedRoom(null);
-  };
-  
-  // Save edited room
-  const saveEditedRoom = () => {
-    if (!editedRoom || editingRoomIndex === null || !editingRoomType || !onRoomChange) return;
+  // Handle room edit
+  const handleRoomEdit = (index: number, type: 'bedroom' | 'otherRoom', editedRoom: Room) => {
+    if (!onRoomChange) return;
     
     let updatedBedrooms = [...bedrooms];
     let updatedOtherRooms = [...otherRooms];
     
-    if (editingRoomType === 'bedroom') {
-      updatedBedrooms[editingRoomIndex] = editedRoom;
+    if (type === 'bedroom') {
+      updatedBedrooms[index] = editedRoom;
     } else {
-      updatedOtherRooms[editingRoomIndex] = editedRoom;
+      updatedOtherRooms[index] = editedRoom;
     }
     
     onRoomChange(updatedBedrooms, updatedOtherRooms);
@@ -73,11 +53,10 @@ const RoomsTab = ({
       title: "Room updated",
       description: "Room details have been updated successfully.",
     });
-    cancelEdit();
   };
   
   // Delete a room
-  const deleteRoom = (index: number, type: 'bedroom' | 'otherRoom') => {
+  const handleRoomDelete = (index: number, type: 'bedroom' | 'otherRoom') => {
     if (!onRoomChange) return;
     
     let updatedBedrooms = [...bedrooms];
@@ -97,7 +76,7 @@ const RoomsTab = ({
   };
   
   // Add a new room
-  const addNewRoom = () => {
+  const handleRoomAdd = (newRoom: Room, type: 'bedroom' | 'otherRoom') => {
     if (!newRoom.name.trim() || !onRoomChange) {
       toast({
         title: "Invalid room",
@@ -110,107 +89,18 @@ const RoomsTab = ({
     let updatedBedrooms = [...bedrooms];
     let updatedOtherRooms = [...otherRooms];
     
-    if (newRoomType === 'bedroom') {
+    if (type === 'bedroom') {
       updatedBedrooms.push({ ...newRoom });
     } else {
       updatedOtherRooms.push({ ...newRoom });
     }
     
     onRoomChange(updatedBedrooms, updatedOtherRooms);
-    setNewRoom({ name: '', level: 'Main Floor', dimensions: '' });
     setIsAddingRoom(false);
     toast({
       title: "Room added",
-      description: `New ${newRoomType === 'bedroom' ? 'bedroom' : 'room'} has been added successfully.`,
+      description: `New ${type === 'bedroom' ? 'bedroom' : 'room'} has been added successfully.`,
     });
-  };
-  
-  const renderRoomList = (rooms: Room[], type: 'bedroom' | 'otherRoom') => {
-    return (
-      <div className="space-y-4">
-        {rooms.map((room, index) => {
-          // Check if this room is being edited
-          const isEditing = editingRoomIndex === index && editingRoomType === type;
-          
-          return (
-            <Card key={`${room.name}-${index}`} className="p-4">
-              {isEditing ? (
-                <div className="flex flex-col space-y-3">
-                  <Input 
-                    placeholder="Room name" 
-                    value={editedRoom?.name || ''} 
-                    onChange={(e) => setEditedRoom(prev => prev ? {...prev, name: e.target.value} : null)} 
-                  />
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <Select
-                        value={editedRoom?.level || 'Main Floor'}
-                        onValueChange={(val) => setEditedRoom(prev => prev ? {...prev, level: val} : null)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {levelOptions.map(level => (
-                            <SelectItem key={level} value={level}>{level}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <Input 
-                      placeholder={`Dimensions (${measurementUnit})`}
-                      value={editedRoom?.dimensions || ''} 
-                      onChange={(e) => setEditedRoom(prev => prev ? {...prev, dimensions: e.target.value} : null)} 
-                    />
-                  </div>
-                  <div className="flex justify-end gap-2 pt-2">
-                    <Button variant="outline" size="sm" onClick={cancelEdit}>
-                      Cancel
-                    </Button>
-                    <Button size="sm" onClick={saveEditedRoom}>
-                      <Save className="h-4 w-4 mr-1" /> Save
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex flex-col space-y-2">
-                  <div className="flex justify-between items-center">
-                    <h4 className="font-medium">{room.name}</h4>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-muted-foreground">
-                        {type === 'bedroom' ? 'Bedroom' : 'Room'}
-                      </span>
-                      {canEdit && (
-                        <>
-                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => startEditRoom(index, type, room)}>
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => deleteRoom(index, type)}>
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div>
-                      <span className="text-muted-foreground">Level: </span>
-                      {room.level}
-                    </div>
-                    {room.dimensions && (
-                      <div>
-                        <span className="text-muted-foreground">Dimensions: </span>
-                        {room.dimensions} {measurementUnit}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-            </Card>
-          );
-        })}
-      </div>
-    );
   };
 
   if (!bedrooms.length && !otherRooms.length && !isAddingRoom && !canEdit) {
@@ -238,92 +128,42 @@ const RoomsTab = ({
             </Button>
           )}
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">Measurement Unit:</span>
-          <select 
-            value={measurementUnit}
-            onChange={(e) => setMeasurementUnit(e.target.value)}
-            className="px-3 py-1 border rounded-md text-sm text-foreground bg-background"
-          >
-            <option value="Feet">Feet</option>
-            <option value="Meters">Meters</option>
-          </select>
-        </div>
+        <MeasurementUnitSelector 
+          measurementUnit={measurementUnit} 
+          setMeasurementUnit={setMeasurementUnit} 
+        />
       </div>
       
       {isAddingRoom && (
-        <Card className="p-4 mb-6">
-          <div className="flex flex-col space-y-3">
-            <div className="flex justify-between items-center">
-              <h4 className="font-medium">Add New Room</h4>
-              <Select
-                value={newRoomType}
-                onValueChange={(val: 'bedroom' | 'otherRoom') => setNewRoomType(val)}
-              >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="bedroom">Bedroom</SelectItem>
-                  <SelectItem value="otherRoom">Other Room</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <Input 
-              placeholder="Room name"
-              value={newRoom.name} 
-              onChange={(e) => setNewRoom(prev => ({...prev, name: e.target.value}))} 
-            />
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <Select
-                  value={newRoom.level}
-                  onValueChange={(val) => setNewRoom(prev => ({...prev, level: val}))}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {levelOptions.map(level => (
-                      <SelectItem key={level} value={level}>{level}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <Input 
-                placeholder={`Dimensions (${measurementUnit})`}
-                value={newRoom.dimensions || ''} 
-                onChange={(e) => setNewRoom(prev => ({...prev, dimensions: e.target.value}))} 
-              />
-            </div>
-            <div className="flex justify-end gap-2 pt-2">
-              <Button variant="outline" onClick={() => setIsAddingRoom(false)}>
-                Cancel
-              </Button>
-              <Button onClick={addNewRoom}>
-                <Plus className="h-4 w-4 mr-1" /> Add
-              </Button>
-            </div>
-          </div>
-        </Card>
+        <AddRoomForm
+          measurementUnit={measurementUnit}
+          onRoomAdd={handleRoomAdd}
+          onCancel={() => setIsAddingRoom(false)}
+        />
       )}
       
       {bedrooms.length > 0 && (
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">
-            Bedrooms ({bedrooms.length})
-          </h3>
-          {renderRoomList(bedrooms, 'bedroom')}
-        </div>
+        <RoomList
+          title="Bedrooms"
+          rooms={bedrooms}
+          type="bedroom"
+          measurementUnit={measurementUnit}
+          canEdit={canEdit}
+          onRoomEdit={handleRoomEdit}
+          onRoomDelete={handleRoomDelete}
+        />
       )}
       
       {otherRooms.length > 0 && (
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">
-            Other Rooms ({otherRooms.length})
-          </h3>
-          {renderRoomList(otherRooms, 'otherRoom')}
-        </div>
+        <RoomList
+          title="Other Rooms"
+          rooms={otherRooms}
+          type="otherRoom"
+          measurementUnit={measurementUnit}
+          canEdit={canEdit}
+          onRoomEdit={handleRoomEdit}
+          onRoomDelete={handleRoomDelete}
+        />
       )}
     </div>
   );
