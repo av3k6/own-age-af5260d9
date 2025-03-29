@@ -39,5 +39,5 @@ export const getFeatureIcon = (feature: string) => {
     k.toLowerCase().includes(feature.toLowerCase())
   );
   
-  return key ? icons[featureIconMap[key]] : icons.HomeIcon; // Changed to HomeIcon
+  return key ? icons[featureIconMap[key]] : icons.Home; // Changed from HomeIcon to Home
 };
