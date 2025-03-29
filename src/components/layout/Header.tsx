@@ -13,6 +13,10 @@ const Header = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // Get user's full name from metadata or fall back to email username
+  const userDisplayName = user?.user_metadata?.full_name || 
+                          (user?.email ? user.email.split('@')[0] : 'User');
+
   const handleSignOut = async () => {
     try {
       await signOut();
@@ -77,7 +81,7 @@ const Header = () => {
             <>
               <Button variant="ghost" size="sm" className="flex items-center gap-2">
                 <User className="h-4 w-4" />
-                <span className="text-sm font-medium">{user.email?.split('@')[0]}</span>
+                <span className="text-sm font-medium">{userDisplayName}</span>
               </Button>
               <Button variant="ghost" size="sm" onClick={handleSignOut} className="flex items-center gap-2">
                 <LogOut className="h-4 w-4" />
@@ -144,7 +148,7 @@ const Header = () => {
               <div className="flex flex-col space-y-2 pt-2">
                 <div className="text-foreground py-2 flex items-center gap-2">
                   <User className="h-4 w-4" />
-                  <span>{user.email?.split('@')[0]}</span>
+                  <span>{userDisplayName}</span>
                 </div>
                 <Button onClick={handleSignOut} className="flex items-center justify-center gap-2">
                   <LogOut className="h-4 w-4" />
