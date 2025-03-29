@@ -21,7 +21,7 @@ export default function PropertyDetailView({ property }: PropertyDetailViewProps
   const [selectedImage, setSelectedImage] = useState<string>(property.images[0]);
 
   // Sample room data for demonstration
-  const bedroomData = [
+  const bedroomData = property.roomDetails?.bedrooms || [
     { name: 'Primary bedroom', level: 'Second', dimensions: '4.04 x 8.66' },
     { name: 'Bedroom', level: 'Basement', dimensions: '4.65 x 3.82' },
     { name: 'Bedroom 2', level: 'Second', dimensions: '4.98 x 5.08' },
@@ -30,7 +30,7 @@ export default function PropertyDetailView({ property }: PropertyDetailViewProps
     { name: 'Bedroom 5', level: 'Second', dimensions: '3.64 x 4.78' },
   ];
   
-  const otherRoomData = [
+  const otherRoomData = property.roomDetails?.otherRooms || [
     { name: 'Breakfast', level: 'Main', dimensions: '3.27 x 4.2' },
     { name: 'Dining room', level: 'Main', dimensions: '3.63 x 5.4' },
     { name: 'Exercise room', level: 'Basement', dimensions: '7.17 x 3.93' },
@@ -42,6 +42,48 @@ export default function PropertyDetailView({ property }: PropertyDetailViewProps
     { name: 'Recreation', level: 'Basement', dimensions: '8.91 x 4.5' },
     { name: 'Workshop', level: 'Basement', dimensions: '4.01 x 3.17' },
   ];
+
+  // Sample property details data
+  const propertyDetails = property.roomDetails || {
+    construction: 'Brick',
+    basement: 'Finished',
+    pool: 'Above Ground',
+    driveway: 'Private Double',
+    garageType: 'Attached',
+    garageSpaces: 3,
+    totalParkingSpaces: 12,
+    parkingFeatures: ['Private Double', 'Garage Door Opener'],
+    frontage: '70',
+    depth: '180',
+    lotSize: '70 x 180 feet',
+    lotSizeCode: 'Feet',
+    crossStreet: 'Adelaide Ave W / Stevenson Rd N',
+    water: 'Municipal',
+    cooling: 'Central Air',
+    heating: 'Forced Air',
+    heatingFuel: 'Gas',
+    sewer: 'Sewer',
+    taxes: '$9,464',
+    taxYear: '2024',
+    style: '2-Storey',
+    frontingOn: 'East',
+    community: 'McLaughlin',
+    municipality: 'Oshawa',
+    kitchens: 1,
+    familyRoom: true,
+    centralVac: true,
+    fireplace: true,
+    listingNumber: 'E12040297',
+    dataSource: 'PROPTX',
+    daysOnMarket: 4,
+    propertyDaysOnMarket: 31,
+    statusChange: '3 days ago',
+    listedOn: new Date('2025-03-25'),
+    updatedOn: new Date('2025-03-26'),
+    predictedDaysOnMarket: 20,
+    marketDemand: 'balanced',
+    listingBrokerage: 'DAN PLOWMAN TEAM REALTY INC.'
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -78,23 +120,9 @@ export default function PropertyDetailView({ property }: PropertyDetailViewProps
                 <PropertyRoomDetails 
                   bedrooms={bedroomData}
                   otherRooms={otherRoomData}
-                  heating="Forced Air, Gas"
-                  cooling="Central Air"
-                  appliances={[{ name: 'Included', value: 'Water Heater' }]}
-                  features={[
-                    { name: 'Central Vacuum', value: 'Yes' },
-                    { name: 'Basement', value: 'Finished' },
-                    { name: 'Has fireplace', value: 'Yes' }
-                  ]}
-                  parkingSpaces={12}
-                  parkingFeatures={['Private Double', 'Garage Door Opener']}
-                  hasGarage={true}
-                  accessibilityFeatures={['Bath Grab Bars']}
-                  stories={2}
-                  hasPool={true}
-                  poolFeatures={['Above Ground']}
-                  lotSize="0.29 Acres"
-                  parcelNumber="163010248"
+                  propertyDetails={propertyDetails}
+                  propertyTitle={property.title}
+                  propertyPrice={property.price}
                 />
               </div>
               <div className="mt-8">
