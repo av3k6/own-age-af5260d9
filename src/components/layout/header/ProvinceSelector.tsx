@@ -17,14 +17,54 @@ interface ProvinceSelectorProps {
 }
 
 const ProvinceSelector = ({ className = "" }: ProvinceSelectorProps) => {
-  const [selectedProvince, setSelectedProvince] = useState<string>("all");
+  const [selectedProvince, setSelectedProvince] = useState<string>("ON");
   const navigate = useNavigate();
 
-  // Load saved province from localStorage on component mount
+  // Try to get user's location on component mount
   useEffect(() => {
+    // First check if we have a saved province
     const savedProvince = localStorage.getItem("selectedProvince");
-    if (savedProvince) {
+    if (savedProvince && savedProvince !== "all") {
       setSelectedProvince(savedProvince);
+      return;
+    }
+    
+    // Try to get user's location
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          try {
+            // Call a geocoding service to get province from coordinates
+            const { latitude, longitude } = position.coords;
+            const response = await fetch(
+              `https://geocode.maps.co/reverse?lat=${latitude}&lon=${longitude}&format=json`
+            );
+            
+            if (response.ok) {
+              const data = await response.json();
+              // Extract province/state code from response
+              const stateCode = data.address?.state_code || "ON";
+              
+              // Check if the state code exists in our provinces list
+              const provinceExists = provinces.some(p => p.value === stateCode);
+              const newProvince = provinceExists ? stateCode : "ON";
+              
+              setSelectedProvince(newProvince);
+              localStorage.setItem("selectedProvince", newProvince);
+            }
+          } catch (error) {
+            console.error("Error getting location data:", error);
+            // Default to Ontario if geocoding fails
+            setSelectedProvince("ON");
+            localStorage.setItem("selectedProvince", "ON");
+          }
+        },
+        () => {
+          // Default to Ontario if user denies location
+          setSelectedProvince("ON");
+          localStorage.setItem("selectedProvince", "ON");
+        }
+      );
     }
   }, []);
 
@@ -48,7 +88,7 @@ const ProvinceSelector = ({ className = "" }: ProvinceSelectorProps) => {
       </SelectTrigger>
       <SelectContent className="bg-background border-primary/20">
         <SelectGroup>
-          {provinces.map((province) => (
+          {provinces.filter(province => province.value !== "all").map((province) => (
             <SelectItem key={province.value} value={province.value}>
               {province.label}
             </SelectItem>

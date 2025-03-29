@@ -19,33 +19,33 @@ const Header = () => {
   return (
     <header className="sticky top-0 z-50 bg-background border-b shadow-sm transition-colors duration-300">
       <div className="container flex items-center justify-between h-16 px-4 mx-auto">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1 pr-4">
           <HeaderLogo />
           
           {/* Province Filter Dropdown - Desktop */}
           {!isMobile && (
-            <div className="hidden md:flex ml-2">
+            <div className="ml-1">
               <ProvinceSelector className="w-[140px] h-9" />
             </div>
           )}
-          
-          {/* Navigation - Desktop */}
-          {!isMobile && (
-            <Navigation 
-              isAuthenticated={!!user} 
-              className="hidden md:flex items-center space-x-6" 
-            />
-          )}
         </div>
+        
+        {/* Navigation - Desktop */}
+        {!isMobile && (
+          <Navigation 
+            isAuthenticated={!!user} 
+            className="hidden md:flex items-center space-x-6 flex-1 justify-center" 
+          />
+        )}
 
         {/* Desktop Menu */}
         {!isMobile && (
-          <div className="hidden md:flex items-center space-x-4">
+          <div className="hidden md:flex items-center gap-1">
             <SearchBar />
-            <ThemeToggle />
             <Button variant="ghost" size="icon">
               <Bell className="h-5 w-5" />
             </Button>
+            <ThemeToggle />
             <UserMenu />
           </div>
         )}

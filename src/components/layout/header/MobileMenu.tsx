@@ -1,8 +1,8 @@
 
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Menu } from "lucide-react";
 import ProvinceSelector from "./ProvinceSelector";
-import Navigation from "./Navigation";
 import SearchBar from "./SearchBar";
 import UserMenu from "./UserMenu";
 import { useIsMobile } from "@/hooks/use-mobile";

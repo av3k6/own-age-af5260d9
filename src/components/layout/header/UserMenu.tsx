@@ -55,9 +55,9 @@ const UserMenu = ({ isMobile = false }: UserMenuProps) => {
     }
     
     return (
-      <>
+      <div className="flex items-center">
         <Link to="/login">
-          <Button variant="ghost" size="sm" className="ml-2 text-foreground hover:text-primary transition-colors">
+          <Button variant="ghost" size="sm" className="ml-1 text-foreground hover:text-primary transition-colors">
             Log in
           </Button>
         </Link>
@@ -67,7 +67,7 @@ const UserMenu = ({ isMobile = false }: UserMenuProps) => {
             Sign up
           </Button>
         </Link>
-      </>
+      </div>
     );
   }
 
@@ -87,16 +87,16 @@ const UserMenu = ({ isMobile = false }: UserMenuProps) => {
   }
 
   return (
-    <>
-      <Button variant="ghost" size="sm" className="flex items-center gap-2 text-foreground hover:text-primary transition-colors">
+    <div className="flex items-center">
+      <Button variant="ghost" size="sm" className="flex items-center gap-1 text-foreground hover:text-primary transition-colors">
         <User className="h-4 w-4" />
         <span className="text-sm font-medium">{userDisplayName}</span>
       </Button>
-      <Button variant="ghost" size="sm" onClick={handleSignOut} className="flex items-center gap-2 text-foreground hover:text-primary transition-colors">
+      <Button variant="ghost" size="sm" onClick={handleSignOut} className="flex items-center gap-1 text-foreground hover:text-primary transition-colors">
         <LogOut className="h-4 w-4" />
         <span>Sign out</span>
       </Button>
-    </>
+    </div>
   );
 };
 
