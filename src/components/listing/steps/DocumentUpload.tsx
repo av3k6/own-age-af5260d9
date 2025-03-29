@@ -1,15 +1,7 @@
-
 import { useRef } from "react";
-import { ListingFormData } from "../ListingForm";
 import { Button } from "@/components/ui/button";
 import { FileText, Upload, X, File } from "lucide-react";
-
-interface DocumentUploadProps {
-  formData: ListingFormData;
-  updateFormData: (data: Partial<ListingFormData>) => void;
-  onNext: () => void;
-  onBack: () => void;
-}
+import { useFormContext } from "../context/FormContext";
 
 function formatFileSize(bytes: number): string {
   if (bytes < 1024) return bytes + ' bytes';
@@ -17,12 +9,8 @@ function formatFileSize(bytes: number): string {
   else return (bytes / 1048576).toFixed(1) + ' MB';
 }
 
-const DocumentUpload = ({ 
-  formData, 
-  updateFormData, 
-  onNext, 
-  onBack 
-}: DocumentUploadProps) => {
+const DocumentUpload = () => {
+  const { formData, updateFormData, goToNextStep, goToPreviousStep } = useFormContext();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -53,7 +41,7 @@ const DocumentUpload = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onNext();
+    goToNextStep();
   };
 
   const getFileIcon = (fileName: string) => {
@@ -135,7 +123,7 @@ const DocumentUpload = ({
       </div>
 
       <div className="flex justify-between">
-        <Button type="button" variant="outline" onClick={onBack}>
+        <Button type="button" variant="outline" onClick={goToPreviousStep}>
           Back
         </Button>
         <Button type="submit">

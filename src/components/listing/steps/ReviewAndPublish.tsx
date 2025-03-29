@@ -1,27 +1,18 @@
-
-import { ListingFormData } from "../ListingForm";
+import { ListingStatus } from "@/types";
+import { formatCurrency } from "@/lib/formatters";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { formatCurrency } from "@/lib/formatters";
-import { ListingStatus } from "@/types";
 import { FileText, Check, Loader2 } from "lucide-react";
+import { useFormContext } from "../context/FormContext";
 
 interface ReviewAndPublishProps {
-  formData: ListingFormData;
-  updateFormData: (data: Partial<ListingFormData>) => void;
-  onBack: () => void;
   onPublish: () => Promise<void>;
-  isSubmitting: boolean;
 }
 
-const ReviewAndPublish = ({ 
-  formData, 
-  updateFormData, 
-  onBack,
-  onPublish,
-  isSubmitting
-}: ReviewAndPublishProps) => {
+const ReviewAndPublish = ({ onPublish }: ReviewAndPublishProps) => {
+  const { formData, updateFormData, goToPreviousStep, isSubmitting } = useFormContext();
+  
   const handleStatusChange = (status: ListingStatus) => {
     updateFormData({ status });
   };
@@ -163,7 +154,7 @@ const ReviewAndPublish = ({
       </div>
 
       <div className="flex justify-between pt-4 border-t">
-        <Button type="button" variant="outline" onClick={onBack} disabled={isSubmitting}>
+        <Button type="button" variant="outline" onClick={goToPreviousStep} disabled={isSubmitting}>
           Back
         </Button>
         <Button 

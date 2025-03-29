@@ -1,22 +1,10 @@
-
 import { useRef } from "react";
-import { ListingFormData } from "../ListingForm";
 import { Button } from "@/components/ui/button";
 import { Camera, Upload, X } from "lucide-react";
+import { useFormContext } from "../context/FormContext";
 
-interface MediaUploadProps {
-  formData: ListingFormData;
-  updateFormData: (data: Partial<ListingFormData>) => void;
-  onNext: () => void;
-  onBack: () => void;
-}
-
-const MediaUpload = ({ 
-  formData, 
-  updateFormData, 
-  onNext, 
-  onBack 
-}: MediaUploadProps) => {
+const MediaUpload = () => {
+  const { formData, updateFormData, goToNextStep, goToPreviousStep } = useFormContext();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -54,7 +42,7 @@ const MediaUpload = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onNext();
+    goToNextStep();
   };
 
   return (
@@ -118,7 +106,7 @@ const MediaUpload = ({
       </div>
 
       <div className="flex justify-between">
-        <Button type="button" variant="outline" onClick={onBack}>
+        <Button type="button" variant="outline" onClick={goToPreviousStep}>
           Back
         </Button>
         <Button type="submit" disabled={formData.images.length === 0}>

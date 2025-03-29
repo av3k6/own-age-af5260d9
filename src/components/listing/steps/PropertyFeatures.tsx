@@ -1,18 +1,10 @@
-
 import { useState } from "react";
-import { ListingFormData } from "../ListingForm";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Bed, Bath, AreaChart, Calendar } from "lucide-react";
-
-interface PropertyFeaturesProps {
-  formData: ListingFormData;
-  updateFormData: (data: Partial<ListingFormData>) => void;
-  onNext: () => void;
-  onBack: () => void;
-}
+import { useFormContext } from "../context/FormContext";
 
 const commonFeatures = [
   { id: "garage", label: "Garage" },
@@ -32,17 +24,13 @@ const commonFeatures = [
   { id: "wheelchair", label: "Wheelchair Accessible" }
 ];
 
-const PropertyFeatures = ({ 
-  formData, 
-  updateFormData, 
-  onNext, 
-  onBack 
-}: PropertyFeaturesProps) => {
+const PropertyFeatures = () => {
+  const { formData, updateFormData, goToNextStep, goToPreviousStep } = useFormContext();
   const [customFeature, setCustomFeature] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onNext();
+    goToNextStep();
   };
 
   const toggleFeature = (feature: string) => {
@@ -196,7 +184,7 @@ const PropertyFeatures = ({
       )}
 
       <div className="flex justify-between">
-        <Button type="button" variant="outline" onClick={onBack}>
+        <Button type="button" variant="outline" onClick={goToPreviousStep}>
           Back
         </Button>
         <Button type="submit" disabled={!isFormValid()}>

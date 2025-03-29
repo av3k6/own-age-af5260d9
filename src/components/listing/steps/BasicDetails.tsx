@@ -1,6 +1,4 @@
-
 import { PropertyType } from "@/types";
-import { ListingFormData } from "../ListingForm";
 import { provinces } from "@/utils/provinceData";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,12 +12,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Home, Building2, Building, TreePine, Warehouse } from "lucide-react";
-
-interface BasicDetailsProps {
-  formData: ListingFormData;
-  updateFormData: (data: Partial<ListingFormData>) => void;
-  onNext: () => void;
-}
+import { useFormContext } from "../context/FormContext";
 
 const propertyTypes = [
   { value: PropertyType.HOUSE, label: "House", icon: Home },
@@ -31,10 +24,12 @@ const propertyTypes = [
   { value: PropertyType.OTHER, label: "Other", icon: Building },
 ];
 
-const BasicDetails = ({ formData, updateFormData, onNext }: BasicDetailsProps) => {
+const BasicDetails = () => {
+  const { formData, updateFormData, goToNextStep } = useFormContext();
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onNext();
+    goToNextStep();
   };
 
   const isFormValid = () => {
