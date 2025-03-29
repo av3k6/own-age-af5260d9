@@ -7,8 +7,8 @@ const HowItWorks = () => {
       title: "Browse & Research",
       description: "Search properties based on your criteria and view detailed information including photos, virtual tours, and neighborhood data.",
       icon: (
-        <div className="bg-zen-blue-100 p-3 rounded-full">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-zen-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="bg-zen-blue-100 dark:bg-zen-blue-900 p-3 rounded-full">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-zen-blue-600 dark:text-zen-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
         </div>
@@ -18,8 +18,8 @@ const HowItWorks = () => {
       title: "Schedule Showings",
       description: "Arrange property viewings directly with sellers through our integrated scheduling system. No agents required.",
       icon: (
-        <div className="bg-zen-teal-100 p-3 rounded-full">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-zen-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="bg-zen-teal-100 dark:bg-zen-teal-900 p-3 rounded-full">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-zen-teal-600 dark:text-zen-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
         </div>
@@ -29,8 +29,8 @@ const HowItWorks = () => {
       title: "Make Offers",
       description: "Submit and negotiate offers directly through our platform with our guided offer creation system.",
       icon: (
-        <div className="bg-zen-green-100 p-3 rounded-full">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-zen-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="bg-zen-green-100 dark:bg-zen-green-900 p-3 rounded-full">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-zen-green-600 dark:text-zen-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
@@ -40,8 +40,8 @@ const HowItWorks = () => {
       title: "Finalize & Close",
       description: "Complete your transaction with secure document sharing and electronic signatures, all on our platform.",
       icon: (
-        <div className="bg-zen-gray-100 p-3 rounded-full">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-zen-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="bg-zen-gray-100 dark:bg-zen-gray-800 p-3 rounded-full">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-zen-gray-600 dark:text-zen-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
@@ -50,11 +50,11 @@ const HowItWorks = () => {
   ];
 
   return (
-    <section className="py-12 bg-white">
+    <section className="py-12 bg-white dark:bg-gray-800 transition-colors duration-300">
       <div className="container px-4 mx-auto">
         <div className="text-center mb-10">
-          <h2 className="text-3xl font-bold text-zen-gray-800">How It Works</h2>
-          <p className="mt-2 text-lg text-zen-gray-600">
+          <h2 className="text-3xl font-bold text-zen-gray-800 dark:text-white">How It Works</h2>
+          <p className="mt-2 text-lg text-zen-gray-600 dark:text-gray-300">
             Our agent-free platform makes real estate transactions simple and transparent
           </p>
         </div>
@@ -63,16 +63,16 @@ const HowItWorks = () => {
           {steps.map((step, index) => (
             <div key={index} className="text-center">
               <div className="flex justify-center mb-4">{step.icon}</div>
-              <h3 className="text-xl font-semibold text-zen-gray-800 mb-2">{step.title}</h3>
-              <p className="text-zen-gray-600">{step.description}</p>
+              <h3 className="text-xl font-semibold text-zen-gray-800 dark:text-white mb-2">{step.title}</h3>
+              <p className="text-zen-gray-600 dark:text-gray-300">{step.description}</p>
             </div>
           ))}
         </div>
 
-        <div className="mt-16 bg-zen-blue-50 rounded-xl p-6 md:p-8 lg:p-10">
+        <div className="mt-16 bg-zen-blue-50 dark:bg-gray-700 rounded-xl p-6 md:p-8 lg:p-10 transition-colors duration-300">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
             <div>
-              <h3 className="text-2xl font-bold text-zen-gray-800 mb-4">
+              <h3 className="text-2xl font-bold text-zen-gray-800 dark:text-white mb-4">
                 Why Choose Our Platform?
               </h3>
               <ul className="space-y-3">
@@ -85,8 +85,8 @@ const HowItWorks = () => {
                   "Electronic signatures",
                 ].map((benefit, index) => (
                   <li key={index} className="flex items-start">
-                    <Check className="h-5 w-5 text-zen-blue-500 mr-2 mt-0.5" />
-                    <span className="text-zen-gray-700">{benefit}</span>
+                    <Check className="h-5 w-5 text-zen-blue-500 dark:text-zen-blue-400 mr-2 mt-0.5" />
+                    <span className="text-zen-gray-700 dark:text-gray-200">{benefit}</span>
                   </li>
                 ))}
               </ul>

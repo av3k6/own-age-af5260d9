@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 
 const CallToAction = () => {
   return (
-    <section className="py-12 bg-white">
+    <section className="py-12 bg-white dark:bg-gray-800 transition-colors duration-300">
       <div className="container px-4 mx-auto">
-        <div className="bg-gradient-to-r from-zen-blue-500 to-zen-teal-500 rounded-2xl overflow-hidden shadow-xl">
+        <div className="bg-gradient-to-r from-zen-blue-500 to-zen-teal-500 dark:from-zen-blue-600 dark:to-zen-teal-600 rounded-2xl overflow-hidden shadow-xl">
           <div className="flex flex-col md:flex-row">
             <div className="p-8 md:p-12 md:w-3/5">
               <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
@@ -16,11 +16,11 @@ const CallToAction = () => {
                 Join thousands of buyers and sellers who are saving money and enjoying a stress-free real estate experience with our platform.
               </p>
               <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
-                <Button className="bg-white text-zen-blue-600 hover:bg-blue-50">
+                <Button className="bg-white text-zen-blue-600 hover:bg-blue-50 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 transition-colors duration-300">
                   Get Started
                 </Button>
                 <Link to="/how-it-works">
-                  <Button variant="outline" className="border-white text-white hover:bg-blue-600">
+                  <Button variant="outline" className="border-white text-white hover:bg-blue-600 dark:border-gray-400 dark:hover:bg-blue-700 transition-colors duration-300">
                     Learn More
                   </Button>
                 </Link>

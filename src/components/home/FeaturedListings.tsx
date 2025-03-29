@@ -14,11 +14,11 @@ const FeaturedListings = () => {
   }, []);
 
   return (
-    <section className="py-12 bg-gray-50">
+    <section className="py-12 bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
       <div className="container px-4 mx-auto">
         <div className="text-center mb-10">
-          <h2 className="text-3xl font-bold text-zen-gray-800">Featured Properties</h2>
-          <p className="mt-2 text-lg text-zen-gray-600">
+          <h2 className="text-3xl font-bold text-zen-gray-800 dark:text-white">Featured Properties</h2>
+          <p className="mt-2 text-lg text-zen-gray-600 dark:text-gray-300">
             Discover our hand-picked selection of exceptional properties
           </p>
         </div>
