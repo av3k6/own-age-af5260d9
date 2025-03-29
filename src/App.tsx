@@ -7,6 +7,7 @@ import {
   Navigate,
 } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import { Toaster } from '@/components/ui/toaster';
 import Home from './pages/Index';
 import Buy from './pages/Buy';
@@ -24,10 +25,12 @@ import NotFound from './pages/NotFound';
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <AppContent />
-      </Router>
-      <Toaster />
+      <ThemeProvider>
+        <Router>
+          <AppContent />
+        </Router>
+        <Toaster />
+      </ThemeProvider>
     </AuthProvider>
   );
 }
