@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom"; 
 import { ListingStatus, PropertyType } from "@/types";
@@ -65,7 +64,7 @@ const ListingForm = () => {
   const [formData, setFormData] = useState<ListingFormData>(initialFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { user } = useAuth();
-  const { supabase } = useSupabase();
+  const { supabase, buckets } = useSupabase();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -111,41 +110,6 @@ const ListingForm = () => {
     }
   };
 
-  // Function to ensure buckets exist before uploading
-  const ensureBucketsExist = async () => {
-    try {
-      // Create a function to check and create a bucket if it doesn't exist
-      const createBucketIfNotExists = async (bucketName: string, isPublic: boolean) => {
-        const { data: buckets } = await supabase.storage.listBuckets();
-        const bucketExists = buckets?.some(bucket => bucket.name === bucketName);
-        
-        if (!bucketExists) {
-          const { error } = await supabase.storage.createBucket(bucketName, {
-            public: isPublic,
-            fileSizeLimit: 10485760, // 10MB
-          });
-          
-          if (error) throw error;
-          console.log(`Bucket ${bucketName} created successfully`);
-        }
-      };
-      
-      // Create both buckets
-      await createBucketIfNotExists('property-images', true);  // Public for property images
-      await createBucketIfNotExists('property-documents', false);  // Private for property documents
-      
-      return true;
-    } catch (error: any) {
-      console.error('Error creating buckets:', error);
-      toast({
-        title: "Storage Error",
-        description: "Failed to setup storage for your listing. Please try again.",
-        variant: "destructive",
-      });
-      return false;
-    }
-  };
-
   const handlePublish = async () => {
     if (!user) {
       toast({
@@ -159,49 +123,76 @@ const ListingForm = () => {
     setIsSubmitting(true);
 
     try {
-      // First, ensure the buckets exist
-      const bucketsReady = await ensureBucketsExist();
-      if (!bucketsReady) {
-        setIsSubmitting(false);
-        return;
+      // Skip bucket creation - check if they exist in available buckets
+      // We'll upload directly and handle errors if buckets don't exist
+      
+      // 1. Upload images to storage - use public folder as fallback if no dedicated bucket
+      const imageUrls = [];
+      
+      for (let i = 0; i < formData.images.length; i++) {
+        const image = formData.images[i];
+        const fileName = `${user.id}-${Date.now()}-${i}`;
+        
+        // Try to use property-images bucket if it exists, otherwise use public bucket
+        const bucketName = buckets.includes('property-images') ? 'property-images' : 'storage';
+        const folderPath = buckets.includes('property-images') ? 'public' : `${user.id}/property-images`;
+        
+        try {
+          const { data, error } = await supabase.storage
+            .from(bucketName)
+            .upload(`${folderPath}/${fileName}`, image);
+
+          if (error) throw error;
+          
+          const { data: urlData } = supabase.storage
+            .from(bucketName)
+            .getPublicUrl(`${folderPath}/${fileName}`);
+          
+          imageUrls.push(urlData.publicUrl);
+        } catch (uploadError: any) {
+          console.error('Image upload error:', uploadError);
+          toast({
+            title: "Upload Warning",
+            description: `Failed to upload image ${i+1}. Continuing with other images.`,
+            variant: "destructive",
+          });
+        }
       }
 
-      // 1. Upload images to storage
-      const imagePromises = formData.images.map(async (image, index) => {
-        const fileName = `${user.id}-${Date.now()}-${index}`;
-        const { data, error } = await supabase.storage
-          .from('property-images')
-          .upload(`public/${fileName}`, image);
-
-        if (error) throw error;
-        
-        const { data: urlData } = supabase.storage
-          .from('property-images')
-          .getPublicUrl(`public/${fileName}`);
-        
-        return urlData.publicUrl;
-      });
-
-      const imageUrls = await Promise.all(imagePromises);
+      if (imageUrls.length === 0 && formData.images.length > 0) {
+        throw new Error("Failed to upload any images. Please try again.");
+      }
 
       // 2. Upload documents to storage (if any)
-      const documentPromises = formData.documents.map(async (doc, index) => {
-        const fileName = `${user.id}-${Date.now()}-${index}-${doc.name}`;
-        const { data, error } = await supabase.storage
-          .from('property-documents')
-          .upload(`${user.id}/${fileName}`, doc);
-
-        if (error) throw error;
+      const documentData = [];
+      
+      for (let i = 0; i < formData.documents.length; i++) {
+        const doc = formData.documents[i];
+        const fileName = `${user.id}-${Date.now()}-${i}-${doc.name}`;
         
-        return {
-          name: doc.name,
-          type: doc.type,
-          size: doc.size,
-          url: fileName
-        };
-      });
+        // Try to use property-documents bucket if it exists, otherwise use regular storage
+        const bucketName = buckets.includes('property-documents') ? 'property-documents' : 'storage';
+        const folderPath = `${user.id}/documents`;
+        
+        try {
+          const { data, error } = await supabase.storage
+            .from(bucketName)
+            .upload(`${folderPath}/${fileName}`, doc);
 
-      const documentData = await Promise.all(documentPromises);
+          if (error) throw error;
+          
+          documentData.push({
+            name: doc.name,
+            type: doc.type,
+            size: doc.size,
+            url: `${folderPath}/${fileName}`,
+            bucket: bucketName
+          });
+        } catch (uploadError: any) {
+          console.error('Document upload error:', uploadError);
+          // Continue with other documents
+        }
+      }
 
       // 3. Insert the listing in the database
       const { data, error } = await supabase
@@ -266,7 +257,6 @@ const ListingForm = () => {
           </div>
         </div>
         
-        {/* Progress bar */}
         <div className="w-full bg-gray-200 dark:bg-gray-600 h-2 mt-4 rounded-full overflow-hidden">
           <div 
             className="bg-primary h-full transition-all duration-300 ease-in-out"

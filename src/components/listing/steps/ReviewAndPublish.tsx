@@ -1,12 +1,11 @@
 
-import { useState } from "react";
 import { ListingFormData } from "../ListingForm";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { formatCurrency } from "@/lib/formatters";
 import { ListingStatus } from "@/types";
-import { FileText, Check } from "lucide-react";
+import { FileText, Check, Loader2 } from "lucide-react";
 
 interface ReviewAndPublishProps {
   formData: ListingFormData;
@@ -164,7 +163,7 @@ const ReviewAndPublish = ({
       </div>
 
       <div className="flex justify-between pt-4 border-t">
-        <Button type="button" variant="outline" onClick={onBack}>
+        <Button type="button" variant="outline" onClick={onBack} disabled={isSubmitting}>
           Back
         </Button>
         <Button 
@@ -173,7 +172,10 @@ const ReviewAndPublish = ({
           className="gap-2"
         >
           {isSubmitting ? (
-            <>Processing...</>
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Processing...
+            </>
           ) : (
             <>
               <Check className="h-4 w-4" />
