@@ -15,7 +15,7 @@ export const featureIconMap: Record<string, keyof typeof icons> = {
   "Smart TV": "Tv",
   "Security System": "Shield",
   "Pet Friendly": "Cat",
-  "Garden": "PalmTree",
+  "Garden": "Tree", // Changed from PalmTree to Tree
   "Storage Space": "Warehouse",
   "Elevator": "Building",
   "Wheelchair Accessible": "Accessibility",
@@ -39,5 +39,5 @@ export const getFeatureIcon = (feature: string) => {
     k.toLowerCase().includes(feature.toLowerCase())
   );
   
-  return key ? icons[featureIconMap[key]] : icons.Home2; // Default to Home2 icon if no match found
+  return key ? icons[featureIconMap[key]] : icons.Home; // Changed from Home2 to Home
 };
