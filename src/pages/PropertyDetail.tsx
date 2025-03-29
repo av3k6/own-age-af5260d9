@@ -6,6 +6,7 @@ import { PropertyListing } from "@/types";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/formatters";
 import { Calendar, Home, Info, MessageSquare, Phone, User } from "lucide-react";
+import ScheduleShowingDialog from "@/components/property/ScheduleShowingDialog";
 
 const PropertyDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -123,10 +124,10 @@ const PropertyDetail = () => {
                 </div>
                 
                 <div className="space-y-3">
-                  <Button className="w-full">
-                    <Calendar className="h-4 w-4 mr-2" />
-                    Schedule a Showing
-                  </Button>
+                  <ScheduleShowingDialog 
+                    propertyId={property.id} 
+                    propertyTitle={property.title}
+                  />
                   
                   <Button variant="outline" className="w-full">
                     <MessageSquare className="h-4 w-4 mr-2" />
