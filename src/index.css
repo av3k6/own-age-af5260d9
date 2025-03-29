@@ -55,7 +55,7 @@
     --popover: 240 10% 3.9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 210 100% 34%;
+    --primary: 210 100% 54%; /* Brightened primary for dark mode */
     --primary-foreground: 210 40% 98%;
 
     --secondary: 175 60% 39%;
@@ -98,7 +98,7 @@
 
 @layer components {
   .property-card {
-    @apply relative overflow-hidden bg-white border rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300;
+    @apply relative overflow-hidden bg-card border rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300;
   }
   
   .property-image {
@@ -110,18 +110,18 @@
   }
   
   .badge-primary {
-    @apply bg-zen-blue-100 text-zen-blue-800;
+    @apply bg-zen-blue-100 text-zen-blue-800 dark:bg-zen-blue-800 dark:text-zen-blue-100;
   }
   
   .badge-secondary {
-    @apply bg-zen-teal-100 text-zen-teal-800;
+    @apply bg-zen-teal-100 text-zen-teal-800 dark:bg-zen-teal-800 dark:text-zen-teal-100;
   }
   
   .badge-accent {
-    @apply bg-zen-green-100 text-zen-green-800;
+    @apply bg-zen-green-100 text-zen-green-800 dark:bg-zen-green-800 dark:text-zen-green-100;
   }
   
   .badge-gray {
-    @apply bg-zen-gray-100 text-zen-gray-800;
+    @apply bg-zen-gray-100 text-zen-gray-800 dark:bg-zen-gray-800 dark:text-zen-gray-100;
   }
 }

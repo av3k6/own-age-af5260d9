@@ -18,7 +18,7 @@ const Dashboard = () => {
     return (
       <div className="container py-10">
         <div className="w-full h-40 flex items-center justify-center">
-          <p className="text-zinc-500">Loading your dashboard...</p>
+          <p className="text-muted-foreground">Loading your dashboard...</p>
         </div>
       </div>
     );
@@ -26,7 +26,7 @@ const Dashboard = () => {
 
   return (
     <div className="container py-10">
-      <h1 className="text-3xl font-bold text-center mb-8">Your Dashboard</h1>
+      <h1 className="text-3xl font-bold text-center mb-8 text-foreground">Your Dashboard</h1>
       
       <div className="grid gap-6">
         <UserProfile />
