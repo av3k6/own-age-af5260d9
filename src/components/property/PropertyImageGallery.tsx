@@ -1,4 +1,6 @@
 
+import React, { useState } from 'react';
+
 interface PropertyImageGalleryProps {
   images: string[];
   title: string;  // Changed from propertyTitle for consistency
@@ -8,7 +10,7 @@ export default function PropertyImageGallery({
   images,
   title
 }: PropertyImageGalleryProps) {
-  const [selectedImage, setSelectedImage] = React.useState(images[0] || '');
+  const [selectedImage, setSelectedImage] = useState(images[0] || '');
 
   const handleSelectImage = (image: string) => {
     setSelectedImage(image);
