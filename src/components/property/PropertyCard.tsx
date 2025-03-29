@@ -22,12 +22,17 @@ const PropertyCard = ({ property }: PropertyCardProps) => {
     status,
   } = property;
 
+  // Use a placeholder image if no images are available
+  const imageUrl = images && images.length > 0 
+    ? images[0] 
+    : "/placeholder.svg";
+
   return (
     <Link to={`/property/${id}`}>
       <div className="property-card group bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-all overflow-hidden">
         <div className="relative">
           <img
-            src={images[0]}
+            src={imageUrl}
             alt={title}
             className="property-image w-full h-48 object-cover"
           />
@@ -39,7 +44,13 @@ const PropertyCard = ({ property }: PropertyCardProps) => {
           </div>
           
           <div className="absolute top-2 right-2">
-            <Badge variant={status === 'active' ? 'secondary' : 'outline'} className="bg-green-500 hover:bg-green-500 text-white">
+            <Badge 
+              variant={status === 'active' ? 'secondary' : 'outline'} 
+              className={status === 'active' ? 'bg-green-500 hover:bg-green-500 text-white' : 
+                       status === 'pending' ? 'bg-yellow-500 hover:bg-yellow-500 text-white' :
+                       status === 'sold' ? 'bg-blue-500 hover:bg-blue-500 text-white' : 
+                       'bg-gray-500 hover:bg-gray-500 text-white'}
+            >
               {status.charAt(0).toUpperCase() + status.slice(1)}
             </Badge>
           </div>
@@ -55,7 +66,7 @@ const PropertyCard = ({ property }: PropertyCardProps) => {
           </p>
           
           <p className="text-zen-gray-600 dark:text-gray-300 mt-1 line-clamp-1">
-            {address.street}, {address.city}, {address.state}
+            {address?.street}, {address?.city}, {address?.state}
           </p>
           
           <div className="flex justify-between mt-3 text-zen-gray-600 dark:text-gray-300">
@@ -77,7 +88,7 @@ const PropertyCard = ({ property }: PropertyCardProps) => {
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
               </svg>
-              {squareFeet.toLocaleString()} ft²
+              {squareFeet?.toLocaleString()} ft²
             </span>
           </div>
         </div>

@@ -21,6 +21,7 @@ import PropertyDetail from "./pages/PropertyDetail";
 import Login from "./pages/Auth/Login";
 import Signup from "./pages/Auth/Signup";
 import Dashboard from "./pages/Dashboard";
+import Professionals from "./pages/Professionals";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -40,6 +41,7 @@ const App = () => (
                 <Route path="sell" element={<Sell />} />
                 <Route path="property/:id" element={<PropertyDetail />} />
                 <Route path="dashboard" element={<Dashboard />} />
+                <Route path="professionals" element={<Professionals />} />
               </Route>
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
