@@ -56,40 +56,42 @@ const ListingFormContent = () => {
       // Try to use the default storage bucket as most Supabase projects will have this
       const defaultBucket = 'storage';
       
-      for (let i = 0; i < formData.images.length; i++) {
-        const image = formData.images[i];
-        const fileName = `${user.id}-${Date.now()}-${i}`;
-        const folderPath = `${user.id}/property-images`;
-        
-        try {
-          // Upload the image to the default bucket
-          const { data, error } = await supabase.storage
-            .from(defaultBucket)
-            .upload(`${folderPath}/${fileName}`, image);
+      // Only try to upload images if there are any
+      if (formData.images.length > 0) {
+        for (let i = 0; i < formData.images.length; i++) {
+          const image = formData.images[i];
+          const fileName = `${user.id}-${Date.now()}-${i}`;
+          const folderPath = `${user.id}/property-images`;
+          
+          try {
+            // Upload the image to the default bucket
+            const { data, error } = await supabase.storage
+              .from(defaultBucket)
+              .upload(`${folderPath}/${fileName}`, image);
 
-          if (error) throw error;
-          
-          // Get the public URL
-          const { data: urlData } = supabase.storage
-            .from(defaultBucket)
-            .getPublicUrl(`${folderPath}/${fileName}`);
-          
-          imageUrls.push(urlData.publicUrl);
-          
-          console.log(`Successfully uploaded image ${i+1}:`, urlData.publicUrl);
-        } catch (uploadError: any) {
-          console.error('Image upload error:', uploadError);
-          toast({
-            title: "Upload Warning",
-            description: `Failed to upload image ${i+1}. Continuing with other images.`,
-            variant: "destructive",
-          });
+            if (error) throw error;
+            
+            // Get the public URL
+            const { data: urlData } = supabase.storage
+              .from(defaultBucket)
+              .getPublicUrl(`${folderPath}/${fileName}`);
+            
+            imageUrls.push(urlData.publicUrl);
+            
+            console.log(`Successfully uploaded image ${i+1}:`, urlData.publicUrl);
+          } catch (uploadError: any) {
+            console.error('Image upload error:', uploadError);
+            toast({
+              title: "Upload Warning",
+              description: `Failed to upload image ${i+1}. Continuing with other images.`,
+              variant: "destructive",
+            });
+          }
         }
       }
 
-      if (imageUrls.length === 0 && formData.images.length > 0) {
-        throw new Error("Failed to upload any images. Please try again.");
-      }
+      // Remove the validation that fails when no images are uploaded successfully
+      // (this was the previous blocker for listings without images)
 
       // 2. Upload documents to storage (if any)
       const documentData = [];

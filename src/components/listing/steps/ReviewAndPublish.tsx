@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { FileText, Check, Loader2, Info, AlertTriangle } from "lucide-react";
+import { FileText, Check, Loader2, Info, AlertTriangle, Image } from "lucide-react";
 import { useFormContext, PropertyCondition } from "../context/FormContext";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useState } from "react";
@@ -194,22 +194,29 @@ const ReviewAndPublish = ({ onPublish }: ReviewAndPublishProps) => {
 
         <div className="space-y-2">
           <h3 className="text-lg font-medium">Photos</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-            {formData.imageUrls.map((url, index) => (
-              <div key={index} className="relative">
-                <img
-                  src={url}
-                  alt={`Property image ${index + 1}`}
-                  className="w-full h-24 object-cover rounded-md"
-                />
-                {index === 0 && (
-                  <div className="absolute bottom-0 left-0 right-0 bg-primary text-primary-foreground text-xs py-1 text-center">
-                    Primary Photo
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
+          {formData.imageUrls.length > 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              {formData.imageUrls.map((url, index) => (
+                <div key={index} className="relative">
+                  <img
+                    src={url}
+                    alt={`Property image ${index + 1}`}
+                    className="w-full h-24 object-cover rounded-md"
+                  />
+                  {index === 0 && (
+                    <div className="absolute bottom-0 left-0 right-0 bg-primary text-primary-foreground text-xs py-1 text-center">
+                      Primary Photo
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="p-4 bg-muted/50 rounded-md flex items-center gap-3">
+              <Image className="h-5 w-5 text-muted-foreground" />
+              <p className="text-muted-foreground italic">No photos uploaded</p>
+            </div>
+          )}
         </div>
 
         {formData.documents.length > 0 && (

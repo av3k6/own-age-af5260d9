@@ -1,3 +1,4 @@
+
 import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Camera, Upload, X } from "lucide-react";
@@ -73,6 +74,12 @@ const MediaUpload = () => {
           <p className="text-xs text-muted-foreground mt-2">
             Tip: High-quality photos increase buyer interest. Add images of all rooms, exterior, and special features.
           </p>
+          
+          {formData.images.length === 0 && (
+            <p className="text-xs text-amber-600 mt-2">
+              Photos are optional but recommended. You can proceed without uploading any photos.
+            </p>
+          )}
         </div>
 
         {formData.imageUrls.length > 0 && (
@@ -109,7 +116,7 @@ const MediaUpload = () => {
         <Button type="button" variant="outline" onClick={goToPreviousStep}>
           Back
         </Button>
-        <Button type="submit" disabled={formData.images.length === 0}>
+        <Button type="submit">
           Next Step
         </Button>
       </div>
