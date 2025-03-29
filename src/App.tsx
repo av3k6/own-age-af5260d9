@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import {
   BrowserRouter as Router,
@@ -7,12 +8,12 @@ import {
 } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { Toaster } from '@/components/ui/toaster';
-import Home from './pages/Home';
+import Home from './pages/Index';
 import Buy from './pages/Buy';
 import Sell from './pages/Sell';
 import Dashboard from './pages/Dashboard';
-import Login from './pages/Login';
-import Signup from './pages/Signup';
+import Login from './pages/Auth/Login';
+import Signup from './pages/Auth/Signup';
 import Profile from './pages/Profile';
 import PropertyDetail from './pages/PropertyDetail';
 import MakeOffer from "./pages/MakeOffer";
