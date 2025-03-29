@@ -1,9 +1,8 @@
 
 // Canadian provinces with abbreviations
 export const provinces = [
-  { value: "all", label: "All Provinces" },
-  { value: "ON", label: "ON" },
   { value: "BC", label: "BC" },
+  { value: "ON", label: "ON" },
   { value: "AB", label: "AB" },
   { value: "QC", label: "QC" },
   { value: "MB", label: "MB" },

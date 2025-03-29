@@ -24,9 +24,8 @@ const ProvinceSelector = ({ className = "" }: ProvinceSelectorProps) => {
   useEffect(() => {
     // First check if we have a saved province
     const savedProvince = localStorage.getItem("selectedProvince");
-    if (savedProvince && savedProvince !== "all") {
+    if (savedProvince) {
       setSelectedProvince(savedProvince);
-      return;
     }
     
     // Try to get user's location
@@ -42,27 +41,56 @@ const ProvinceSelector = ({ className = "" }: ProvinceSelectorProps) => {
             
             if (response.ok) {
               const data = await response.json();
-              // Extract province/state code from response
-              const stateCode = data.address?.state_code || "ON";
+              console.log("Geocoding response:", data); // Debug log
               
-              // Check if the state code exists in our provinces list
-              const provinceExists = provinces.some(p => p.value === stateCode);
-              const newProvince = provinceExists ? stateCode : "ON";
+              // Extract province/state from response
+              const stateCode = data.address?.state_code;
+              const state = data.address?.state;
               
-              setSelectedProvince(newProvince);
-              localStorage.setItem("selectedProvince", newProvince);
+              // Try to match the province code or name
+              let detectedProvince = "ON"; // Default
+              
+              if (stateCode) {
+                // Check if the state code exists in our provinces list
+                const provinceMatch = provinces.find(p => p.value === stateCode);
+                if (provinceMatch) {
+                  detectedProvince = stateCode;
+                }
+              } else if (state) {
+                // Try to match by full province name
+                const provinceMatch = provinces.find(p => 
+                  state.toLowerCase().includes(p.label.toLowerCase()) || 
+                  p.label.toLowerCase().includes(state.toLowerCase())
+                );
+                if (provinceMatch) {
+                  detectedProvince = provinceMatch.value;
+                }
+              }
+              
+              console.log("Detected province:", detectedProvince); // Debug log
+              
+              // Only update if it's different from current selection
+              if (detectedProvince !== selectedProvince) {
+                setSelectedProvince(detectedProvince);
+                localStorage.setItem("selectedProvince", detectedProvince);
+              }
             }
           } catch (error) {
             console.error("Error getting location data:", error);
             // Default to Ontario if geocoding fails
+            if (!savedProvince) {
+              setSelectedProvince("ON");
+              localStorage.setItem("selectedProvince", "ON");
+            }
+          }
+        },
+        (error) => {
+          console.error("Geolocation error:", error);
+          // Default to Ontario if user denies location
+          if (!savedProvince) {
             setSelectedProvince("ON");
             localStorage.setItem("selectedProvince", "ON");
           }
-        },
-        () => {
-          // Default to Ontario if user denies location
-          setSelectedProvince("ON");
-          localStorage.setItem("selectedProvince", "ON");
         }
       );
     }
