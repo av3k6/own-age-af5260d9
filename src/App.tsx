@@ -16,6 +16,7 @@ import Layout from "./pages/Layout";
 // Pages
 import Index from "./pages/Index";
 import Buy from "./pages/Buy";
+import Sell from "./pages/Sell";
 import PropertyDetail from "./pages/PropertyDetail";
 import Login from "./pages/Auth/Login";
 import Signup from "./pages/Auth/Signup";
@@ -36,6 +37,7 @@ const App = () => (
               <Route path="/" element={<Layout />}>
                 <Route index element={<Index />} />
                 <Route path="buy" element={<Buy />} />
+                <Route path="sell" element={<Sell />} />
                 <Route path="property/:id" element={<PropertyDetail />} />
                 <Route path="dashboard" element={<Dashboard />} />
               </Route>
