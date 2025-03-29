@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -7,6 +6,40 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useFormContext } from "../../../context/FormContext";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { commonPropertyFeatures } from "../utils/propertyFeatures";
+import { GarageIcon, Flame, Home, AirVent, Bath, Bed, WifiIcon, Tv, Waves, Shield, Cat, PalmtreeIcon, Warehouse, Building, Accessibility, HeartPulse } from "lucide-react";
+
+const featureIconMap: Record<string, any> = {
+  "Garage": GarageIcon,
+  "Fireplace": Flame,
+  "Basement": Home,
+  "Air Conditioning": AirVent,
+  "Swimming Pool": Waves,
+  "Central Heating": Flame,
+  "Bathroom": Bath,
+  "Bedroom": Bed,
+  "Wifi": WifiIcon,
+  "Smart TV": Tv,
+  "Security System": Shield,
+  "Pet Friendly": Cat,
+  "Garden": PalmtreeIcon,
+  "Storage Space": Warehouse,
+  "Elevator": Building,
+  "Wheelchair Accessible": Accessibility,
+  "Gym": HeartPulse,
+};
+
+const getFeatureIcon = (feature: string) => {
+  if (featureIconMap[feature]) {
+    return featureIconMap[feature];
+  }
+
+  const key = Object.keys(featureIconMap).find(k => 
+    feature.toLowerCase().includes(k.toLowerCase()) || 
+    k.toLowerCase().includes(feature.toLowerCase())
+  );
+  
+  return key ? featureIconMap[key] : Home;
+};
 
 const FeaturesTab = () => {
   const { formData, updateFormData } = useFormContext();
@@ -32,18 +65,24 @@ const FeaturesTab = () => {
       <div className="space-y-4">
         <Label>Property Features</Label>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-          {commonPropertyFeatures.map((feature) => (
-            <div key={feature.id} className="flex items-center space-x-2">
-              <Checkbox 
-                id={feature.id}
-                checked={formData.features.includes(feature.label)}
-                onCheckedChange={() => toggleFeature(feature.label)}
-              />
-              <Label htmlFor={feature.id} className="cursor-pointer">
-                {feature.label}
-              </Label>
-            </div>
-          ))}
+          {commonPropertyFeatures.map((feature) => {
+            const FeatureIcon = getFeatureIcon(feature.label);
+            return (
+              <div key={feature.id} className="flex items-center space-x-2">
+                <Checkbox 
+                  id={feature.id}
+                  checked={formData.features.includes(feature.label)}
+                  onCheckedChange={() => toggleFeature(feature.label)}
+                />
+                <div className="flex items-center space-x-2">
+                  <FeatureIcon className="h-4 w-4 text-muted-foreground" />
+                  <Label htmlFor={feature.id} className="cursor-pointer">
+                    {feature.label}
+                  </Label>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -70,21 +109,25 @@ const FeaturesTab = () => {
         <div className="space-y-2">
           <Label>Selected Features</Label>
           <div className="flex flex-wrap gap-2">
-            {formData.features.map((feature, index) => (
-              <div 
-                key={index} 
-                className="bg-secondary text-secondary-foreground px-3 py-1 rounded-full text-sm flex items-center gap-1"
-              >
-                {feature}
-                <button
-                  type="button"
-                  onClick={() => toggleFeature(feature)}
-                  className="text-secondary-foreground/70 hover:text-secondary-foreground ml-1"
+            {formData.features.map((feature, index) => {
+              const FeatureIcon = getFeatureIcon(feature);
+              return (
+                <div 
+                  key={index} 
+                  className="bg-secondary text-secondary-foreground px-3 py-1 rounded-full text-sm flex items-center gap-1"
                 >
-                  ×
-                </button>
-              </div>
-            ))}
+                  <FeatureIcon className="h-3 w-3 mr-1" />
+                  {feature}
+                  <button
+                    type="button"
+                    onClick={() => toggleFeature(feature)}
+                    className="text-secondary-foreground/70 hover:text-secondary-foreground ml-1"
+                  >
+                    ×
+                  </button>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
