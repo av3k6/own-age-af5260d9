@@ -24,12 +24,12 @@ const PropertyCard = ({ property }: PropertyCardProps) => {
 
   return (
     <Link to={`/property/${id}`}>
-      <div className="property-card group">
+      <div className="property-card group bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-all overflow-hidden">
         <div className="relative">
           <img
             src={images[0]}
             alt={title}
-            className="property-image"
+            className="property-image w-full h-48 object-cover"
           />
           
           <div className="absolute top-2 left-2">
