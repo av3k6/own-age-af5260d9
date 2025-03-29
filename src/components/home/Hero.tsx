@@ -4,11 +4,11 @@ import { Button } from "@/components/ui/button";
 
 const Hero = () => {
   return (
-    <div className="relative bg-white dark:bg-gray-800 transition-colors duration-300">
+    <div className="relative bg-white dark:bg-background transition-colors duration-300">
       <div className="mx-auto max-w-7xl">
-        <div className="relative z-10 bg-white dark:bg-gray-800 pb-8 sm:pb-16 md:pb-20 lg:w-full lg:max-w-2xl lg:pb-28 xl:pb-32 transition-colors duration-300">
+        <div className="relative z-10 bg-white dark:bg-background pb-8 sm:pb-16 md:pb-20 lg:w-full lg:max-w-2xl lg:pb-28 xl:pb-32 transition-colors duration-300">
           <svg
-            className="absolute inset-y-0 right-0 hidden h-full w-48 translate-x-1/2 transform text-white dark:text-gray-800 lg:block transition-colors duration-300"
+            className="absolute inset-y-0 right-0 hidden h-full w-48 translate-x-1/2 transform text-white dark:text-background lg:block transition-colors duration-300"
             fill="currentColor"
             viewBox="0 0 100 100"
             preserveAspectRatio="none"

@@ -50,7 +50,7 @@ const HowItWorks = () => {
   ];
 
   return (
-    <section className="py-12 bg-white dark:bg-gray-800 transition-colors duration-300">
+    <section className="py-12 bg-white dark:bg-background/90 transition-colors duration-300">
       <div className="container px-4 mx-auto">
         <div className="text-center mb-10">
           <h2 className="text-3xl font-bold text-zen-gray-800 dark:text-white">How It Works</h2>
@@ -69,7 +69,7 @@ const HowItWorks = () => {
           ))}
         </div>
 
-        <div className="mt-16 bg-zen-blue-50 dark:bg-gray-700 rounded-xl p-6 md:p-8 lg:p-10 transition-colors duration-300">
+        <div className="mt-16 bg-zen-blue-50 dark:bg-blue-900/20 rounded-xl p-6 md:p-8 lg:p-10 transition-colors duration-300">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
             <div>
               <h3 className="text-2xl font-bold text-zen-gray-800 dark:text-white mb-4">
