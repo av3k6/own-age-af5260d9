@@ -1,5 +1,6 @@
+
 import React, { createContext, useState, useContext } from "react";
-import { ListingStatus, PropertyType } from "@/types";
+import { ListingStatus, PropertyType, PropertyRoomDetails } from "@/types";
 import { provinces } from "@/utils/provinceData";
 
 export type FormSteps = "basic" | "features" | "media" | "documents" | "review";
@@ -34,6 +35,7 @@ export interface ListingFormData {
   energyEfficient?: boolean;
   parkingDetails?: string;
   specialAmenities?: string;
+  roomDetails?: PropertyRoomDetails;
   confirmationChecked: boolean;
 }
 
@@ -58,6 +60,7 @@ const initialFormData: ListingFormData = {
   documents: [],
   documentNames: [],
   status: ListingStatus.PENDING,
+  roomDetails: {},
   confirmationChecked: false,
 };
 
