@@ -17,6 +17,9 @@ export default function PropertyInformation({ property }: PropertyInformationPro
   const { user } = useAuth();
   const isOwner = user?.id === property.sellerId;
 
+  // Determine seller display name based on ownership
+  const sellerDisplayName = isOwner ? "Justin Redmond" : "Seller";
+
   return (
     <div className="bg-white border rounded-lg shadow-sm p-6">
       <div className="mb-6">
@@ -93,7 +96,7 @@ export default function PropertyInformation({ property }: PropertyInformationPro
         <div className="flex items-center mb-4">
           <User className="h-10 w-10 bg-zen-blue-100 text-zen-blue-500 p-2 rounded-full mr-3" />
           <div>
-            <h3 className="font-medium">Seller</h3>
+            <h3 className="font-medium">{sellerDisplayName}</h3>
             <p className="text-sm text-zen-gray-600">Property Owner</p>
           </div>
         </div>
