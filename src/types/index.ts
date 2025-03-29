@@ -42,6 +42,12 @@ export interface User {
   createdAt: Date;
 }
 
+export interface Room {
+  name: string;
+  level: string;
+  dimensions?: string;
+}
+
 export interface PropertyListing {
   id: string;
   title: string;
@@ -59,6 +65,16 @@ export interface PropertyListing {
   status: ListingStatus;
   createdAt: Date;
   updatedAt: Date;
+  roomDetails?: {
+    bedrooms?: Room[];
+    otherRooms?: Room[];
+    heating?: string;
+    cooling?: string;
+    appliances?: { name: string; value: string }[];
+    parkingSpaces?: number;
+    lotSize?: string;
+    stories?: number;
+  };
 }
 
 export interface Address {
