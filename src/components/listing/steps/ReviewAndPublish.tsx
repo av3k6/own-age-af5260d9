@@ -13,27 +13,22 @@ interface ReviewAndPublishProps {
   updateFormData: (data: Partial<ListingFormData>) => void;
   onBack: () => void;
   onPublish: () => Promise<void>;
+  isSubmitting: boolean;
 }
 
 const ReviewAndPublish = ({ 
   formData, 
   updateFormData, 
   onBack,
-  onPublish
+  onPublish,
+  isSubmitting
 }: ReviewAndPublishProps) => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
   const handleStatusChange = (status: ListingStatus) => {
     updateFormData({ status });
   };
 
   const handlePublish = async () => {
-    setIsSubmitting(true);
-    try {
-      await onPublish();
-    } finally {
-      setIsSubmitting(false);
-    }
+    await onPublish();
   };
 
   return (

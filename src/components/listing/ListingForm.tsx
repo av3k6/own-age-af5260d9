@@ -63,6 +63,7 @@ const initialFormData: ListingFormData = {
 const ListingForm = () => {
   const [currentStep, setCurrentStep] = useState<FormSteps>("basic");
   const [formData, setFormData] = useState<ListingFormData>(initialFormData);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { user } = useAuth();
   const { supabase } = useSupabase();
   const { toast } = useToast();
@@ -110,6 +111,41 @@ const ListingForm = () => {
     }
   };
 
+  // Function to ensure buckets exist before uploading
+  const ensureBucketsExist = async () => {
+    try {
+      // Create a function to check and create a bucket if it doesn't exist
+      const createBucketIfNotExists = async (bucketName: string, isPublic: boolean) => {
+        const { data: buckets } = await supabase.storage.listBuckets();
+        const bucketExists = buckets?.some(bucket => bucket.name === bucketName);
+        
+        if (!bucketExists) {
+          const { error } = await supabase.storage.createBucket(bucketName, {
+            public: isPublic,
+            fileSizeLimit: 10485760, // 10MB
+          });
+          
+          if (error) throw error;
+          console.log(`Bucket ${bucketName} created successfully`);
+        }
+      };
+      
+      // Create both buckets
+      await createBucketIfNotExists('property-images', true);  // Public for property images
+      await createBucketIfNotExists('property-documents', false);  // Private for property documents
+      
+      return true;
+    } catch (error: any) {
+      console.error('Error creating buckets:', error);
+      toast({
+        title: "Storage Error",
+        description: "Failed to setup storage for your listing. Please try again.",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
   const handlePublish = async () => {
     if (!user) {
       toast({
@@ -120,7 +156,16 @@ const ListingForm = () => {
       return;
     }
 
+    setIsSubmitting(true);
+
     try {
+      // First, ensure the buckets exist
+      const bucketsReady = await ensureBucketsExist();
+      if (!bucketsReady) {
+        setIsSubmitting(false);
+        return;
+      }
+
       // 1. Upload images to storage
       const imagePromises = formData.images.map(async (image, index) => {
         const fileName = `${user.id}-${Date.now()}-${index}`;
@@ -139,7 +184,7 @@ const ListingForm = () => {
 
       const imageUrls = await Promise.all(imagePromises);
 
-      // 2. Upload documents to storage
+      // 2. Upload documents to storage (if any)
       const documentPromises = formData.documents.map(async (doc, index) => {
         const fileName = `${user.id}-${Date.now()}-${index}-${doc.name}`;
         const { data, error } = await supabase.storage
@@ -197,6 +242,8 @@ const ListingForm = () => {
         description: error.message || "Failed to publish your listing",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -275,6 +322,7 @@ const ListingForm = () => {
             updateFormData={updateFormData} 
             onBack={goToPreviousStep}
             onPublish={handlePublish}
+            isSubmitting={isSubmitting}
           />
         )}
       </div>
