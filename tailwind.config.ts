@@ -63,7 +63,7 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Custom theme colors
+				// Custom theme colors with dark mode variants
 				"zen-blue": {
 					DEFAULT: "#235789",
 					50: "#e6f0f9",
@@ -143,6 +143,12 @@ export default {
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out'
+			},
+			transitionProperty: {
+				'colors': 'color, background-color, border-color, text-decoration-color, fill, stroke',
+			},
+			transitionDuration: {
+				'300': '300ms',
 			}
 		}
 	},

@@ -35,7 +35,7 @@ const Header = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-background border-b shadow-sm">
+    <header className="sticky top-0 z-50 bg-background border-b shadow-sm transition-colors duration-300">
       <div className="container flex items-center justify-between h-16 px-4 mx-auto">
         <div className="flex items-center gap-6">
           <Link to="/" className="flex items-center text-xl font-bold text-primary">
@@ -44,17 +44,17 @@ const Header = () => {
           </Link>
           
           <nav className="hidden md:flex items-center space-x-6">
-            <Link to="/buy" className="text-foreground hover:text-primary font-medium">
+            <Link to="/buy" className="text-foreground hover:text-primary font-medium transition-colors">
               Buy
             </Link>
-            <Link to="/sell" className="text-foreground hover:text-primary font-medium">
+            <Link to="/sell" className="text-foreground hover:text-primary font-medium transition-colors">
               Sell
             </Link>
-            <Link to="/professionals" className="text-foreground hover:text-primary font-medium">
+            <Link to="/professionals" className="text-foreground hover:text-primary font-medium transition-colors">
               Professionals
             </Link>
             {user && (
-              <Link to="/dashboard" className="text-foreground hover:text-primary font-medium">
+              <Link to="/dashboard" className="text-foreground hover:text-primary font-medium transition-colors">
                 Dashboard
               </Link>
             )}
@@ -67,7 +67,7 @@ const Header = () => {
             <input
               type="text"
               placeholder="Search properties..."
-              className="pl-10 pr-4 py-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-primary w-64 bg-background"
+              className="pl-10 pr-4 py-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-primary w-64 bg-background text-foreground transition-colors"
             />
           </div>
           
@@ -79,11 +79,11 @@ const Header = () => {
           
           {user ? (
             <>
-              <Button variant="ghost" size="sm" className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" className="flex items-center gap-2 text-foreground hover:text-primary transition-colors">
                 <User className="h-4 w-4" />
                 <span className="text-sm font-medium">{userDisplayName}</span>
               </Button>
-              <Button variant="ghost" size="sm" onClick={handleSignOut} className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" onClick={handleSignOut} className="flex items-center gap-2 text-foreground hover:text-primary transition-colors">
                 <LogOut className="h-4 w-4" />
                 <span>Sign out</span>
               </Button>
@@ -91,7 +91,7 @@ const Header = () => {
           ) : (
             <>
               <Link to="/login">
-                <Button variant="ghost" size="sm" className="ml-2">
+                <Button variant="ghost" size="sm" className="ml-2 text-foreground hover:text-primary transition-colors">
                   Log in
                 </Button>
               </Link>
@@ -108,7 +108,7 @@ const Header = () => {
         <div className="md:hidden flex items-center space-x-3">
           <ThemeToggle />
           <button
-            className="text-foreground"
+            className="text-foreground transition-colors"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
             <Menu className="h-6 w-6" />
@@ -118,19 +118,19 @@ const Header = () => {
 
       {/* Mobile menu */}
       {isMenuOpen && (
-        <div className="md:hidden px-4 py-3 bg-background border-b shadow-sm">
+        <div className="md:hidden px-4 py-3 bg-background border-b shadow-sm transition-colors">
           <div className="flex flex-col space-y-3">
-            <Link to="/buy" className="text-foreground hover:text-primary py-2">
+            <Link to="/buy" className="text-foreground hover:text-primary py-2 transition-colors">
               Buy
             </Link>
-            <Link to="/sell" className="text-foreground hover:text-primary py-2">
+            <Link to="/sell" className="text-foreground hover:text-primary py-2 transition-colors">
               Sell
             </Link>
-            <Link to="/professionals" className="text-foreground hover:text-primary py-2">
+            <Link to="/professionals" className="text-foreground hover:text-primary py-2 transition-colors">
               Professionals
             </Link>
             {user && (
-              <Link to="/dashboard" className="text-foreground hover:text-primary py-2">
+              <Link to="/dashboard" className="text-foreground hover:text-primary py-2 transition-colors">
                 Dashboard
               </Link>
             )}
@@ -140,13 +140,13 @@ const Header = () => {
               <input
                 type="text"
                 placeholder="Search properties..."
-                className="pl-10 pr-4 py-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-primary w-full bg-background"
+                className="pl-10 pr-4 py-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-primary w-full bg-background text-foreground transition-colors"
               />
             </div>
             
             {user ? (
               <div className="flex flex-col space-y-2 pt-2">
-                <div className="text-foreground py-2 flex items-center gap-2">
+                <div className="text-foreground py-2 flex items-center gap-2 transition-colors">
                   <User className="h-4 w-4" />
                   <span>{userDisplayName}</span>
                 </div>

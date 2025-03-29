@@ -6,13 +6,13 @@
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 250 10% 36%;
+    --foreground: 0 0% 0%;
 
     --card: 0 0% 100%;
-    --card-foreground: 250 10% 36%;
+    --card-foreground: 0 0% 0%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 250 10% 36%;
+    --popover-foreground: 0 0% 0%;
 
     --primary: 210 100% 34%;
     --primary-foreground: 210 40% 98%;
@@ -47,28 +47,28 @@
 
   .dark {
     --background: 240 10% 3.9%;
-    --foreground: 210 40% 98%;
+    --foreground: 0 0% 100%;
 
     --card: 240 10% 3.9%;
-    --card-foreground: 210 40% 98%;
+    --card-foreground: 0 0% 100%;
 
     --popover: 240 10% 3.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover-foreground: 0 0% 100%;
 
-    --primary: 210 100% 54%; /* Brightened primary for dark mode */
-    --primary-foreground: 210 40% 98%;
+    --primary: 210 100% 54%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 175 60% 39%;
+    --secondary: 175 70% 39%;
     --secondary-foreground: 0 0% 100%;
 
     --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
+    --muted-foreground: 240 5% 84.9%;
 
-    --accent: 84 61% 53%;
-    --accent-foreground: 84 61% 13%;
+    --accent: 84 61% 40%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 100%;
 
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
@@ -91,7 +91,7 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground transition-colors duration-300;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
