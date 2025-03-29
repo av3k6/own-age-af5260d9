@@ -18,8 +18,8 @@ const MeasurementUnitSelector = ({
         onChange={(e) => setMeasurementUnit(e.target.value)}
         className="px-3 py-1 border rounded-md text-sm text-foreground bg-background"
       >
-        <option value="Feet">Feet</option>
-        <option value="Meters">Meters</option>
+        <option value="Feet" className="text-foreground bg-background">Feet</option>
+        <option value="Meters" className="text-foreground bg-background">Meters</option>
       </select>
     </div>
   );
