@@ -7,7 +7,7 @@ import StepContent from "./StepContent";
 import { formSteps } from "../constants/formSteps";
 
 const ListingFormContent = () => {
-  const { currentStep, setIsSubmitting } = useFormContext();
+  const { currentStep, setIsSubmitting, formData } = useFormContext();
   const { isSubmitting, publishListing } = usePublishListing();
 
   // Update the form context with the submission state from our hook
@@ -16,7 +16,8 @@ const ListingFormContent = () => {
   }, [isSubmitting, setIsSubmitting]);
 
   const handlePublish = async () => {
-    const { formData } = useFormContext();
+    // Instead of calling useFormContext inside the function,
+    // we use the formData that we've already accessed at the component level
     await publishListing(formData);
   };
 
