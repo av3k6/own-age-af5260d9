@@ -7,14 +7,16 @@ import { PropertyType } from "@/types";
 interface PropertySimilarProps {
   currentPropertyId: string;
   propertyType: PropertyType;
+  city: string;
 }
 
-export default function PropertySimilar({ currentPropertyId, propertyType }: PropertySimilarProps) {
+export default function PropertySimilar({ currentPropertyId, propertyType, city }: PropertySimilarProps) {
   const similarProperties = mockListings
     .filter(
       (listing) =>
         listing.id !== currentPropertyId &&
-        listing.propertyType === propertyType
+        listing.propertyType === propertyType &&
+        listing.address.city === city
     )
     .slice(0, 3);
 

@@ -1,17 +1,19 @@
 
 interface PropertyImageGalleryProps {
   images: string[];
-  selectedImage: string;
-  onSelectImage: (image: string) => void;
-  title: string;
+  title: string;  // Changed from propertyTitle for consistency
 }
 
 export default function PropertyImageGallery({ 
-  images, 
-  selectedImage, 
-  onSelectImage,
-  title 
+  images,
+  title
 }: PropertyImageGalleryProps) {
+  const [selectedImage, setSelectedImage] = React.useState(images[0] || '');
+
+  const handleSelectImage = (image: string) => {
+    setSelectedImage(image);
+  };
+
   return (
     <>
       <div className="bg-gray-100 rounded-lg overflow-hidden mb-4">
@@ -31,7 +33,7 @@ export default function PropertyImageGallery({
                 ? "border-zen-blue-500"
                 : "border-transparent"
             }`}
-            onClick={() => onSelectImage(image)}
+            onClick={() => handleSelectImage(image)}
           >
             <img
               src={image}

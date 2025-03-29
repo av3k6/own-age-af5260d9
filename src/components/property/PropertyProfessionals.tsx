@@ -1,9 +1,12 @@
-
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Home, Info, User } from "lucide-react";
 
-export default function PropertyProfessionals() {
+interface PropertyProfessionalsProps {
+  propertyId: string;
+}
+
+export default function PropertyProfessionals({ propertyId }: PropertyProfessionalsProps) {
   return (
     <div className="bg-white border rounded-lg shadow-sm p-6 mb-6">
       <h2 className="text-xl font-bold text-zen-gray-800 mb-4">Connect with Professionals</h2>

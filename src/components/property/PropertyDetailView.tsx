@@ -17,7 +17,10 @@ interface PropertyDetailViewProps {
 const PropertyDetailView = ({ property }: PropertyDetailViewProps) => {
   return (
     <div className="max-w-7xl mx-auto px-4 pb-12 space-y-8">
-      <PropertyImageGallery images={property.images} propertyTitle={property.title} />
+      <PropertyImageGallery 
+        images={property.images} 
+        title={property.title}
+      />
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
@@ -42,7 +45,6 @@ const PropertyDetailView = ({ property }: PropertyDetailViewProps) => {
           <PropertySimilar
             currentPropertyId={property.id}
             propertyType={property.propertyType}
-            priceRange={{ min: property.price * 0.8, max: property.price * 1.2 }}
             city={property.address.city}
           />
         </div>
