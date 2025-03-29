@@ -1,13 +1,15 @@
 
 import React from "react";
 
+interface Step {
+  id: string;
+  title: string;
+  position: number;
+}
+
 interface FormProgressProps {
   currentStep: string;
-  steps: {
-    id: string;
-    title: string;
-    position: number;
-  }[];
+  steps: Step[];
 }
 
 const FormProgress = ({ currentStep, steps }: FormProgressProps) => {
