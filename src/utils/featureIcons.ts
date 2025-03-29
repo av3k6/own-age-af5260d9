@@ -5,7 +5,7 @@ import { icons } from "lucide-react";
 export const featureIconMap: Record<string, keyof typeof icons> = {
   "Garage": "Warehouse",
   "Fireplace": "Flame",
-  "Basement": "Home",
+  "Basement": "Building2",
   "Air Conditioning": "AirVent",
   "Swimming Pool": "Waves", 
   "Central Heating": "Flame",
@@ -15,11 +15,14 @@ export const featureIconMap: Record<string, keyof typeof icons> = {
   "Smart TV": "Tv",
   "Security System": "Shield",
   "Pet Friendly": "Cat",
-  "Garden": "PalmtreeIcon",
+  "Garden": "PalmTree",
   "Storage Space": "Warehouse",
   "Elevator": "Building",
   "Wheelchair Accessible": "Accessibility",
   "Gym": "Activity",
+  "Balcony": "Mountain",
+  "Parking Spot": "Car",
+  "Furnished": "Sofa",
   // Add more mappings as needed
 };
 
@@ -36,5 +39,5 @@ export const getFeatureIcon = (feature: string) => {
     k.toLowerCase().includes(feature.toLowerCase())
   );
   
-  return key ? icons[featureIconMap[key]] : icons.Home; // Default to Home icon if no match found
+  return key ? icons[featureIconMap[key]] : icons.Home2; // Default to Home2 icon if no match found
 };
