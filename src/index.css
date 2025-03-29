@@ -98,7 +98,7 @@
 
 @layer components {
   .property-card {
-    @apply relative overflow-hidden bg-card border rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300;
+    @apply relative overflow-hidden bg-card text-card-foreground border rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300;
   }
   
   .property-image {
@@ -123,5 +123,35 @@
   
   .badge-gray {
     @apply bg-zen-gray-100 text-zen-gray-800 dark:bg-zen-gray-800 dark:text-zen-gray-100;
+  }
+  
+  /* Property card styles for dark mode */
+  .property-card .property-title {
+    @apply text-lg font-semibold text-foreground;
+  }
+  
+  .property-card .property-price {
+    @apply text-primary font-bold;
+  }
+  
+  .property-card .property-address {
+    @apply text-muted-foreground text-sm;
+  }
+  
+  .property-card .property-features {
+    @apply text-foreground text-sm flex items-center gap-2;
+  }
+  
+  /* Status badges with proper dark mode support */
+  .status-badge {
+    @apply absolute top-2 right-2 z-10 px-2 py-1 rounded-md text-xs font-medium;
+  }
+  
+  .status-active {
+    @apply bg-green-500 text-white dark:bg-green-600;
+  }
+  
+  .property-type-badge {
+    @apply absolute top-2 left-2 z-10 px-2 py-1 rounded-md text-xs font-medium bg-primary/80 text-white;
   }
 }
