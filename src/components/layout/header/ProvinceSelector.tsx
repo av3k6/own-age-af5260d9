@@ -11,6 +11,8 @@ import {
   SelectValue
 } from "@/components/ui/select";
 import { provinces } from "@/utils/provinceData";
+import { useProvinceLocation } from "@/hooks/use-province-location";
+import { useToast } from "@/components/ui/use-toast";
 
 interface ProvinceSelectorProps {
   className?: string;
@@ -19,82 +21,32 @@ interface ProvinceSelectorProps {
 const ProvinceSelector = ({ className = "" }: ProvinceSelectorProps) => {
   const [selectedProvince, setSelectedProvince] = useState<string>("ON");
   const navigate = useNavigate();
+  const { toast } = useToast();
 
-  // Try to get user's location on component mount
+  // Check localStorage for a saved province
   useEffect(() => {
-    // First check if we have a saved province
     const savedProvince = localStorage.getItem("selectedProvince");
     if (savedProvince) {
       setSelectedProvince(savedProvince);
     }
-    
-    // Try to get user's location
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          try {
-            // Call a geocoding service to get province from coordinates
-            const { latitude, longitude } = position.coords;
-            const response = await fetch(
-              `https://geocode.maps.co/reverse?lat=${latitude}&lon=${longitude}&format=json`
-            );
-            
-            if (response.ok) {
-              const data = await response.json();
-              console.log("Geocoding response:", data); // Debug log
-              
-              // Extract province/state from response
-              const stateCode = data.address?.state_code;
-              const state = data.address?.state;
-              
-              // Try to match the province code or name
-              let detectedProvince = "ON"; // Default
-              
-              if (stateCode) {
-                // Check if the state code exists in our provinces list
-                const provinceMatch = provinces.find(p => p.value === stateCode);
-                if (provinceMatch) {
-                  detectedProvince = stateCode;
-                }
-              } else if (state) {
-                // Try to match by full province name
-                const provinceMatch = provinces.find(p => 
-                  state.toLowerCase().includes(p.label.toLowerCase()) || 
-                  p.label.toLowerCase().includes(state.toLowerCase())
-                );
-                if (provinceMatch) {
-                  detectedProvince = provinceMatch.value;
-                }
-              }
-              
-              console.log("Detected province:", detectedProvince); // Debug log
-              
-              // Only update if it's different from current selection
-              if (detectedProvince !== selectedProvince) {
-                setSelectedProvince(detectedProvince);
-                localStorage.setItem("selectedProvince", detectedProvince);
-              }
-            }
-          } catch (error) {
-            console.error("Error getting location data:", error);
-            // Default to Ontario if geocoding fails
-            if (!savedProvince) {
-              setSelectedProvince("ON");
-              localStorage.setItem("selectedProvince", "ON");
-            }
-          }
-        },
-        (error) => {
-          console.error("Geolocation error:", error);
-          // Default to Ontario if user denies location
-          if (!savedProvince) {
-            setSelectedProvince("ON");
-            localStorage.setItem("selectedProvince", "ON");
-          }
-        }
-      );
-    }
   }, []);
+
+  // Use our new hook to get the user's location
+  useProvinceLocation({
+    onLocationDetected: (province) => {
+      if (province && province !== selectedProvince) {
+        setSelectedProvince(province);
+        localStorage.setItem("selectedProvince", province);
+        
+        // Show a toast to inform the user
+        const provinceName = provinces.find(p => p.value === province)?.fullName || province;
+        toast({
+          title: "Location detected",
+          description: `Showing properties in ${provinceName}`,
+        });
+      }
+    }
+  });
 
   const handleProvinceChange = (value: string) => {
     setSelectedProvince(value);
@@ -106,9 +58,15 @@ const ProvinceSelector = ({ className = "" }: ProvinceSelectorProps) => {
     }
   };
 
+  // Find the current province for displaying the full name as tooltip
+  const currentProvince = provinces.find(p => p.value === selectedProvince);
+
   return (
     <Select value={selectedProvince} onValueChange={handleProvinceChange}>
-      <SelectTrigger className={`bg-background/50 dark:bg-background/30 border-primary/20 ${className}`}>
+      <SelectTrigger 
+        className={`bg-background/50 dark:bg-background/30 border-primary/20 ${className}`}
+        title={currentProvince?.fullName || "Select province"}
+      >
         <div className="flex items-center gap-2">
           <MapPin className="h-4 w-4 text-primary/70" />
           <SelectValue placeholder="Select province" />
@@ -116,8 +74,12 @@ const ProvinceSelector = ({ className = "" }: ProvinceSelectorProps) => {
       </SelectTrigger>
       <SelectContent className="bg-background border-primary/20">
         <SelectGroup>
-          {provinces.filter(province => province.value !== "all").map((province) => (
-            <SelectItem key={province.value} value={province.value}>
+          {provinces.map((province) => (
+            <SelectItem 
+              key={province.value} 
+              value={province.value}
+              title={province.fullName}
+            >
               {province.label}
             </SelectItem>
           ))}
