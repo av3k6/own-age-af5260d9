@@ -171,7 +171,7 @@ const MortgageCalculator = ({ propertyPrice }: MortgageCalculatorProps) => {
           <span className="text-2xl font-bold text-primary">{formatCurrency(monthlyPayment)}</span>
         </div>
         <div className="text-xs text-muted-foreground mt-2">
-          * Source: TransacZen - Providing reliable real estate data and tools.
+          * Source: TransacZen Haven - Providing reliable real estate data and tools.
         </div>
       </div>
       
@@ -281,7 +281,7 @@ const MortgageCalculator = ({ propertyPrice }: MortgageCalculatorProps) => {
         </div>
         
         <div className="text-xs text-muted-foreground mt-2">
-          * Source: TransacZen - Providing reliable real estate data and tools.
+          * Source: TransacZen Haven - Providing reliable real estate data and tools.
         </div>
       </div>
     </Card>
