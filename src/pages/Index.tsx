@@ -4,6 +4,7 @@ import FeaturedListings from "@/components/home/FeaturedListings";
 import HowItWorks from "@/components/home/HowItWorks";
 import Testimonials from "@/components/home/Testimonials";
 import CallToAction from "@/components/home/CallToAction";
+import SupabaseStatus from "@/components/auth/SupabaseStatus";
 
 const Index = () => {
   return (
@@ -13,6 +14,13 @@ const Index = () => {
       <HowItWorks />
       <Testimonials />
       <CallToAction />
+      
+      {/* Only visible during development */}
+      {import.meta.env.DEV && (
+        <div className="container mx-auto px-4 py-8">
+          <SupabaseStatus />
+        </div>
+      )}
     </div>
   );
 };
