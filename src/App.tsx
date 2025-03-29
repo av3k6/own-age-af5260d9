@@ -14,7 +14,7 @@ import Sell from './pages/Sell';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Auth/Login';
 import Signup from './pages/Auth/Signup';
-import Profile from './pages/Profile';
+import Profile from './pages/UserProfile'; // Changed from './pages/Profile' to './pages/UserProfile'
 import PropertyDetail from './pages/PropertyDetail';
 import MakeOffer from "./pages/MakeOffer";
 import EditListing from "./pages/EditListing";
