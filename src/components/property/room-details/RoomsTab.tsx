@@ -243,7 +243,7 @@ const RoomsTab = ({
           <select 
             value={measurementUnit}
             onChange={(e) => setMeasurementUnit(e.target.value)}
-            className="px-3 py-1 border rounded-md text-sm"
+            className="px-3 py-1 border rounded-md text-sm text-foreground bg-background"
           >
             <option value="Feet">Feet</option>
             <option value="Meters">Meters</option>
