@@ -142,7 +142,7 @@ export const usePublishListing = () => {
         console.error('Database error details:', error);
         
         // Check if the error is related to missing table
-        if (error.code === '42P01' || error.message.includes('relation') || error.statusCode === 404) {
+        if (error.code === '42P01' || error.message.includes('relation')) {
           throw new Error("The property_listings table doesn't exist in the database. Please create it first.");
         }
         
@@ -170,7 +170,7 @@ export const usePublishListing = () => {
           description: errorMessage,
           variant: "destructive",
         });
-      } else if (error.code === "PGRST116" || error.statusCode === 404) {
+      } else if (error.code === "PGRST116") {
         errorMessage = "The property_listings table doesn't exist in your Supabase database. Please create it before publishing.";
         
         toast({
