@@ -2,13 +2,17 @@
 import React from "react";
 import { formatDate } from "@/lib/formatters";
 import { PropertyRoomDetails as PropertyRoomDetailsType } from "@/types";
+import PropertyDetailSection from "./PropertyDetailSection";
 
 interface KeyFactsTabProps {
   propertyTitle?: string;
   propertyDetails?: PropertyRoomDetailsType;
+  listingStatus?: string;
 }
 
-const KeyFactsTab = ({ propertyTitle, propertyDetails }: KeyFactsTabProps) => {
+const KeyFactsTab = ({ propertyTitle, propertyDetails, listingStatus }: KeyFactsTabProps) => {
+  const isPending = listingStatus === 'pending';
+  
   return (
     <div>
       {propertyTitle && (
@@ -19,127 +23,105 @@ const KeyFactsTab = ({ propertyTitle, propertyDetails }: KeyFactsTabProps) => {
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
         <div className="space-y-4">
-          {propertyDetails?.taxes && (
-            <div className="flex justify-between border-b pb-2">
-              <span className="text-muted-foreground">Tax:</span>
-              <span>{propertyDetails.taxes} / {propertyDetails.taxYear || 'year'}</span>
-            </div>
-          )}
+          <PropertyDetailSection 
+            label="Tax"
+            value={propertyDetails?.taxes && `${propertyDetails.taxes} / ${propertyDetails.taxYear || 'year'}`}
+          />
           
-          {propertyDetails?.style && (
-            <div className="flex justify-between border-b pb-2">
-              <span className="text-muted-foreground">Property Type:</span>
-              <span>{propertyDetails.style}</span>
-            </div>
-          )}
+          <PropertyDetailSection 
+            label="Property Type"
+            value={propertyDetails?.style}
+          />
           
-          {propertyDetails?.lotSize && (
-            <div className="flex justify-between border-b pb-2">
-              <span className="text-muted-foreground">Lot Size:</span>
-              <span>{propertyDetails.lotSize}</span>
-            </div>
-          )}
+          <PropertyDetailSection 
+            label="Lot Size"
+            value={propertyDetails?.lotSize}
+          />
           
-          {propertyDetails?.totalParkingSpaces && (
-            <div className="flex justify-between border-b pb-2">
-              <span className="text-muted-foreground">Parking:</span>
-              <span>
-                {propertyDetails.garageType} {propertyDetails.garageSpaces} {propertyDetails.garageSpaces && propertyDetails.garageSpaces > 1 ? 'garages' : 'garage'}, 
-                total {propertyDetails.totalParkingSpaces} parkings
-              </span>
-            </div>
-          )}
+          <PropertyDetailSection 
+            label="Parking"
+            value={propertyDetails?.totalParkingSpaces && propertyDetails.garageType && propertyDetails.garageSpaces ? 
+              `${propertyDetails.garageType} ${propertyDetails.garageSpaces} ${propertyDetails.garageSpaces > 1 ? 'garages' : 'garage'}, total ${propertyDetails.totalParkingSpaces} parkings` : 
+              undefined}
+          />
           
-          {propertyDetails?.basement && (
-            <div className="flex justify-between border-b pb-2">
-              <span className="text-muted-foreground">Basement:</span>
-              <span>{propertyDetails.basement}</span>
-            </div>
-          )}
+          <PropertyDetailSection 
+            label="Basement"
+            value={propertyDetails?.basement}
+          />
         </div>
         
         <div className="space-y-4">
-          {propertyDetails?.listingNumber && (
-            <div className="flex justify-between border-b pb-2">
-              <span className="text-muted-foreground">Listing #:</span>
-              <span>{propertyDetails.listingNumber}</span>
-            </div>
-          )}
+          <PropertyDetailSection 
+            label="Listing #"
+            value={propertyDetails?.listingNumber}
+          />
           
-          {propertyDetails?.dataSource && (
-            <div className="flex justify-between border-b pb-2">
-              <span className="text-muted-foreground">Data Source:</span>
-              <span>{propertyDetails.dataSource}</span>
-            </div>
-          )}
+          <PropertyDetailSection 
+            label="Data Source"
+            value={propertyDetails?.dataSource}
+          />
+          
+          <PropertyDetailSection 
+            label="Predicted Days on Market"
+            value={propertyDetails?.predictedDaysOnMarket}
+          />
           
           {propertyDetails?.predictedDaysOnMarket !== undefined && (
-            <div className="flex justify-between border-b pb-2">
-              <span className="text-muted-foreground">Predicted Days on Market:</span>
-              <span>{propertyDetails.predictedDaysOnMarket}</span>
-            </div>
-          )}
-          
-          <div className="mt-4">
-            <div className="w-full bg-gray-200 rounded-full h-2.5">
-              <div className="relative w-full">
-                <span 
-                  className="absolute top-4 left-0 text-xs">
-                  Fast
-                </span>
-                <span 
-                  className="absolute top-4 left-1/2 -translate-x-1/2 text-xs">
-                  {propertyDetails?.predictedDaysOnMarket || 20} days
-                </span>
-                <span 
-                  className="absolute top-4 right-0 text-xs">
-                  Very Slow
-                </span>
+            <div className="mt-4">
+              <div className="w-full bg-gray-200 rounded-full h-2.5">
+                <div className="relative w-full">
+                  <span 
+                    className="absolute top-4 left-0 text-xs">
+                    Fast
+                  </span>
+                  <span 
+                    className="absolute top-4 left-1/2 -translate-x-1/2 text-xs">
+                    {propertyDetails?.predictedDaysOnMarket || 20} days
+                  </span>
+                  <span 
+                    className="absolute top-4 right-0 text-xs">
+                    Very Slow
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
-          
-          {propertyDetails?.listingBrokerage && (
-            <div className="flex justify-between border-b pb-2 mt-8">
-              <span className="text-muted-foreground">Listing Brokerage:</span>
-              <span>{propertyDetails.listingBrokerage}</span>
-            </div>
           )}
           
-          {propertyDetails?.daysOnMarket !== undefined && (
-            <div className="flex justify-between border-b pb-2">
-              <span className="text-muted-foreground">Days on Market:</span>
-              <span>{propertyDetails.daysOnMarket} days</span>
-            </div>
-          )}
+          <PropertyDetailSection 
+            label="Listing Brokerage"
+            value={propertyDetails?.listingBrokerage}
+          />
           
-          {propertyDetails?.propertyDaysOnMarket !== undefined && (
-            <div className="flex justify-between border-b pb-2">
-              <span className="text-muted-foreground">Property Days on Market:</span>
-              <span>{propertyDetails.propertyDaysOnMarket} days</span>
-            </div>
-          )}
+          <PropertyDetailSection 
+            label="Days on Market"
+            value={propertyDetails?.daysOnMarket ? `${propertyDetails.daysOnMarket} days` : undefined}
+            hidden={isPending}
+          />
           
-          {propertyDetails?.statusChange && (
-            <div className="flex justify-between border-b pb-2">
-              <span className="text-muted-foreground">Status Change:</span>
-              <span>{propertyDetails.statusChange}</span>
-            </div>
-          )}
+          <PropertyDetailSection 
+            label="Property Days on Market"
+            value={propertyDetails?.propertyDaysOnMarket ? `${propertyDetails.propertyDaysOnMarket} days` : undefined}
+            hidden={isPending}
+          />
           
-          {propertyDetails?.listedOn && (
-            <div className="flex justify-between border-b pb-2">
-              <span className="text-muted-foreground">Listed on:</span>
-              <span>{formatDate(propertyDetails.listedOn)}</span>
-            </div>
-          )}
+          <PropertyDetailSection 
+            label="Status Change"
+            value={propertyDetails?.statusChange}
+            hidden={isPending}
+          />
           
-          {propertyDetails?.updatedOn && (
-            <div className="flex justify-between border-b pb-2">
-              <span className="text-muted-foreground">Updated on:</span>
-              <span>{formatDate(propertyDetails.updatedOn)}</span>
-            </div>
-          )}
+          <PropertyDetailSection 
+            label="Listed on"
+            value={propertyDetails?.listedOn ? formatDate(propertyDetails.listedOn) : undefined}
+            hidden={isPending}
+          />
+          
+          <PropertyDetailSection 
+            label="Updated on"
+            value={propertyDetails?.updatedOn ? formatDate(propertyDetails.updatedOn) : undefined}
+            hidden={isPending}
+          />
         </div>
       </div>
       

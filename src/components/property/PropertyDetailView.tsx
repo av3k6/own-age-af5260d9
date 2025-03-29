@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { PropertyListing } from "@/types";
@@ -42,7 +43,7 @@ export default function PropertyDetailView({ property }: PropertyDetailViewProps
     { name: 'Workshop', level: 'Basement', dimensions: '4.01 x 3.17' },
   ];
 
-  // Sample property details data
+  // Sample property details data with the listing information mentioned by the user
   const propertyDetails = property.roomDetails || {
     construction: 'Brick',
     basement: 'Finished',
@@ -77,8 +78,8 @@ export default function PropertyDetailView({ property }: PropertyDetailViewProps
     daysOnMarket: 4,
     propertyDaysOnMarket: 31,
     statusChange: '3 days ago',
-    listedOn: new Date('2025-03-25'),
-    updatedOn: new Date('2025-03-26'),
+    listedOn: new Date('2025-03-24'),
+    updatedOn: new Date('2025-03-25'),
     predictedDaysOnMarket: 20,
     marketDemand: 'balanced',
     listingBrokerage: 'DAN PLOWMAN TEAM REALTY INC.'
@@ -122,6 +123,7 @@ export default function PropertyDetailView({ property }: PropertyDetailViewProps
                   propertyDetails={propertyDetails}
                   propertyTitle={property.title}
                   propertyPrice={property.price}
+                  listingStatus={property.status}
                 />
               </div>
               <div className="mt-8">

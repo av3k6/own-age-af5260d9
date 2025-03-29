@@ -13,6 +13,7 @@ interface PropertyRoomDetailsProps {
   propertyDetails?: PropertyRoomDetailsType;
   propertyTitle?: string;
   propertyPrice?: number;
+  listingStatus?: string;
 }
 
 const PropertyRoomDetails = ({
@@ -21,6 +22,7 @@ const PropertyRoomDetails = ({
   propertyDetails,
   propertyTitle,
   propertyPrice,
+  listingStatus = 'active',
 }: PropertyRoomDetailsProps) => {
   const [activeTab, setActiveTab] = useState("keyFacts");
   const [measurementUnit, setMeasurementUnit] = useState("Feet");
@@ -41,6 +43,7 @@ const PropertyRoomDetails = ({
             <KeyFactsTab 
               propertyTitle={propertyTitle}
               propertyDetails={propertyDetails}
+              listingStatus={listingStatus}
             />
           </TabsContent>
           

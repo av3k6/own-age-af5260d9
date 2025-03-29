@@ -1,19 +1,20 @@
 
 import React from "react";
-import { PropertyRoomDetails } from "@/types";
 
 interface PropertyDetailSectionProps {
   label: string;
   value?: string | number | boolean;
   formatter?: (value: string | number | boolean) => React.ReactNode;
+  hidden?: boolean;
 }
 
 const PropertyDetailSection = ({ 
   label, 
   value,
-  formatter 
+  formatter,
+  hidden = false
 }: PropertyDetailSectionProps) => {
-  if (value === undefined) return null;
+  if (hidden || value === undefined) return null;
   
   return (
     <div className="flex justify-between border-b pb-2">
