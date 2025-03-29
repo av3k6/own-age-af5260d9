@@ -1,14 +1,24 @@
 
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Search, Home, User, Bell, Menu, LogOut } from "lucide-react";
-import { useState } from "react";
+import { Search, Home, User, Bell, Menu, LogOut, MapPin } from "lucide-react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import ThemeToggle from "@/components/theme/ThemeToggle";
+import { 
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
+import { provinces } from "@/utils/provinceData";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [selectedProvince, setSelectedProvince] = useState<string>("all");
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -16,6 +26,24 @@ const Header = () => {
   // Get user's full name from metadata or fall back to email username
   const userDisplayName = user?.user_metadata?.full_name || 
                           (user?.email ? user.email.split('@')[0] : 'User');
+
+  // Load saved province from localStorage on component mount
+  useEffect(() => {
+    const savedProvince = localStorage.getItem("selectedProvince");
+    if (savedProvince) {
+      setSelectedProvince(savedProvince);
+    }
+  }, []);
+
+  const handleProvinceChange = (value: string) => {
+    setSelectedProvince(value);
+    // Save to localStorage for persistence
+    localStorage.setItem("selectedProvince", value);
+    // If we're not on the homepage, navigate there to see filtered properties
+    if (window.location.pathname !== '/') {
+      navigate('/');
+    }
+  };
 
   const handleSignOut = async () => {
     try {
@@ -37,11 +65,32 @@ const Header = () => {
   return (
     <header className="sticky top-0 z-50 bg-background border-b shadow-sm transition-colors duration-300">
       <div className="container flex items-center justify-between h-16 px-4 mx-auto">
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-3">
           <Link to="/" className="flex items-center text-xl font-bold text-primary">
             <Home className="w-6 h-6 mr-2" />
             <span>TransacZen Haven</span>
           </Link>
+          
+          {/* Province Filter Dropdown */}
+          <div className="hidden md:flex ml-2">
+            <Select value={selectedProvince} onValueChange={handleProvinceChange}>
+              <SelectTrigger className="w-[140px] h-9 bg-background/50 dark:bg-background/30 border-primary/20">
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-primary/70" />
+                  <SelectValue placeholder="Select province" />
+                </div>
+              </SelectTrigger>
+              <SelectContent className="bg-background border-primary/20">
+                <SelectGroup>
+                  {provinces.map((province) => (
+                    <SelectItem key={province.value} value={province.value}>
+                      {province.label}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
           
           <nav className="hidden md:flex items-center space-x-6">
             <Link to="/buy" className="text-foreground hover:text-primary font-medium transition-colors">
@@ -106,6 +155,27 @@ const Header = () => {
         </div>
 
         <div className="md:hidden flex items-center space-x-3">
+          {/* Province dropdown for mobile */}
+          <div className="mr-1">
+            <Select value={selectedProvince} onValueChange={handleProvinceChange}>
+              <SelectTrigger className="w-[90px] h-8 bg-background/50 dark:bg-background/30 border-primary/20">
+                <div className="flex items-center gap-1">
+                  <MapPin className="h-3.5 w-3.5 text-primary/70" />
+                  <SelectValue placeholder="Province" />
+                </div>
+              </SelectTrigger>
+              <SelectContent className="bg-background border-primary/20">
+                <SelectGroup>
+                  {provinces.map((province) => (
+                    <SelectItem key={province.value} value={province.value}>
+                      {province.label}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
+          
           <ThemeToggle />
           <button
             className="text-foreground transition-colors"
