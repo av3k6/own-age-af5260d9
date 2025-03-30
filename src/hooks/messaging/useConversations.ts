@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSupabase } from "@/hooks/useSupabase";
@@ -16,6 +16,13 @@ export function useConversations(): UseConversationsReturn {
   const { supabase } = useSupabase();
   const { user } = useAuth();
   const { toast } = useToast();
+
+  // Auto-fetch conversations when the component mounts and user is available
+  useEffect(() => {
+    if (user) {
+      fetchConversations();
+    }
+  }, [user?.id]);
 
   const fetchConversations = async () => {
     if (!user) return;

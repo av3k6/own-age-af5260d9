@@ -25,6 +25,11 @@ export function useMessaging() {
   // Combine loading states
   const loading = conversationsLoading || messagesLoading;
 
+  // Initialize conversations list on component mount
+  useEffect(() => {
+    fetchConversations();
+  }, []);
+
   // Fetch messages when currentConversation changes
   useEffect(() => {
     if (currentConversation) {
