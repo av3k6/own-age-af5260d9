@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Mail } from "lucide-react";
+import { Mail, Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -54,6 +54,7 @@ export default function ContactSellerDialog({
   sellerId 
 }: ContactSellerDialogProps) {
   const [open, setOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { user } = useAuth();
   const { supabase } = useSupabase();
   
@@ -68,7 +69,6 @@ export default function ContactSellerDialog({
   });
   
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    // In a production app, this would send the message to the seller via your backend
     console.log("Contact form submitted:", {
       sellerId,
       propertyId,
@@ -76,8 +76,9 @@ export default function ContactSellerDialog({
     });
     
     try {
+      setIsSubmitting(true);
+      
       // Example of storing the contact request in Supabase
-      // You would typically create a 'contact_requests' table in your database
       const { error } = await supabase.from('contact_requests').insert({
         seller_id: sellerId,
         property_id: propertyId,
@@ -91,16 +92,23 @@ export default function ContactSellerDialog({
       
       if (error) throw error;
       
+      // Show success message
       toast.success("Message Sent", {
         description: "The seller has been notified and will contact you soon.",
       });
       
+      // Close the dialog
       setOpen(false);
+      
+      // Reset form after successful submission
+      form.reset();
     } catch (error) {
       console.error("Failed to send contact request:", error);
       toast.error("Failed to send message", {
         description: "Please try again later.",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
   
@@ -185,7 +193,16 @@ export default function ContactSellerDialog({
             />
             
             <div className="flex justify-end pt-2">
-              <Button type="submit">Send Message</Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  'Send Message'
+                )}
+              </Button>
             </div>
           </form>
         </Form>
