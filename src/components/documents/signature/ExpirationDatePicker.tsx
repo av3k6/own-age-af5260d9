@@ -6,6 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { Label } from '@/components/ui/label';
 
 interface ExpirationDatePickerProps {
   expirationDate: Date | undefined;

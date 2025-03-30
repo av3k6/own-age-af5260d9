@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { DialogProps } from '@radix-ui/react-dialog';
 import { DocumentMetadata } from '@/types/document';
 import { useAuth } from '@/contexts/AuthContext';
@@ -15,18 +15,17 @@ import {
 import { Button } from '@/components/ui/button';
 import { Loader2, Send } from 'lucide-react';
 import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 
-// Import the form components
+// Import components and types
+import { SignerType, SignatureFormData } from './types/signatureTypes';
+import { signatureFormSchema } from './schema/signatureFormSchema';
+import { useSignatureRequest } from './hooks/useSignatureRequest';
 import SignatureFormFields from './SignatureFormFields';
 import ExpirationDatePicker from './ExpirationDatePicker';
 import SignersList from './SignersList';
-import { useSignatureRequest } from './hooks/useSignatureRequest';
-import { signatureFormSchema } from './schema/signatureFormSchema';
-import { SignerType } from './types/signatureTypes';
 
-type SignatureFormValues = z.infer<typeof signatureFormSchema>;
+type SignatureFormValues = SignatureFormData;
 
 interface RequestSignatureDialogProps extends DialogProps {
   document: DocumentMetadata;
@@ -44,8 +43,6 @@ const RequestSignatureDialog: React.FC<RequestSignatureDialogProps> = ({
 }) => {
   const { user } = useAuth();
   const { toast } = useToast();
-  
-  // Use our custom hook for signature request logic
   const { createSignatureRequest } = useSignatureRequest();
   
   // Create a properly typed empty signer for reuse
@@ -63,7 +60,7 @@ const RequestSignatureDialog: React.FC<RequestSignatureDialogProps> = ({
     defaultValues: {
       title: document.name,
       message: `Please sign this document: ${document.name}`,
-      signers: [emptySigner],
+      signers: [{ ...emptySigner }],
       expirationDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // Default: 30 days from now
     },
   });
@@ -76,8 +73,7 @@ const RequestSignatureDialog: React.FC<RequestSignatureDialogProps> = ({
 
   // Handle signers management
   const handleAddSigner = () => {
-    // Use our pre-defined signer type
-    setValue('signers', [...signers, {...emptySigner}]);
+    setValue('signers', [...signers, { ...emptySigner }]);
   };
 
   const handleRemoveSigner = (index: number) => {
@@ -117,7 +113,6 @@ const RequestSignatureDialog: React.FC<RequestSignatureDialogProps> = ({
     }
     
     try {
-      // Create signature request using our hook
       await createSignatureRequest(document, data, user.id);
       
       toast({
@@ -144,7 +139,7 @@ const RequestSignatureDialog: React.FC<RequestSignatureDialogProps> = ({
   };
   
   // Reset form when dialog opens/closes
-  React.useEffect(() => {
+  useEffect(() => {
     if (!open) {
       // Small delay to avoid flashing the reset form before dialog closes
       const timer = setTimeout(() => reset(), 300);
@@ -154,11 +149,11 @@ const RequestSignatureDialog: React.FC<RequestSignatureDialogProps> = ({
       reset({
         title: document.name,
         message: `Please sign this document: ${document.name}`,
-        signers: [{...emptySigner}],
+        signers: [{ ...emptySigner }],
         expirationDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       });
     }
-  }, [open, document.name, reset, emptySigner]);
+  }, [open, document.name, reset]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange} {...props}>

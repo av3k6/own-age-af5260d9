@@ -6,6 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { Label } from '@/components/ui/label';
 
 interface ExpirationDatePickerProps {
   expirationDate: Date | undefined;
@@ -18,7 +19,7 @@ const ExpirationDatePicker: React.FC<ExpirationDatePickerProps> = ({
 }) => {
   return (
     <div className="grid gap-2">
-      <label className="text-sm font-medium">Expires On</label>
+      <Label className="text-sm font-medium">Expires On</Label>
       <Popover>
         <PopoverTrigger asChild>
           <Button
