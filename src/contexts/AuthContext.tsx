@@ -25,46 +25,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         console.log("Getting session...");
         
-        // Set a timeout to ensure we don't get stuck waiting for Supabase
+        // Increase timeout for session fetch to 5 seconds
         const timeoutPromise = new Promise<never>((_, reject) => {
-          setTimeout(() => reject(new Error('Session fetch timed out')), 2000);
+          setTimeout(() => reject(new Error('Session fetch timed out')), 5000);
         });
         
-        // Race between the session fetch and timeout
-        const sessionPromise = supabase.auth.getSession();
-        
-        let session;
+        // Get the session directly first, without racing
         try {
-          // Use any as an intermediate step to properly handle the race result
-          const result = await Promise.race([sessionPromise, timeoutPromise]);
-          // Now safely access the data property since we know this is the sessionPromise result
-          const sessionData = (result as Awaited<typeof sessionPromise>);
-          session = sessionData.data.session;
-        } catch (err) {
-          console.warn("Session fetch timed out, proceeding with null session");
-          session = null;
-        }
-        
-        if (session?.user) {
-          try {
-            const mappedUser = await mapUserData(supabase, session.user);
-            setUser(mappedUser);
-            console.log('Session found and user set:', mappedUser?.email);
-          } catch (mapErr) {
-            console.error("Error mapping user data:", mapErr);
+          const { data, error } = await supabase.auth.getSession();
+          console.log("Session fetch result:", data.session ? "Session found" : "No session", error ? `Error: ${error.message}` : "No error");
+          
+          if (data.session?.user) {
+            try {
+              const mappedUser = await mapUserData(supabase, data.session.user);
+              setUser(mappedUser);
+              console.log('Session found and user set:', mappedUser?.email);
+            } catch (mapErr) {
+              console.error("Error mapping user data:", mapErr);
+              setUser(null);
+            }
+          } else {
+            console.log('No active session found');
             setUser(null);
           }
-        } else {
-          console.log('No active session found');
+        } catch (err) {
+          console.error("Error getting session:", err);
           setUser(null);
+        } finally {
+          setLoading(false);
+          setIsInitialized(true);
+          console.log("Auth loading state set to false, initialization complete");
         }
       } catch (error) {
-        console.error('Error getting session:', error);
+        console.error('Error in overall getSession process:', error);
         setUser(null);
-      } finally {
         setLoading(false);
         setIsInitialized(true);
-        console.log("Auth loading state set to false, initialization complete");
       }
     };
 
@@ -80,9 +76,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsInitialized(true);
         setLoading(false);
       }
-    }, 3000);
+    }, 5000);
 
-    // Listen for auth changes with timeout protection
+    // Listen for auth changes with improved error handling
     let subscription: { unsubscribe: () => void } | null = null;
     
     try {
@@ -94,11 +90,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             try {
               const mappedUser = await mapUserData(supabase, session.user);
               setUser(mappedUser);
+              console.log("User mapped and set after auth change:", mappedUser?.email);
             } catch (err) {
               console.error("Error mapping user on auth change:", err);
               setUser(null);
             }
           } else {
+            console.log("No user in auth state change session");
             setUser(null);
           }
           setLoading(false);

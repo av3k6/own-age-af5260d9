@@ -12,7 +12,7 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const { signIn } = useAuth();
+  const { signIn, user } = useAuth();
   const { supabase } = useSupabase();
   const navigate = useNavigate();
 
@@ -30,6 +30,7 @@ const Login = () => {
     
     try {
       setIsLoading(true);
+      console.log("Login form submitting with email:", email);
       
       const { error } = await signIn(email, password);
       
@@ -37,8 +38,13 @@ const Login = () => {
         throw error;
       }
       
-      // Navigate on successful login
-      navigate("/dashboard");
+      console.log("Sign in successful, navigating to dashboard");
+      toast({
+        title: "Success",
+        description: "Logged in successfully!",
+      });
+      // Navigate on successful login with a small delay to allow auth state to update
+      setTimeout(() => navigate("/dashboard"), 500);
     } catch (error: any) {
       console.error("Login error:", error);
       // Toast is already shown in the AuthContext
