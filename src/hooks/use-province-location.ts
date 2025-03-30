@@ -1,72 +1,93 @@
 
 import { useState, useEffect } from 'react';
-import { findProvinceByLocation } from '@/utils/provinceData';
+import { useToast } from '@/components/ui/use-toast';
 
-interface UseProvinceLocationOptions {
-  onLocationDetected?: (province: string) => void;
-}
-
-export function useProvinceLocation(options?: UseProvinceLocationOptions) {
-  const [detectedProvince, setDetectedProvince] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+export const useProvinceLocation = () => {
+  const [province, setProvince] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-
+  const { toast } = useToast();
+  
   useEffect(() => {
     const detectUserProvince = async () => {
-      setIsLoading(true);
+      setLoading(true);
       setError(null);
       
       try {
-        // Check if browser supports geolocation
-        if (!navigator.geolocation) {
-          throw new Error("Geolocation is not supported by your browser");
+        // First check if we have a stored province in localStorage
+        const storedProvince = localStorage.getItem('selectedProvince');
+        if (storedProvince) {
+          setProvince(storedProvince);
+          setLoading(false);
+          return;
         }
         
-        // Get user's coordinates
-        const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(resolve, reject);
+        // Only try to use geolocation if we don't have a stored province
+        // Create a promise that will resolve with position or reject after timeout
+        const positionPromise = new Promise<GeolocationPosition>((resolve, reject) => {
+          // Set a timeout for geolocation request
+          const timeoutId = setTimeout(() => {
+            reject(new Error('Geolocation timed out'));
+          }, 3000);
+          
+          // Try to get the user's position
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              clearTimeout(timeoutId);
+              resolve(position);
+            },
+            (err) => {
+              clearTimeout(timeoutId);
+              reject(err);
+            }
+          );
         });
         
-        const { latitude, longitude } = position.coords;
+        // Wait for position with timeout
+        const position = await positionPromise;
         
-        // Use reverse geocoding to get province/state
-        const response = await fetch(
-          `https://geocode.maps.co/reverse?lat=${latitude}&lon=${longitude}&format=json`
+        // Now that we have position, try reverse geocoding with timeout
+        const reverseGeocodePromise = fetch(
+          `https://geocode.maps.co/reverse?lat=${position.coords.latitude}&lon=${position.coords.longitude}&format=json`
         );
         
-        if (!response.ok) {
-          throw new Error("Failed to fetch location data");
-        }
+        // Set a timeout for the geocoding request
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Geocoding timed out')), 3000)
+        );
         
-        const data = await response.json();
-        console.log("Geocoding response:", data);
+        const response = await Promise.race([reverseGeocodePromise, timeoutPromise]);
         
-        // Extract province data
-        const stateCode = data.address?.state_code || data.address?.['ISO3166-2-lvl4']?.split('-')[1];
-        const stateName = data.address?.state;
-        
-        // Find matching province
-        const province = findProvinceByLocation(stateCode, stateName);
-        
-        // Set and return detected province
-        setDetectedProvince(province);
-        if (options?.onLocationDetected) {
-          options.onLocationDetected(province);
+        if (response instanceof Response && response.ok) {
+          const data = await response.json();
+          const detectedProvince = data.address?.state || null;
+          
+          if (detectedProvince) {
+            setProvince(detectedProvince);
+            localStorage.setItem('selectedProvince', detectedProvince);
+          } else {
+            // If we couldn't detect a province, default to a fallback
+            setProvince('all');
+            localStorage.setItem('selectedProvince', 'all');
+          }
+        } else {
+          // If geocoding failed, use fallback
+          setProvince('all');
+          localStorage.setItem('selectedProvince', 'all');
         }
       } catch (err) {
+        // Silently handle the error and use a fallback
         console.error("Error detecting province:", err);
-        setError(err instanceof Error ? err : new Error(String(err)));
+        setProvince('all');
+        localStorage.setItem('selectedProvince', 'all');
+        setError(err instanceof Error ? err : new Error('Unknown error'));
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     };
-
+    
     detectUserProvince();
-  }, [options]);
-
-  return {
-    detectedProvince,
-    isLoading,
-    error
-  };
-}
+  }, []);
+  
+  return { province, loading, error, setProvince };
+};

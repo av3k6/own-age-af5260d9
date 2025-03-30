@@ -8,22 +8,42 @@ import CallToAction from "@/components/home/CallToAction";
 import SupabaseStatus from "@/components/auth/SupabaseStatus";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/components/ui/use-toast";
 
 const Index = () => {
   console.log("Rendering Index/Home component");
   const { isInitialized } = useAuth();
   const [pageReady, setPageReady] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     // Set a small timeout to ensure content loads properly
     // This helps prevent flickering between loading states
     if (isInitialized) {
+      console.log("Auth initialized, preparing to render content");
       const timer = setTimeout(() => {
         setPageReady(true);
+        console.log("Page ready state set to true");
       }, 300);
       return () => clearTimeout(timer);
     }
   }, [isInitialized]);
+
+  // Force page ready after a maximum wait time to prevent endless loading
+  useEffect(() => {
+    const maxWaitTime = setTimeout(() => {
+      if (!pageReady) {
+        console.log("Maximum wait time reached, forcing page ready");
+        setPageReady(true);
+        toast({
+          title: "Some content may still be loading",
+          description: "You can continue browsing while we finish loading everything",
+        });
+      }
+    }, 3000); // 3 seconds maximum wait time
+    
+    return () => clearTimeout(maxWaitTime);
+  }, [pageReady]);
 
   if (!pageReady) {
     return (
