@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
+import { MessageSquare } from "lucide-react"
 
 interface NavigationProps {
   isAuthenticated?: boolean;
@@ -57,37 +58,50 @@ export function Navigation({ isAuthenticated, className = "" }: NavigationProps)
       </Link>
       
       {user || isAuthenticated ? (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 rounded-full">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={user?.profileImage} alt={user?.name} />
-                <AvatarFallback>{user?.name?.charAt(0) || 'U'}</AvatarFallback>
-              </Avatar>
-              <span className="sr-only">Open user menu</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <div className="grid gap-2 px-2">
-              <DropdownMenuItem>
-                <Link to="/dashboard">Dashboard</Link>
+        <>
+          <Link
+            to="/messages"
+            className="text-base font-medium transition-colors hover:text-primary flex items-center"
+          >
+            <MessageSquare className="mr-1 h-4 w-4" />
+            Messages
+          </Link>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 rounded-full">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={user?.profileImage} alt={user?.name} />
+                  <AvatarFallback>{user?.name?.charAt(0) || 'U'}</AvatarFallback>
+                </Avatar>
+                <span className="sr-only">Open user menu</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <div className="grid gap-2 px-2">
+                <DropdownMenuItem>
+                  <Link to="/dashboard">Dashboard</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Link to="/profile">Profile</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Link to="/messages">Messages</Link>
+                </DropdownMenuItem>
+              </div>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => {
+                  signOut();
+                  navigate("/login");
+                }}
+              >
+                Sign out
+                <Icons.logout className="ml-auto h-4 w-4" />
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Link to="/profile">Profile</Link>
-              </DropdownMenuItem>
-            </div>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => {
-                signOut();
-                navigate("/login");
-              }}
-            >
-              Sign out
-              <Icons.logout className="ml-auto h-4 w-4" />
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </>
       ) : (
         <>
           <Link to="/login">

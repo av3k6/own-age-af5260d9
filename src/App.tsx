@@ -23,6 +23,7 @@ import UserShowings from "./pages/UserShowings";
 import Layout from './pages/Layout';
 import NotFound from './pages/NotFound';
 import DocumentManagement from './pages/DocumentManagement';
+import Messaging from './pages/Messaging';
 
 function App() {
   return (
@@ -51,7 +52,7 @@ function AppContent() {
 
   console.log("App initialized, rendering routes");
 
-  // Update the routes array to include our new document management route
+  // Update the routes array to include our new messaging route
   const routes = [
     <Route key="home" path="/" element={<Home />} />,
     <Route key="buy" path="/buy" element={<Buy />} />,
@@ -114,6 +115,11 @@ function AppContent() {
       key="documents"
       path="/documents"
       element={<DocumentManagement />}
+    />,
+    <Route
+      key="messages"
+      path="/messages"
+      element={user ? <Messaging /> : <Navigate to="/login" replace state={{ from: "/messages" }} />}
     />,
   ];
 
