@@ -35,9 +35,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         let session;
         try {
-          // Type the result of the race properly
-          const result = await Promise.race([sessionPromise, timeoutPromise]) as typeof sessionPromise;
-          session = result.data.session;
+          // Use any as an intermediate step to properly handle the race result
+          const result = await Promise.race([sessionPromise, timeoutPromise]);
+          // Now safely access the data property since we know this is the sessionPromise result
+          const sessionData = (result as Awaited<typeof sessionPromise>);
+          session = sessionData.data.session;
         } catch (err) {
           console.warn("Session fetch timed out, proceeding with null session");
           session = null;
