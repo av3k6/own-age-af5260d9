@@ -31,27 +31,8 @@ export function useConversations(): UseConversationsReturn {
     try {
       console.log("Fetching conversations for user:", user.id);
       
-      // Make sure conversations table exists
-      try {
-        // Check if the conversations table exists
-        const { error: checkError } = await supabase
-          .from('conversations')
-          .select('id')
-          .limit(1);
-          
-        if (checkError && checkError.message.includes('does not exist')) {
-          console.log("Conversations table doesn't exist yet. Creating sample data for development.");
-          // In development, we could initialize tables here
-          toast({
-            title: "No messages found",
-            description: "Your message inbox is empty",
-          });
-          setState(prev => ({ ...prev, loading: false, conversations: [] }));
-          return;
-        }
-      } catch (e) {
-        console.error("Error checking conversations table:", e);
-      }
+      // Check if tables exist and create if needed
+      await ensureTablesExist();
       
       // Fetch conversations
       const { data, error } = await supabase
@@ -65,7 +46,7 @@ export function useConversations(): UseConversationsReturn {
         throw error;
       }
       
-      console.log("Conversations fetched:", data?.length || 0);
+      console.log("Conversations fetched:", data?.length || 0, data);
       setState(prev => ({ 
         ...prev, 
         conversations: data || [],
@@ -82,6 +63,38 @@ export function useConversations(): UseConversationsReturn {
     }
   };
 
+  const ensureTablesExist = async () => {
+    try {
+      // Check if the conversations table exists
+      const { error: checkError } = await supabase
+        .from('conversations')
+        .select('id')
+        .limit(1);
+          
+      if (checkError && checkError.message.includes('does not exist')) {
+        console.log("Creating conversations and messages tables for development");
+        
+        // Create conversations table
+        const { error: createConvError } = await supabase
+          .rpc('create_conversations_table_if_not_exists');
+          
+        if (createConvError) {
+          console.error("Error creating conversations table:", createConvError);
+        }
+        
+        // Create messages table
+        const { error: createMsgError } = await supabase
+          .rpc('create_messages_table_if_not_exists');
+          
+        if (createMsgError) {
+          console.error("Error creating messages table:", createMsgError);
+        }
+      }
+    } catch (e) {
+      console.error("Error checking or creating tables:", e);
+    }
+  };
+
   const createConversation = async (
     receiverId: string, 
     subject?: string, 
@@ -94,11 +107,12 @@ export function useConversations(): UseConversationsReturn {
     try {
       console.log("Creating conversation with receiver:", receiverId);
       
-      // Check if conversation already exists
+      // Check if conversation already exists between these users
       const { data: existingConversations, error: existingError } = await supabase
         .from('conversations')
         .select('*')
-        .contains('participants', [user.id, receiverId]);
+        .contains('participants', [user.id, receiverId])
+        .eq('propertyId', propertyId || '');
         
       if (existingError) {
         console.error("Error checking existing conversations:", existingError);
@@ -117,14 +131,19 @@ export function useConversations(): UseConversationsReturn {
         return conversation;
       }
       
+      // Ensure tables exist
+      await ensureTablesExist();
+      
       // Create new conversation
       const newConversation = {
         participants: [user.id, receiverId],
         lastMessageAt: new Date().toISOString(),
-        subject,
-        propertyId,
+        subject: subject || '',
+        propertyId: propertyId || null,
         unreadCount: 0,
       };
+      
+      console.log("Creating new conversation:", newConversation);
       
       const { data, error } = await supabase
         .from('conversations')
@@ -136,8 +155,8 @@ export function useConversations(): UseConversationsReturn {
         throw error;
       }
       
-      console.log("Created new conversation:", data[0].id);
-      const conversation = data[0];
+      console.log("Created new conversation:", data[0]);
+      const conversation = data[0] as Conversation;
       
       // Update local state
       setState(prev => ({

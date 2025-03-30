@@ -35,7 +35,10 @@ export function useMessages(): UseMessagesReturn {
       
       if (convError) {
         console.error("Error fetching conversation:", convError);
-        throw new Error("Conversation not found");
+        if (!convError.message.includes('No rows found')) {
+          throw new Error("Error fetching conversation");
+        }
+        // If "No rows found", we'll create an empty messages array
       }
       
       // Fetch messages
@@ -47,10 +50,13 @@ export function useMessages(): UseMessagesReturn {
         
       if (error) {
         console.error("Error in supabase query:", error);
-        throw error;
+        if (!error.message.includes('does not exist')) {
+          throw error;
+        }
+        // If table doesn't exist, we'll use an empty array
       }
       
-      console.log("Messages fetched:", data?.length || 0);
+      console.log("Messages fetched:", data?.length || 0, data);
       setState(prev => ({
         ...prev,
         messages: data || [],
@@ -58,7 +64,9 @@ export function useMessages(): UseMessagesReturn {
       }));
       
       // Mark messages as read
-      await markMessagesAsRead(conversationId);
+      if (data && data.length > 0) {
+        await markMessagesAsRead(conversationId);
+      }
     } catch (error) {
       console.error('Error fetching messages:', error);
       toast({
@@ -108,7 +116,8 @@ export function useMessages(): UseMessagesReturn {
       console.log("Preparing to send message:", {
         senderId: user.id,
         receiverId,
-        conversationId
+        conversationId,
+        content: content.substring(0, 30) + (content.length > 30 ? '...' : '')
       });
       
       // Upload attachments if any

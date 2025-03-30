@@ -26,6 +26,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useSupabase } from "@/hooks/useSupabase";
 import { useAuth } from "@/contexts/AuthContext";
+import { useMessaging } from "@/hooks/useMessaging";
+import { useNavigate } from "react-router-dom";
 
 interface ContactSellerDialogProps {
   propertyId: string;
@@ -57,6 +59,8 @@ export default function ContactSellerDialog({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { user } = useAuth();
   const { supabase } = useSupabase();
+  const { createConversation } = useMessaging();
+  const navigate = useNavigate();
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -78,8 +82,8 @@ export default function ContactSellerDialog({
     try {
       setIsSubmitting(true);
       
-      // Example of storing the contact request in Supabase
-      const { error } = await supabase.from('contact_requests').insert({
+      // Store the contact request in Supabase
+      const { error: contactError } = await supabase.from('contact_requests').insert({
         seller_id: sellerId,
         property_id: propertyId,
         buyer_id: user?.id || null,
@@ -90,20 +94,61 @@ export default function ContactSellerDialog({
         status: 'new',
       });
       
-      if (error) throw error;
+      if (contactError) {
+        console.error("Error saving contact request:", contactError);
+        // Continue even if contact request fails - we'll still try to send the message
+      }
+      
+      // Check if user is logged in before attempting to create a conversation
+      if (!user) {
+        toast.success("Message Sent", {
+          description: "Please create an account or log in to view responses from the seller.",
+        });
+        setOpen(false);
+        form.reset();
+        return;
+      }
+      
+      // Create a conversation and send the initial message
+      const subject = `Inquiry about ${propertyTitle}`;
+      console.log("Creating conversation with:", { 
+        receiverId: sellerId,
+        subject,
+        initialMessage: values.message,
+        propertyId
+      });
+      
+      const conversation = await createConversation(
+        sellerId,
+        subject,
+        values.message,
+        propertyId
+      );
+      
+      if (!conversation) {
+        throw new Error("Failed to create conversation");
+      }
+
+      console.log("Conversation created successfully:", conversation);
       
       // Show success message
       toast.success("Message Sent", {
-        description: "The seller has been notified and will contact you soon.",
+        description: "Your message has been sent. Check your inbox for responses.",
       });
       
       // Close the dialog
       setOpen(false);
       
-      // Reset form after successful submission
+      // Reset form
       form.reset();
+      
+      // Navigate to messages after a short delay
+      setTimeout(() => {
+        navigate("/messages");
+      }, 1500);
+      
     } catch (error) {
-      console.error("Failed to send contact request:", error);
+      console.error("Failed to send message:", error);
       toast.error("Failed to send message", {
         description: "Please try again later.",
       });

@@ -43,14 +43,22 @@ export function useMessaging() {
     fetchMessages(conversation.id);
   };
 
-  // Wrapper for sending a message that also handles initial message in new conversations
+  // Wrapper for sending a message that also handles refreshing the conversation list
   const handleSendMessage = async (conversationId: string, content: string, attachments?: File[]) => {
-    await sendMessage(conversationId, content, attachments);
-    
-    // If this was a newly created conversation and there was an initial message
-    if (currentConversation && currentConversation.id === conversationId) {
+    console.log(`Sending message to conversation ${conversationId}: ${content}`);
+    try {
+      await sendMessage(conversationId, content, attachments);
+      
+      // Refresh the messages for this conversation
+      await fetchMessages(conversationId);
+      
       // Refresh the conversation list to show the updated last message
-      fetchConversations();
+      await fetchConversations();
+      
+      return true;
+    } catch (error) {
+      console.error("Error in handleSendMessage:", error);
+      throw error;
     }
   };
 
@@ -61,14 +69,32 @@ export function useMessaging() {
     initialMessage?: string, 
     propertyId?: string
   ) => {
-    const conversation = await createConversation(receiverId, subject, initialMessage, propertyId);
-    
-    // If conversation was created and there's an initial message, send it
-    if (conversation && initialMessage) {
-      await sendMessage(conversation.id, initialMessage);
+    console.log("Creating new conversation:", { receiverId, subject, initialMessage, propertyId });
+    try {
+      // First create the conversation
+      const conversation = await createConversation(receiverId, subject, initialMessage, propertyId);
+      
+      if (!conversation) {
+        console.error("Failed to create conversation");
+        return null;
+      }
+      
+      console.log("Conversation created:", conversation);
+      
+      // If there's an initial message, send it
+      if (conversation && initialMessage) {
+        console.log("Sending initial message:", initialMessage);
+        await sendMessage(conversation.id, initialMessage);
+        
+        // Refresh conversations after sending the message
+        await fetchConversations();
+      }
+      
+      return conversation;
+    } catch (error) {
+      console.error("Error creating conversation:", error);
+      return null;
     }
-    
-    return conversation;
   };
 
   return {
@@ -77,7 +103,7 @@ export function useMessaging() {
     messages,
     currentConversation,
     fetchConversations,
-    fetchMessages: handleSelectConversation, // Renamed for better semantics
+    fetchMessages: handleSelectConversation,
     sendMessage: handleSendMessage,
     createConversation: handleCreateConversation,
     setCurrentConversation,

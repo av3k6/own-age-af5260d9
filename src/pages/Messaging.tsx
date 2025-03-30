@@ -6,10 +6,10 @@ import { useMessaging } from "@/hooks/useMessaging";
 import ConversationList from "@/components/messaging/ConversationList";
 import MessageList from "@/components/messaging/MessageList";
 import MessageInput from "@/components/messaging/MessageInput";
-import { Plus, LucideMessageCircle, ArrowLeft } from "lucide-react";
+import { Plus, MessageSquare, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Conversation } from "@/types/message";
 
 const Messaging = () => {
   const { user, loading: authLoading } = useAuth();
@@ -42,7 +42,7 @@ const Messaging = () => {
   }, [user]);
 
   // When a conversation is selected on mobile, switch to the message view
-  const handleSelectConversation = (conversation: any) => {
+  const handleSelectConversation = (conversation: Conversation) => {
     setCurrentConversation(conversation);
     fetchMessages(conversation.id);
     if (isMobile) {
@@ -147,7 +147,7 @@ const Messaging = () => {
                     Back to conversations
                   </Button>
                 )}
-                <LucideMessageCircle className="h-16 w-16 text-muted-foreground mb-4" />
+                <MessageSquare className="h-16 w-16 text-muted-foreground mb-4" />
                 <h3 className="font-medium text-xl">No conversation selected</h3>
                 <p className="text-muted-foreground mt-2 max-w-md">
                   Select a conversation from the list or create a new message to get started
