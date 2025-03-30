@@ -124,6 +124,8 @@ export const usePublishListing = () => {
           images: imageUrls,
           documents: documentData,
           seller_id: user.id,
+          seller_email: user.email, // Add user email for more robust querying
+          seller_name: user.name,   // Add user name for display purposes
           status: formData.status,
           // Optional fields
           property_condition: formData.propertyCondition,

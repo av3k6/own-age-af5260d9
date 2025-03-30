@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Eye, Plus, Loader2, Calendar } from "lucide-react";
+import { Eye, Plus, Loader2, Calendar, Clock } from "lucide-react";
 import PropertyCard from "@/components/property/PropertyCard";
 import { PropertyListing, ListingStatus } from "@/types";
 import ShowingRequestManager from "./showings/ShowingRequestManager";
@@ -27,24 +27,50 @@ const UserListings = () => {
     const fetchListings = async () => {
       if (!user) return;
       
+      console.log("Fetching listings for user:", user.id, user.email);
+      
       try {
         setIsLoading(true);
+        
         // First try to get listings from property_listings table
         let { data, error } = await supabase
           .from("property_listings")
-          .select("*")
-          .eq("seller_id", user.id);
-
-        // If the table doesn't exist or there's an error, check if we're in development/demo mode
+          .select("*");
+          
         if (error) {
-          console.log("Error fetching listings:", error.message);
-          // Set empty listings instead of showing an error
+          console.log("Error fetching all listings:", error.message);
           setListings([]);
+          setIsLoading(false);
           return;
+        }
+        
+        // Log all listings for debugging
+        console.log("All listings found:", data?.length || 0);
+        
+        if (data && data.length > 0) {
+          // Check for any seller_id inconsistencies
+          console.log("Sample listing seller_ids:", data.slice(0, 3).map(l => ({ 
+            id: l.id, 
+            seller_id: l.seller_id,
+            email: l.seller_email
+          })));
+        }
+        
+        // Now filter by seller email as fallback if ID doesn't match
+        let userListings;
+        if (data) {
+          userListings = data.filter(listing => 
+            listing.seller_id === user.id || 
+            listing.seller_email === user.email
+          );
+          
+          console.log("Filtered listings for this user:", userListings.length);
+        } else {
+          userListings = [];
         }
 
         // Transform the raw data to match PropertyListing type
-        const formattedListings = data ? data.map(listing => ({
+        const formattedListings = userListings ? userListings.map(listing => ({
           id: listing.id,
           title: listing.title || "Untitled Property",
           description: listing.description || "",
@@ -161,6 +187,3 @@ const UserListings = () => {
 };
 
 export default UserListings;
-
-// Missing import fixed
-import { Clock } from "lucide-react";
