@@ -1,7 +1,6 @@
-
 import { useState, useEffect } from "react";
 import { mockListings } from "@/data/mockData";
-import { PropertyListing, PropertyType } from "@/types";
+import { PropertyListing, PropertyType, ListingStatus } from "@/types";
 import PropertyCard from "@/components/property/PropertyCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,11 +8,15 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { formatCurrency } from "@/lib/formatters";
 import { Check, ChevronDown, ChevronUp, Search, SlidersHorizontal } from "lucide-react";
+import { useSupabase } from "@/hooks/useSupabase";
+import { useToast } from "@/hooks/use-toast";
 
 const Buy = () => {
   const [listings, setListings] = useState<PropertyListing[]>([]);
   const [filteredListings, setFilteredListings] = useState<PropertyListing[]>([]);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const { supabase } = useSupabase();
+  const { toast } = useToast();
   const [searchParams, setSearchParams] = useState({
     location: "",
     minPrice: 0,
@@ -24,11 +27,49 @@ const Buy = () => {
   });
 
   useEffect(() => {
-    // Simulate data fetching
-    // In a real app, you'd fetch from an API
-    setListings(mockListings);
-    setFilteredListings(mockListings);
-  }, []);
+    const fetchListings = async () => {
+      let allListings = [...mockListings];
+
+      allListings = allListings.filter(listing => listing.status === ListingStatus.ACTIVE);
+
+      try {
+        const { data, error } = await supabase
+          .from('property_listings')
+          .select('*')
+          .eq('status', ListingStatus.ACTIVE);
+
+        if (data && !error) {
+          const supabaseListings = data.map(item => ({
+            id: item.id,
+            title: item.title,
+            description: item.description,
+            price: item.price,
+            address: item.address,
+            propertyType: item.property_type,
+            bedrooms: item.bedrooms,
+            bathrooms: item.bathrooms,
+            squareFeet: item.square_feet,
+            yearBuilt: item.year_built,
+            features: item.features || [],
+            images: item.images || [],
+            sellerId: item.seller_id,
+            status: item.status,
+            createdAt: new Date(item.created_at),
+            updatedAt: new Date(item.updated_at),
+          })) as PropertyListing[];
+
+          allListings = [...allListings, ...supabaseListings];
+        }
+      } catch (err) {
+        console.error("Failed to fetch listings from Supabase:", err);
+      }
+
+      setListings(allListings);
+      setFilteredListings(allListings);
+    };
+
+    fetchListings();
+  }, [supabase]);
 
   const handleSearch = () => {
     let filtered = listings;
@@ -103,7 +144,6 @@ const Buy = () => {
         <div className="container px-4 mx-auto">
           <h1 className="text-3xl font-bold text-white mb-6">Find Your Dream Home</h1>
           
-          {/* Search bar */}
           <div className="bg-white p-4 rounded-lg shadow-lg flex flex-col md:flex-row items-center gap-4">
             <div className="flex-1 w-full">
               <div className="relative">
@@ -142,7 +182,6 @@ const Buy = () => {
             </Button>
           </div>
           
-          {/* Filters */}
           {isFilterOpen && (
             <div className="bg-white mt-4 p-6 rounded-lg shadow-lg">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -249,7 +288,6 @@ const Buy = () => {
         </div>
       </div>
       
-      {/* Listings */}
       <div className="container px-4 py-8 mx-auto">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-semibold text-zen-gray-800">

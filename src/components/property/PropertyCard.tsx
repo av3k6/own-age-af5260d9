@@ -1,6 +1,6 @@
 
 import { Link } from "react-router-dom";
-import { PropertyListing } from "@/types";
+import { PropertyListing, ListingStatus } from "@/types";
 import { formatCurrency } from "@/lib/formatters";
 import { Badge } from "@/components/ui/badge";
 
@@ -26,6 +26,11 @@ const PropertyCard = ({ property }: PropertyCardProps) => {
   const imageUrl = images && images.length > 0 
     ? images[0] 
     : "/placeholder.svg";
+    
+  // Only render listings that are active (this is a failsafe)
+  if (status !== ListingStatus.ACTIVE && process.env.NODE_ENV === 'production') {
+    return null;
+  }
 
   return (
     <Link to={`/property/${id}`}>
@@ -45,10 +50,10 @@ const PropertyCard = ({ property }: PropertyCardProps) => {
           
           <div className="absolute top-2 right-2">
             <Badge 
-              variant={status === 'active' ? 'secondary' : 'outline'} 
-              className={status === 'active' ? 'bg-green-500 hover:bg-green-500 text-white' : 
-                       status === 'pending' ? 'bg-yellow-500 hover:bg-yellow-500 text-white' :
-                       status === 'sold' ? 'bg-blue-500 hover:bg-blue-500 text-white' : 
+              variant={status === ListingStatus.ACTIVE ? 'secondary' : 'outline'} 
+              className={status === ListingStatus.ACTIVE ? 'bg-green-500 hover:bg-green-500 text-white' : 
+                       status === ListingStatus.PENDING ? 'bg-yellow-500 hover:bg-yellow-500 text-white' :
+                       status === ListingStatus.SOLD ? 'bg-blue-500 hover:bg-blue-500 text-white' : 
                        'bg-gray-500 hover:bg-gray-500 text-white'}
             >
               {status.charAt(0).toUpperCase() + status.slice(1)}
