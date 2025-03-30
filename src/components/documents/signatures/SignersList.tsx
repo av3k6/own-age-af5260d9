@@ -3,12 +3,13 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Plus, Trash2 } from 'lucide-react';
+import { SignerType } from './types/signatureTypes';
 
 interface SignersListProps {
-  signers: Array<{ name: string; email: string }>;
+  signers: SignerType[];
   onAddSigner: () => void;
   onRemoveSigner: (index: number) => void;
-  onSignerChange: (index: number, field: 'name' | 'email', value: string) => void;
+  onSignerChange: (index: number, field: keyof SignerType, value: string) => void;
 }
 
 const SignersList: React.FC<SignersListProps> = ({

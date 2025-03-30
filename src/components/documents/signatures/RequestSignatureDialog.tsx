@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { DialogProps } from '@radix-ui/react-dialog';
 import { DocumentMetadata } from '@/types/document';
 import { useAuth } from '@/contexts/AuthContext';
@@ -17,33 +17,16 @@ import { Loader2, Send } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useSignatureService, SignatureSigner, SignatureStatus } from '@/services/eSignature/eSignatureService';
 
-// Import the components we've created
+// Import the form components
 import SignatureFormFields from './SignatureFormFields';
 import ExpirationDatePicker from './ExpirationDatePicker';
 import SignersList from './SignersList';
-
-// Form validation schema using Zod
-const signatureFormSchema = z.object({
-  title: z.string().min(1, 'Title is required'),
-  message: z.string(),
-  expirationDate: z.date().optional(),
-  signers: z.array(
-    z.object({
-      name: z.string().min(1, 'Name is required'),
-      email: z.string().email('Valid email is required'),
-    })
-  ).min(1, 'At least one signer is required'),
-});
+import { useSignatureRequest } from './hooks/useSignatureRequest';
+import { signatureFormSchema } from './schema/signatureFormSchema';
+import { SignerType } from './types/signatureTypes';
 
 type SignatureFormValues = z.infer<typeof signatureFormSchema>;
-
-// Define a concrete type for our signers
-type SignerType = {
-  name: string;
-  email: string;
-};
 
 interface RequestSignatureDialogProps extends DialogProps {
   document: DocumentMetadata;
@@ -61,7 +44,9 @@ const RequestSignatureDialog: React.FC<RequestSignatureDialogProps> = ({
 }) => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { createSignatureRequest } = useSignatureService();
+  
+  // Use our custom hook for signature request logic
+  const { createSignatureRequest } = useSignatureRequest();
   
   // Create a properly typed empty signer for reuse
   const emptySigner: SignerType = { name: '', email: '' };
@@ -92,7 +77,7 @@ const RequestSignatureDialog: React.FC<RequestSignatureDialogProps> = ({
   // Handle signers management
   const handleAddSigner = () => {
     // Use our pre-defined signer type
-    setValue('signers', [...signers, emptySigner]);
+    setValue('signers', [...signers, {...emptySigner}]);
   };
 
   const handleRemoveSigner = (index: number) => {
@@ -101,7 +86,7 @@ const RequestSignatureDialog: React.FC<RequestSignatureDialogProps> = ({
     setValue('signers', newSigners);
   };
 
-  const handleSignerChange = (index: number, field: 'name' | 'email', value: string) => {
+  const handleSignerChange = (index: number, field: keyof SignerType, value: string) => {
     const newSigners = [...signers];
     newSigners[index] = { ...newSigners[index], [field]: value };
     setValue('signers', newSigners);
@@ -132,21 +117,8 @@ const RequestSignatureDialog: React.FC<RequestSignatureDialogProps> = ({
     }
     
     try {
-      // Convert to proper signer format
-      const signatureSigners: SignatureSigner[] = data.signers.map((s, index) => ({
-        name: s.name.trim(),
-        email: s.email.trim(),
-        order: index + 1,
-        status: SignatureStatus.PENDING
-      }));
-      
-      // Create signature request
-      await createSignatureRequest(document, signatureSigners, {
-        title: data.title,
-        message: data.message,
-        createdBy: user.id,
-        expiresAt: data.expirationDate?.toISOString(),
-      });
+      // Create signature request using our hook
+      await createSignatureRequest(document, data, user.id);
       
       toast({
         title: "Signature request sent",
@@ -178,11 +150,11 @@ const RequestSignatureDialog: React.FC<RequestSignatureDialogProps> = ({
       const timer = setTimeout(() => reset(), 300);
       return () => clearTimeout(timer);
     } else {
-      // Set initial values when dialog opens with properly typed empty values
+      // Set initial values when dialog opens
       reset({
         title: document.name,
         message: `Please sign this document: ${document.name}`,
-        signers: [emptySigner],
+        signers: [{...emptySigner}],
         expirationDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       });
     }
