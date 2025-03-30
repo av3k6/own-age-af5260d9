@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { User, UserRole } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
@@ -24,6 +23,8 @@ export const useAuthActions = (
   const signIn = async (email: string, password: string) => {
     try {
       console.log('Attempting to sign in:', email);
+      setLoading(true);
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -31,23 +32,28 @@ export const useAuthActions = (
       
       if (error) {
         console.error('Sign in error:', error.message);
-        toast({
-          title: "Login Failed",
-          description: error.message || "Invalid credentials",
-          variant: "destructive",
-        });
-      } else if (data.user) {
+        return { error };
+      } 
+      
+      if (data.user) {
         console.log('Sign in successful:', data.user.email);
-        toast({
-          title: "Welcome back!",
-          description: "You've successfully logged in",
-        });
+        try {
+          // Fetch user profile after successful login
+          const mappedUser = await mapUserData(supabase, data.user);
+          setUser(mappedUser);
+          console.log("User mapped and set after login:", mappedUser?.email);
+        } catch (err) {
+          console.error("Error mapping user after login:", err);
+          // Continue despite mapping error, auth session is still valid
+        }
       }
       
-      return { error };
+      return { error: null };
     } catch (error) {
       console.error('Unexpected sign in error:', error);
       return { error };
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -116,8 +122,11 @@ export const useAuthActions = (
 
   const checkIsAuthenticated = async (): Promise<boolean> => {
     try {
+      console.log("Checking if user is authenticated");
       const { data: { session } } = await supabase.auth.getSession();
-      return !!session?.user;
+      const isAuthenticated = !!session?.user;
+      console.log("Authentication check result:", isAuthenticated);
+      return isAuthenticated;
     } catch (error) {
       console.error('Authentication check error:', error);
       return false;

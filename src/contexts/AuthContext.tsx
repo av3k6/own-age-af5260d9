@@ -25,20 +25,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         console.log("Getting session...");
         
-        // Increase timeout for session fetch to 10 seconds
+        // Increase timeout for session fetch to 15 seconds
         const timeoutPromise = new Promise<never>((_, reject) => {
-          setTimeout(() => reject(new Error('Session fetch timed out')), 10000);
+          setTimeout(() => reject(new Error('Session fetch timed out')), 15000);
         });
         
         try {
+          console.log("Attempting to fetch auth session");
+          
           // First try to get session without racing against timeout
           const { data, error } = await supabase.auth.getSession();
           
+          if (error) {
+            console.error("Error getting session:", error);
+          }
+          
           if (data.session?.user) {
+            console.log("Session found for user:", data.session.user.email);
             try {
               const mappedUser = await mapUserData(supabase, data.session.user);
+              console.log("User data mapped successfully");
               setUser(mappedUser);
-              console.log('Session found and user set:', mappedUser?.email);
             } catch (mapErr) {
               console.error("Error mapping user data:", mapErr);
               setUser(null);
@@ -51,9 +58,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.error("Error getting session:", err);
           setUser(null);
         } finally {
+          // Always set these states regardless of success/failure
           setLoading(false);
           setIsInitialized(true);
-          console.log("Auth loading state set to false, initialization complete");
+          console.log("Auth initialization complete, loading:", false);
         }
       } catch (error) {
         console.error('Error in overall getSession process:', error);
@@ -63,19 +71,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     };
 
-    // Start session fetch with a small delay to allow other components to initialize
+    // Start session fetch with a smaller delay
     const timer = setTimeout(() => {
       getSession();
-    }, 100);
+    }, 50);
     
     // Set a backup timeout to ensure isInitialized is set even if everything else fails
+    // This is critical to prevent the app from hanging on loading state
     const backupTimer = setTimeout(() => {
       if (!isInitialized) {
         console.warn("Forcing auth initialization after timeout");
         setIsInitialized(true);
         setLoading(false);
       }
-    }, 5000);
+    }, 3000);
 
     // Listen for auth changes with improved error handling
     let subscription: { unsubscribe: () => void } | null = null;
@@ -98,6 +107,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             console.log("No user in auth state change session");
             setUser(null);
           }
+          
+          // Always ensure these states are updated
           setLoading(false);
           setIsInitialized(true);
         }

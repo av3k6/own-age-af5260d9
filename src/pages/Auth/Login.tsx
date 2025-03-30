@@ -17,12 +17,20 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Redirect if already logged in, with more robust checking
+  // Improved redirect if already logged in
   useEffect(() => {
-    if (user && isInitialized) {
+    if (!isInitialized) {
+      // Wait for auth to initialize before making decisions
+      console.log("Auth not yet initialized, waiting...");
+      return;
+    }
+    
+    if (user) {
       const redirectTo = location.state?.from || "/dashboard";
       console.log("User already logged in, redirecting to:", redirectTo);
       navigate(redirectTo, { replace: true });
+    } else {
+      console.log("No user found after auth initialized");
     }
   }, [user, isInitialized, navigate, location.state]);
 
@@ -58,8 +66,11 @@ const Login = () => {
       const redirectTo = location.state?.from || "/dashboard";
       console.log("Redirecting to:", redirectTo);
       
-      // Use a delay to ensure auth state is fully updated before navigation
-      setTimeout(() => navigate(redirectTo, { replace: true }), 500);
+      // Increased delay to ensure auth state is fully propagated
+      setTimeout(() => {
+        console.log("Executing delayed navigation to:", redirectTo);
+        navigate(redirectTo, { replace: true });
+      }, 800);
     } catch (error: any) {
       console.error("Login error:", error);
       toast({

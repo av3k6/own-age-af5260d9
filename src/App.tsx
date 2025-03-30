@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   BrowserRouter as Router,
   Route,
@@ -40,21 +40,41 @@ function App() {
 
 function AppContent() {
   const { user, loading, isInitialized } = useAuth();
+  const [showRoutes, setShowRoutes] = useState(false);
 
   // Force render routes after maximum wait time even if not initialized
   useEffect(() => {
+    // If auth is initialized, we can show routes immediately
+    if (isInitialized) {
+      console.log("Auth initialized, rendering routes");
+      setShowRoutes(true);
+      return;
+    }
+    
+    // Set a backup timer to force show routes after 2 seconds
     const forceRenderTimer = setTimeout(() => {
-      if (!isInitialized) {
+      if (!showRoutes) {
         console.warn("Forcing app to render routes after timeout");
+        setShowRoutes(true);
       }
-    }, 2000); // 2 second timeout
+    }, 2000);
     
     return () => clearTimeout(forceRenderTimer);
-  }, [isInitialized]);
+  }, [isInitialized, showRoutes]);
 
-  // Remove the initialization check and go straight to routes
-  // This prevents the app from being stuck on loading
-  console.log("App rendering routes, initialization status:", isInitialized);
+  // If routes should not be shown yet, render a minimal loading state
+  if (!showRoutes && !isInitialized) {
+    console.log("App still initializing, showing loading state");
+    return (
+      <div className="flex h-screen w-full items-center justify-center">
+        <div className="animate-pulse text-center">
+          <p className="text-lg font-medium text-gray-500">Loading application...</p>
+        </div>
+      </div>
+    );
+  }
+
+  console.log("App rendering routes, auth state:", user ? "logged in" : "not logged in");
 
   // Update the routes array to include our messaging route
   const routes = [
@@ -118,7 +138,7 @@ function AppContent() {
     <Route
       key="documents"
       path="/documents"
-      element={<DocumentManagement />}
+      element={user ? <DocumentManagement /> : <Navigate to="/login" replace state={{ from: "/documents" }} />}
     />,
     <Route
       key="messages"

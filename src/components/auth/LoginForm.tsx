@@ -55,6 +55,7 @@ const LoginForm = ({
     setLocalIsLoading(true);
 
     try {
+      console.log("Local login handler executing with email:", email);
       const { error } = await signIn(email, password);
 
       if (error) {
@@ -71,11 +72,16 @@ const LoginForm = ({
         
         // Get destination from location state or default to dashboard
         const redirectTo = location.state?.from || "/dashboard";
+        console.log("LoginForm redirecting to:", redirectTo);
         
-        // Use a delay to ensure auth state is updated before navigation
-        setTimeout(() => navigate(redirectTo, { replace: true }), 500);
+        // Increased delay to ensure auth state is updated before navigation
+        setTimeout(() => {
+          console.log("Executing delayed navigation from LoginForm to:", redirectTo);
+          navigate(redirectTo, { replace: true });
+        }, 800);
       }
     } catch (error) {
+      console.error("LoginForm local handler error:", error);
       toast({
         title: "Error",
         description: "Failed to sign in. Please try again.",
