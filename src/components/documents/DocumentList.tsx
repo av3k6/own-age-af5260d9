@@ -1,10 +1,9 @@
-
 import React from 'react';
 import { DocumentMetadata } from '@/types/document';
 import { File, FileText, Download, Trash2, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import SignatureActions from './signature/SignatureActions';
+import SignatureActions from './signatures/SignatureActions';
 
 interface DocumentListProps {
   documents: DocumentMetadata[];
