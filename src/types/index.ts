@@ -1,4 +1,3 @@
-
 export enum UserRole {
   BUYER = "buyer",
   SELLER = "seller",
@@ -40,6 +39,31 @@ export interface User {
   profileImage?: string;
   bio?: string;
   createdAt: Date;
+  user_metadata?: {
+    full_name?: string;
+    name?: string;
+    phone?: string;
+    role?: UserRole | string;
+    bio?: string;
+    avatar_url?: string;
+    address?: {
+      street: string;
+      city: string;
+      province: string;
+      postalCode: string;
+      country: string;
+    };
+    preferredLocations?: string[];
+    budgetRange?: {
+      min: number;
+      max: number;
+    };
+    propertyTypePreferences?: string[];
+    serviceType?: string;
+    companyName?: string;
+    licenseNumber?: string;
+  };
+  app_metadata?: Record<string, any>;
 }
 
 export interface Room {

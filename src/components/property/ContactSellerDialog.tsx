@@ -60,9 +60,9 @@ export default function ContactSellerDialog({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: user?.user_metadata?.full_name || "",
+      name: user?.user_metadata?.full_name || user?.name || "",
       email: user?.email || "",
-      phone: user?.user_metadata?.phone || "",
+      phone: user?.user_metadata?.phone || user?.phone || "",
       message: `Hi, I'm interested in ${propertyTitle}. I would like more information.`,
     },
   });

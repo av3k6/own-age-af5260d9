@@ -2,7 +2,7 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Home } from "lucide-react";
+import { User as SupabaseUser } from "@supabase/supabase-js";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import BasicInfoTab from "./profile/BasicInfoTab";
 import RoleSpecificTab from "./profile/RoleSpecificTab";
@@ -27,7 +27,7 @@ const UserProfile = () => {
     addPropertyTypePreference,
     removePropertyTypePreference,
     handleSaveProfile
-  } = useUserProfile(user);
+  } = useUserProfile(user as unknown as SupabaseUser);
 
   return (
     <Card className="w-full max-w-4xl mx-auto">
@@ -48,7 +48,7 @@ const UserProfile = () => {
         <TabsContent value="basic">
           <CardContent>
             <BasicInfoTab
-              user={user}
+              user={user as unknown as SupabaseUser}
               profileData={profileData}
               setProfileData={setProfileData}
               isEditing={isEditing}

@@ -23,8 +23,9 @@ const Sell = () => {
     }
   }, [user, loading, navigate, toast]);
 
-  // Check if user has seller role - update to check user_metadata
-  const isSellerRole = user?.user_metadata?.role === UserRole.SELLER || user?.user_metadata?.role === "seller";
+  // Check if user has seller role - updated to check both user_metadata and direct role property
+  const isSellerRole = (user?.user_metadata?.role === UserRole.SELLER || user?.user_metadata?.role === "seller") || 
+                       user?.role === UserRole.SELLER;
 
   if (loading) {
     return (

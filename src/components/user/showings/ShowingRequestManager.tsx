@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useSupabase } from "@/hooks/useSupabase";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { Showing, ShowingStatus, PropertyListing, PropertyType } from "@/types";
+import { Showing, ShowingStatus, PropertyListing, PropertyType, ListingStatus } from "@/types";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -159,7 +159,7 @@ export default function ShowingRequestManager({ isBuyer = false }: ShowingReques
               yearBuilt: 0,
               features: [],
               sellerId: item.seller_id,
-              status: "active",
+              status: ListingStatus.ACTIVE,
               createdAt: new Date(),
               updatedAt: new Date()
             } : undefined
