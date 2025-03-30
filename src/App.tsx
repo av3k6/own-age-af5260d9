@@ -10,7 +10,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { Toaster } from '@/components/ui/toaster';
 import Home from './pages/Index';
-import Buy from './pages/Buy';
+import Buy from "@/pages/buy";
 import Sell from './pages/Sell';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Auth/Login';
