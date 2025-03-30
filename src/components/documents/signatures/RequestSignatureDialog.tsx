@@ -75,7 +75,7 @@ const RequestSignatureDialog: React.FC<RequestSignatureDialogProps> = ({
     defaultValues: {
       title: document.name,
       message: `Please sign this document: ${document.name}`,
-      signers: [{ name: '', email: '' }],
+      signers: [{ name: '', email: '' } satisfies SignerType],
       expirationDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // Default: 30 days from now
     },
   });
@@ -88,8 +88,9 @@ const RequestSignatureDialog: React.FC<RequestSignatureDialogProps> = ({
 
   // Handle signers management
   const handleAddSigner = () => {
-    // Ensure we're adding an object that matches the required type
-    setValue('signers', [...signers, { name: '', email: '' }]);
+    // Create a new signer object that explicitly satisfies the SignerType
+    const newSigner: SignerType = { name: '', email: '' };
+    setValue('signers', [...signers, newSigner]);
   };
 
   const handleRemoveSigner = (index: number) => {
@@ -179,7 +180,7 @@ const RequestSignatureDialog: React.FC<RequestSignatureDialogProps> = ({
       reset({
         title: document.name,
         message: `Please sign this document: ${document.name}`,
-        signers: [{ name: '', email: '' }] as SignerType[], // explicitly typed as SignerType[]
+        signers: [{ name: '', email: '' } satisfies SignerType],
         expirationDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       });
     }
