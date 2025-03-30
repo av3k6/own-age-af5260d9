@@ -6,7 +6,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useSupabase } from "@/hooks/useSupabase";
 import AuthPageLayout from "@/components/auth/AuthPageLayout";
 import LoginForm from "@/components/auth/LoginForm";
-import SocialLoginButtons from "@/components/auth/SocialLoginButtons";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -101,18 +100,12 @@ const Login = () => {
       footerLinkTo="/signup"
     >
       <LoginForm 
-        onSubmit={handleSubmit}
         email={email}
         setEmail={setEmail}
         password={password}
         setPassword={setPassword}
         isLoading={isLoading}
-      />
-      
-      <SocialLoginButtons
-        onGoogleSignIn={handleGoogleSignIn}
-        onFacebookSignIn={handleFacebookSignIn}
-        isLoading={isLoading}
+        onSubmit={handleSubmit}
       />
     </AuthPageLayout>
   );

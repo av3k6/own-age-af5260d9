@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -7,17 +8,46 @@ import { useAuth } from "@/contexts/AuthContext";
 import SocialLoginButtons from "./SocialLoginButtons";
 import { Icons } from "@/components/Icons";
 
-const LoginForm = () => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+interface LoginFormProps {
+  onSubmit?: (e: React.FormEvent) => Promise<void>;
+  email?: string;
+  setEmail?: React.Dispatch<React.SetStateAction<string>>;
+  password?: string;
+  setPassword?: React.Dispatch<React.SetStateAction<string>>;
+  isLoading?: boolean;
+}
+
+const LoginForm = ({
+  onSubmit,
+  email: externalEmail,
+  setEmail: externalSetEmail,
+  password: externalPassword,
+  setPassword: externalSetPassword,
+  isLoading: externalIsLoading,
+}: LoginFormProps = {}) => {
+  const [localIsLoading, setLocalIsLoading] = useState(false);
+  const [localEmail, setLocalEmail] = useState("");
+  const [localPassword, setLocalPassword] = useState("");
   const { signIn } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  // Use external state if provided, otherwise use local state
+  const isLoading = externalIsLoading !== undefined ? externalIsLoading : localIsLoading;
+  const email = externalEmail !== undefined ? externalEmail : localEmail;
+  const password = externalPassword !== undefined ? externalPassword : localPassword;
+  const setEmail = externalSetEmail || setLocalEmail;
+  const setPassword = externalSetPassword || setLocalPassword;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    
+    if (onSubmit) {
+      await onSubmit(e);
+      return;
+    }
+
+    setLocalIsLoading(true);
 
     try {
       const { error } = await signIn(email, password);
@@ -42,7 +72,7 @@ const LoginForm = () => {
         variant: "destructive",
       });
     } finally {
-      setIsLoading(false);
+      setLocalIsLoading(false);
     }
   };
 
