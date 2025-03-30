@@ -39,6 +39,12 @@ const signatureFormSchema = z.object({
 
 type SignatureFormValues = z.infer<typeof signatureFormSchema>;
 
+// Define a type for our signers that matches what our form expects
+type SignerType = {
+  name: string;
+  email: string;
+};
+
 interface RequestSignatureDialogProps extends DialogProps {
   document: DocumentMetadata;
   open: boolean;
@@ -82,6 +88,7 @@ const RequestSignatureDialog: React.FC<RequestSignatureDialogProps> = ({
 
   // Handle signers management
   const handleAddSigner = () => {
+    // Ensure we're adding an object that matches the required type
     setValue('signers', [...signers, { name: '', email: '' }]);
   };
 
@@ -168,11 +175,11 @@ const RequestSignatureDialog: React.FC<RequestSignatureDialogProps> = ({
       const timer = setTimeout(() => reset(), 300);
       return () => clearTimeout(timer);
     } else {
-      // Set initial values when dialog opens
+      // Set initial values when dialog opens with properly typed empty values
       reset({
         title: document.name,
         message: `Please sign this document: ${document.name}`,
-        signers: [{ name: '', email: '' }],
+        signers: [{ name: '', email: '' }] as SignerType[], // explicitly typed as SignerType[]
         expirationDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       });
     }
