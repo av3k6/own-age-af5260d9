@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import {
   BrowserRouter as Router,
@@ -23,6 +22,7 @@ import EditListing from "./pages/EditListing";
 import UserShowings from "./pages/UserShowings";
 import Layout from './pages/Layout';
 import NotFound from './pages/NotFound';
+import DocumentManagement from './pages/DocumentManagement';
 
 function App() {
   return (
@@ -59,60 +59,69 @@ function AppContent() {
     );
   }
 
+  // Update the routes array to include our new document management route
+  const routes = [
+    <Route path="/" element={<Home />} />,
+    <Route path="/buy" element={<Buy />} />,
+    <Route path="/property/:id" element={<PropertyDetail />} />,
+    <Route
+      path="/sell"
+      element={
+        user ? (
+          <Sell />
+        ) : (
+          <Navigate to="/login" replace state={{ from: "/sell" }} />
+        )
+      }
+    />,
+    <Route
+      path="/dashboard"
+      element={
+        user ? (
+          <Dashboard />
+        ) : (
+          <Navigate to="/login" replace state={{ from: "/dashboard" }} />
+        )
+      }
+    />,
+    <Route
+      path="/profile"
+      element={
+        user ? (
+          <Profile />
+        ) : (
+          <Navigate to="/login" replace state={{ from: "/profile" }} />
+        )
+      }
+    />,
+    <Route
+      path="/showings"
+      element={
+        user ? (
+          <UserShowings />
+        ) : (
+          <Navigate to="/login" replace state={{ from: "/showings" }} />
+        )
+      }
+    />,
+    <Route
+      path="/property/:id/make-offer"
+      element={user ? <MakeOffer /> : <Navigate to="/login" replace state={{ from: window.location.pathname }} />}
+    />,
+    <Route
+      path="/property/:id/edit"
+      element={user ? <EditListing /> : <Navigate to="/login" replace state={{ from: window.location.pathname }} />}
+    />,
+    <Route
+      path="/documents"
+      element={<DocumentManagement />}
+    />,
+  ];
+
   return (
     <Routes>
       <Route element={<Layout />}>
-        <Route path="/" element={<Home />} />
-        <Route path="/buy" element={<Buy />} />
-        <Route path="/property/:id" element={<PropertyDetail />} />
-        <Route
-          path="/sell"
-          element={
-            user ? (
-              <Sell />
-            ) : (
-              <Navigate to="/login" replace state={{ from: "/sell" }} />
-            )
-          }
-        />
-        <Route
-          path="/dashboard"
-          element={
-            user ? (
-              <Dashboard />
-            ) : (
-              <Navigate to="/login" replace state={{ from: "/dashboard" }} />
-            )
-          }
-        />
-        <Route
-          path="/profile"
-          element={
-            user ? (
-              <Profile />
-            ) : (
-              <Navigate to="/login" replace state={{ from: "/profile" }} />
-            )
-          }
-        />
-        <Route
-          path="/showings"
-          element={
-            user ? (
-              <UserShowings />
-            ) : (
-              <Navigate to="/login" replace state={{ from: "/showings" }} />
-            )
-          }
-        />
-        <Route
-          path="/property/:id/make-offer"
-          element={user ? <MakeOffer /> : <Navigate to="/login" replace state={{ from: window.location.pathname }} />}
-        />
-        <Route
-          path="/property/:id/edit"
-          element={user ? <EditListing /> : <Navigate to="/login" replace state={{ from: window.location.pathname }} />}
-        />
+        {routes}
       </Route>
       
       {/* Auth routes don't need the Layout with header/footer */}
