@@ -1,11 +1,10 @@
-
 import { User } from "@supabase/supabase-js";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ProfileHeader } from "./ProfileHeader";
-import { UserProfileData } from "@/hooks/useUserProfile";
+import { UserProfileData } from "@/types/profile";
 
 interface BasicInfoTabProps {
   user: User | null;

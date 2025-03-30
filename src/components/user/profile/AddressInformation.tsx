@@ -1,7 +1,6 @@
-
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { UserProfileData } from "@/hooks/useUserProfile";
+import { UserProfileData } from "@/types/profile";
 
 interface AddressInformationProps {
   profileData: UserProfileData;

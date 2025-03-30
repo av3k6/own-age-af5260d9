@@ -1,7 +1,6 @@
-
 import BuyerDetails from "./BuyerDetails";
 import ProfessionalDetails from "./ProfessionalDetails";
-import { UserProfileData } from "@/hooks/useUserProfile";
+import { UserProfileData } from "@/types/profile";
 
 interface RoleSpecificTabProps {
   profileData: UserProfileData;

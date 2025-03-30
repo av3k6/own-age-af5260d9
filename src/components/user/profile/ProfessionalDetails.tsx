@@ -1,9 +1,8 @@
-
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Briefcase } from "lucide-react";
-import { UserProfileData } from "@/hooks/useUserProfile";
+import { UserProfileData } from "@/types/profile";
 
 interface ProfessionalDetailsProps {
   profileData: UserProfileData;

@@ -1,6 +1,5 @@
-
 import AddressInformation from "./AddressInformation";
-import { UserProfileData } from "@/hooks/useUserProfile";
+import { UserProfileData } from "@/types/profile";
 
 interface PreferencesTabProps {
   profileData: UserProfileData;

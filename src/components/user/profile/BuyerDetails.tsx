@@ -1,9 +1,8 @@
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DollarSign, Home, MapPin } from "lucide-react";
-import { UserProfileData } from "@/hooks/useUserProfile";
+import { UserProfileData } from "@/types/profile";
 
 interface BuyerDetailsProps {
   profileData: UserProfileData;
