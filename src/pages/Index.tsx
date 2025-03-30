@@ -1,4 +1,5 @@
 
+import React from "react";
 import Hero from "@/components/home/Hero";
 import FeaturedListings from "@/components/home/FeaturedListings";
 import HowItWorks from "@/components/home/HowItWorks";
@@ -9,7 +10,7 @@ import SupabaseStatus from "@/components/auth/SupabaseStatus";
 const Index = () => {
   console.log("Rendering Index/Home component");
   return (
-    <div>
+    <div className="min-h-screen">
       <Hero />
       <FeaturedListings />
       <HowItWorks />

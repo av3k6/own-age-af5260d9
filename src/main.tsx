@@ -13,8 +13,10 @@ const renderApp = () => {
       return;
     }
     
+    console.log("Starting app rendering");
     const root = createRoot(rootElement);
     root.render(<App />);
+    console.log("App rendering complete");
     
     // Make Supabase available in browser console for debugging during development
     if (import.meta.env.DEV) {

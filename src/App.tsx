@@ -1,11 +1,10 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import {
   BrowserRouter as Router,
   Route,
   Routes,
   Navigate,
-  useNavigate,
 } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -39,26 +38,7 @@ function App() {
 }
 
 function AppContent() {
-  const { user, loading, checkIsAuthenticated } = useAuth();
-  const [isInitialized, setIsInitialized] = useState(false);
-
-  useEffect(() => {
-    const initializeAuth = async () => {
-      try {
-        console.log("Starting authentication check...");
-        // Verify authentication state on app load
-        await checkIsAuthenticated();
-        console.log("Authentication check completed successfully");
-      } catch (error) {
-        console.error("Auth initialization error:", error);
-      } finally {
-        console.log("Setting isInitialized to true");
-        setIsInitialized(true);
-      }
-    };
-    
-    initializeAuth();
-  }, [checkIsAuthenticated]);
+  const { user, loading, isInitialized } = useAuth();
 
   if (!isInitialized) {
     console.log("App still initializing...");

@@ -7,6 +7,7 @@ import { useAuthActions, AuthActionsReturn } from '@/hooks/useAuthActions';
 
 interface AuthContextType extends AuthActionsReturn {
   user: User | null;
+  isInitialized: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -14,6 +15,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isInitialized, setIsInitialized] = useState(false);
   const { supabase } = useSupabase();
   const authActions = useAuthActions(setUser);
 
@@ -37,7 +39,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(null);
       } finally {
         setLoading(false);
-        console.log("Auth loading state set to false");
+        setIsInitialized(true);
+        console.log("Auth loading state set to false, initialization complete");
       }
     };
 
@@ -55,6 +58,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(null);
         }
         setLoading(false);
+        setIsInitialized(true);
       }
     );
 
@@ -66,6 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const value = {
     user,
     loading,
+    isInitialized,
     ...authActions,
   };
 
