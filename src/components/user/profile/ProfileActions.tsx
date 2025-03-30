@@ -1,6 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Edit, Save, Loader2 } from "lucide-react";
+import { useEffect } from "react";
 
 interface ProfileActionsProps {
   isEditing: boolean;
@@ -17,7 +18,9 @@ const ProfileActions = ({
   onCancel,
   onSave
 }: ProfileActionsProps) => {
-  console.log("ProfileActions render - isLoading:", isLoading, "isEditing:", isEditing);
+  useEffect(() => {
+    console.log("ProfileActions render - isLoading:", isLoading, "isEditing:", isEditing);
+  }, [isLoading, isEditing]);
   
   return (
     <div className="flex w-full justify-end gap-2">
