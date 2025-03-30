@@ -1,8 +1,10 @@
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Briefcase } from "lucide-react";
 import { UserProfileData } from "@/types/profile";
+import { useProfessionalProfile } from "@/hooks/profile/roles/useProfessionalProfile";
 
 interface ProfessionalDetailsProps {
   profileData: UserProfileData;
@@ -15,14 +17,23 @@ const ProfessionalDetails = ({
   setProfileData,
   isEditing
 }: ProfessionalDetailsProps) => {
+  const { 
+    serviceType, 
+    companyName, 
+    licenseNumber, 
+    updateServiceType, 
+    updateCompanyName, 
+    updateLicenseNumber 
+  } = useProfessionalProfile(profileData, setProfileData);
+
   return (
     <div className="space-y-4">
       <div className="grid gap-2">
         <Label htmlFor="serviceType">Service Type</Label>
         <Select
           disabled={!isEditing}
-          value={profileData.serviceType}
-          onValueChange={(value) => setProfileData({...profileData, serviceType: value})}
+          value={serviceType}
+          onValueChange={updateServiceType}
         >
           <SelectTrigger id="serviceType">
             <SelectValue placeholder="Select your service type" />
@@ -44,8 +55,8 @@ const ProfessionalDetails = ({
           <Input 
             id="companyName" 
             className="pl-9"
-            value={profileData.companyName} 
-            onChange={(e) => setProfileData({...profileData, companyName: e.target.value})} 
+            value={companyName} 
+            onChange={(e) => updateCompanyName(e.target.value)} 
             disabled={!isEditing}
           />
         </div>
@@ -55,8 +66,8 @@ const ProfessionalDetails = ({
         <Label htmlFor="licenseNumber">License Number</Label>
         <Input 
           id="licenseNumber" 
-          value={profileData.licenseNumber} 
-          onChange={(e) => setProfileData({...profileData, licenseNumber: e.target.value})} 
+          value={licenseNumber} 
+          onChange={(e) => updateLicenseNumber(e.target.value)} 
           disabled={!isEditing}
         />
       </div>

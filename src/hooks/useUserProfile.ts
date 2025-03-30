@@ -1,9 +1,11 @@
 
 import { User } from "@supabase/supabase-js";
 import { useProfileData } from "./profile/useProfileData";
-import { useProfileLocations } from "./profile/useProfileLocations";
-import { usePropertyPreferences } from "./profile/usePropertyPreferences";
 import { useProfileSave } from "./profile/useProfileSave";
+import { useBuyerProfile } from "./profile/roles/useBuyerProfile";
+import { useSellerProfile } from "./profile/roles/useSellerProfile";
+import { useProfessionalProfile } from "./profile/roles/useProfessionalProfile";
+import { useAddressManagement } from "./profile/useAddressManagement";
 import { UserProfileData } from "@/types/profile";
 
 export type { UserProfileData } from "@/types/profile";
@@ -17,18 +19,14 @@ export const useUserProfile = (user: User | null) => {
   } = useProfileData(user);
 
   const {
-    newLocation,
-    setNewLocation,
-    addPreferredLocation,
-    removePreferredLocation
-  } = useProfileLocations(profileData, setProfileData);
+    address,
+    updateAddress
+  } = useAddressManagement(profileData, setProfileData);
 
-  const {
-    newPropertyType,
-    setNewPropertyType,
-    addPropertyTypePreference,
-    removePropertyTypePreference
-  } = usePropertyPreferences(profileData, setProfileData);
+  // Use the appropriate role-specific hook based on user role
+  const buyerProfileHooks = useBuyerProfile(profileData, setProfileData);
+  const sellerProfileHooks = useSellerProfile(profileData, setProfileData);
+  const professionalProfileHooks = useProfessionalProfile(profileData, setProfileData);
 
   const {
     isLoading,
@@ -41,14 +39,11 @@ export const useUserProfile = (user: User | null) => {
     isEditing,
     setIsEditing,
     isLoading,
-    newLocation,
-    setNewLocation,
-    newPropertyType,
-    setNewPropertyType,
-    addPreferredLocation,
-    removePreferredLocation,
-    addPropertyTypePreference,
-    removePropertyTypePreference,
-    handleSaveProfile
+    address,
+    updateAddress,
+    handleSaveProfile,
+    ...buyerProfileHooks,
+    ...sellerProfileHooks,
+    ...professionalProfileHooks
   };
 };

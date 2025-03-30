@@ -1,3 +1,4 @@
+
 import BuyerDetails from "./BuyerDetails";
 import ProfessionalDetails from "./ProfessionalDetails";
 import { UserProfileData } from "@/types/profile";
@@ -6,28 +7,12 @@ interface RoleSpecificTabProps {
   profileData: UserProfileData;
   setProfileData: (data: UserProfileData) => void;
   isEditing: boolean;
-  newLocation: string;
-  setNewLocation: (value: string) => void;
-  newPropertyType: string;
-  setNewPropertyType: (value: string) => void;
-  addPreferredLocation: () => void;
-  removePreferredLocation: (location: string) => void;
-  addPropertyTypePreference: () => void;
-  removePropertyTypePreference: (type: string) => void;
 }
 
 const RoleSpecificTab = ({
   profileData,
   setProfileData,
-  isEditing,
-  newLocation,
-  setNewLocation,
-  newPropertyType,
-  setNewPropertyType,
-  addPreferredLocation,
-  removePreferredLocation,
-  addPropertyTypePreference,
-  removePropertyTypePreference
+  isEditing
 }: RoleSpecificTabProps) => {
   return (
     <div className="pt-6">
@@ -44,14 +29,6 @@ const RoleSpecificTab = ({
             profileData={profileData}
             setProfileData={setProfileData}
             isEditing={isEditing}
-            newLocation={newLocation}
-            setNewLocation={setNewLocation}
-            newPropertyType={newPropertyType}
-            setNewPropertyType={setNewPropertyType}
-            addPreferredLocation={addPreferredLocation}
-            removePreferredLocation={removePreferredLocation}
-            addPropertyTypePreference={addPropertyTypePreference}
-            removePropertyTypePreference={removePropertyTypePreference}
           />
         )}
         

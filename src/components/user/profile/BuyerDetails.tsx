@@ -1,36 +1,34 @@
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DollarSign, Home, MapPin } from "lucide-react";
 import { UserProfileData } from "@/types/profile";
+import { useBuyerProfile } from "@/hooks/profile/roles/useBuyerProfile";
 
 interface BuyerDetailsProps {
   profileData: UserProfileData;
   setProfileData: (data: UserProfileData) => void;
   isEditing: boolean;
-  newLocation: string;
-  setNewLocation: (value: string) => void;
-  newPropertyType: string;
-  setNewPropertyType: (value: string) => void;
-  addPreferredLocation: () => void;
-  removePreferredLocation: (location: string) => void;
-  addPropertyTypePreference: () => void;
-  removePropertyTypePreference: (type: string) => void;
 }
 
 const BuyerDetails = ({
   profileData,
   setProfileData,
-  isEditing,
-  newLocation,
-  setNewLocation,
-  newPropertyType,
-  setNewPropertyType,
-  addPreferredLocation,
-  removePreferredLocation,
-  addPropertyTypePreference,
-  removePropertyTypePreference
+  isEditing
 }: BuyerDetailsProps) => {
+  const {
+    newLocation,
+    setNewLocation,
+    newPropertyType,
+    setNewPropertyType,
+    addPreferredLocation,
+    removePreferredLocation,
+    addPropertyTypePreference,
+    removePropertyTypePreference,
+    updateBudget
+  } = useBuyerProfile(profileData, setProfileData);
+
   return (
     <div className="space-y-4">
       <div className="grid gap-2">
@@ -43,7 +41,7 @@ const BuyerDetails = ({
               type="number"
               className="pl-9"
               value={profileData.budgetMin} 
-              onChange={(e) => setProfileData({...profileData, budgetMin: parseInt(e.target.value) || 0})} 
+              onChange={(e) => updateBudget('budgetMin', parseInt(e.target.value) || 0)} 
               disabled={!isEditing}
             />
           </div>
@@ -55,7 +53,7 @@ const BuyerDetails = ({
               type="number"
               className="pl-9"
               value={profileData.budgetMax} 
-              onChange={(e) => setProfileData({...profileData, budgetMax: parseInt(e.target.value) || 0})} 
+              onChange={(e) => updateBudget('budgetMax', parseInt(e.target.value) || 0)} 
               disabled={!isEditing}
             />
           </div>

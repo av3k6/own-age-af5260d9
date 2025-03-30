@@ -1,6 +1,8 @@
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { UserProfileData } from "@/types/profile";
+import { useAddressManagement } from "@/hooks/profile/useAddressManagement";
 
 interface AddressInformationProps {
   profileData: UserProfileData;
@@ -13,6 +15,8 @@ const AddressInformation = ({
   setProfileData,
   isEditing
 }: AddressInformationProps) => {
+  const { address, updateAddress } = useAddressManagement(profileData, setProfileData);
+  
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-medium">Address Information</h3>
@@ -22,11 +26,8 @@ const AddressInformation = ({
           <Label htmlFor="street">Street Address</Label>
           <Input 
             id="street" 
-            value={profileData.address.street} 
-            onChange={(e) => setProfileData({
-              ...profileData, 
-              address: {...profileData.address, street: e.target.value}
-            })} 
+            value={address.street} 
+            onChange={(e) => updateAddress('street', e.target.value)} 
             disabled={!isEditing}
           />
         </div>
@@ -36,11 +37,8 @@ const AddressInformation = ({
             <Label htmlFor="city">City</Label>
             <Input 
               id="city" 
-              value={profileData.address.city} 
-              onChange={(e) => setProfileData({
-                ...profileData, 
-                address: {...profileData.address, city: e.target.value}
-              })} 
+              value={address.city} 
+              onChange={(e) => updateAddress('city', e.target.value)} 
               disabled={!isEditing}
             />
           </div>
@@ -49,11 +47,8 @@ const AddressInformation = ({
             <Label htmlFor="province">Province</Label>
             <Input 
               id="province" 
-              value={profileData.address.province} 
-              onChange={(e) => setProfileData({
-                ...profileData, 
-                address: {...profileData.address, province: e.target.value}
-              })} 
+              value={address.province} 
+              onChange={(e) => updateAddress('province', e.target.value)} 
               disabled={!isEditing}
             />
           </div>
@@ -64,11 +59,8 @@ const AddressInformation = ({
             <Label htmlFor="postalCode">Postal Code</Label>
             <Input 
               id="postalCode" 
-              value={profileData.address.postalCode} 
-              onChange={(e) => setProfileData({
-                ...profileData, 
-                address: {...profileData.address, postalCode: e.target.value}
-              })} 
+              value={address.postalCode} 
+              onChange={(e) => updateAddress('postalCode', e.target.value)} 
               disabled={!isEditing}
             />
           </div>
@@ -77,11 +69,8 @@ const AddressInformation = ({
             <Label htmlFor="country">Country</Label>
             <Input 
               id="country" 
-              value={profileData.address.country} 
-              onChange={(e) => setProfileData({
-                ...profileData, 
-                address: {...profileData.address, country: e.target.value}
-              })} 
+              value={address.country} 
+              onChange={(e) => updateAddress('country', e.target.value)} 
               disabled={!isEditing}
             />
           </div>
