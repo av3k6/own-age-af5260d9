@@ -1,14 +1,10 @@
-
 import { useState, useEffect } from "react";
 import { mockListings } from "@/data/mockData";
-import { PropertyListing, ListingStatus } from "@/types";
+import { PropertyListing, ListingStatus, PropertyType } from "@/types";
 import { useSupabase } from "@/hooks/useSupabase";
 import { useToast } from "@/hooks/use-toast";
 
-import PropertyGrid from "./components/PropertyGrid";
-import SearchBar from "./components/SearchBar";
-import FilterPanel from "./components/FilterPanel";
-import ResultsHeader from "./components/ResultsHeader";
+import { FilterPanel, PropertyGrid, ResultsHeader, SearchBar } from "./components";
 
 const Buy = () => {
   const [listings, setListings] = useState<PropertyListing[]>([]);
