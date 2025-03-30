@@ -39,7 +39,7 @@ const signatureFormSchema = z.object({
 
 type SignatureFormValues = z.infer<typeof signatureFormSchema>;
 
-// Define a type for our signers that matches what our form expects
+// Define a concrete type for our signers
 type SignerType = {
   name: string;
   email: string;
@@ -63,6 +63,9 @@ const RequestSignatureDialog: React.FC<RequestSignatureDialogProps> = ({
   const { toast } = useToast();
   const { createSignatureRequest } = useSignatureService();
   
+  // Create a properly typed empty signer for reuse
+  const emptySigner: SignerType = { name: '', email: '' };
+  
   // Setup react-hook-form with zod resolver for validation
   const {
     handleSubmit,
@@ -75,7 +78,7 @@ const RequestSignatureDialog: React.FC<RequestSignatureDialogProps> = ({
     defaultValues: {
       title: document.name,
       message: `Please sign this document: ${document.name}`,
-      signers: [{ name: '', email: '' } satisfies SignerType],
+      signers: [emptySigner],
       expirationDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // Default: 30 days from now
     },
   });
@@ -88,9 +91,8 @@ const RequestSignatureDialog: React.FC<RequestSignatureDialogProps> = ({
 
   // Handle signers management
   const handleAddSigner = () => {
-    // Create a new signer object that explicitly satisfies the SignerType
-    const newSigner: SignerType = { name: '', email: '' };
-    setValue('signers', [...signers, newSigner]);
+    // Use our pre-defined signer type
+    setValue('signers', [...signers, emptySigner]);
   };
 
   const handleRemoveSigner = (index: number) => {
@@ -180,11 +182,11 @@ const RequestSignatureDialog: React.FC<RequestSignatureDialogProps> = ({
       reset({
         title: document.name,
         message: `Please sign this document: ${document.name}`,
-        signers: [{ name: '', email: '' } satisfies SignerType],
+        signers: [emptySigner],
         expirationDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       });
     }
-  }, [open, document.name, reset]);
+  }, [open, document.name, reset, emptySigner]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange} {...props}>
