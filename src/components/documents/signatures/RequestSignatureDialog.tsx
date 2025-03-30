@@ -14,10 +14,30 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Loader2, Send } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useSignatureService, SignatureSigner, SignatureStatus } from '@/services/eSignature/eSignatureService';
-import SignersList from './SignersList';
-import ExpirationDatePicker from './ExpirationDatePicker';
+
+// Import the components we've created
 import SignatureFormFields from './SignatureFormFields';
+import ExpirationDatePicker from './ExpirationDatePicker';
+import SignersList from './SignersList';
+
+// Form validation schema using Zod
+const signatureFormSchema = z.object({
+  title: z.string().min(1, 'Title is required'),
+  message: z.string(),
+  expirationDate: z.date().optional(),
+  signers: z.array(
+    z.object({
+      name: z.string().min(1, 'Name is required'),
+      email: z.string().email('Valid email is required'),
+    })
+  ).min(1, 'At least one signer is required'),
+});
+
+type SignatureFormValues = z.infer<typeof signatureFormSchema>;
 
 interface RequestSignatureDialogProps extends DialogProps {
   document: DocumentMetadata;
@@ -37,35 +57,61 @@ const RequestSignatureDialog: React.FC<RequestSignatureDialogProps> = ({
   const { toast } = useToast();
   const { createSignatureRequest } = useSignatureService();
   
-  const [title, setTitle] = useState(document.name);
-  const [message, setMessage] = useState(`Please sign this document: ${document.name}`);
-  const [signers, setSigners] = useState<Array<{ name: string; email: string; }>>([
-    { name: '', email: '' }
-  ]);
-  const [expirationDate, setExpirationDate] = useState<Date | undefined>(
-    new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // Default: 30 days from now
-  );
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  // Setup react-hook-form with zod resolver for validation
+  const {
+    handleSubmit,
+    setValue,
+    watch,
+    reset,
+    formState: { isSubmitting, errors }
+  } = useForm<SignatureFormValues>({
+    resolver: zodResolver(signatureFormSchema),
+    defaultValues: {
+      title: document.name,
+      message: `Please sign this document: ${document.name}`,
+      signers: [{ name: '', email: '' }],
+      expirationDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // Default: 30 days from now
+    },
+  });
+  
+  // Watch form values for controlled components
+  const title = watch('title');
+  const message = watch('message');
+  const expirationDate = watch('expirationDate');
+  const signers = watch('signers');
 
+  // Handle signers management
   const handleAddSigner = () => {
-    setSigners([...signers, { name: '', email: '' }]);
+    setValue('signers', [...signers, { name: '', email: '' }]);
   };
 
   const handleRemoveSigner = (index: number) => {
     const newSigners = [...signers];
     newSigners.splice(index, 1);
-    setSigners(newSigners);
+    setValue('signers', newSigners);
   };
 
   const handleSignerChange = (index: number, field: 'name' | 'email', value: string) => {
     const newSigners = [...signers];
     newSigners[index] = { ...newSigners[index], [field]: value };
-    setSigners(newSigners);
+    setValue('signers', newSigners);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  // Handle form field changes
+  const handleTitleChange = (value: string) => {
+    setValue('title', value);
+  };
+
+  const handleMessageChange = (value: string) => {
+    setValue('message', value);
+  };
+
+  const handleExpirationDateChange = (date: Date | undefined) => {
+    setValue('expirationDate', date);
+  };
+
+  // Handle form submission
+  const onSubmit = async (data: SignatureFormValues) => {
     if (!user) {
       toast({
         variant: "destructive",
@@ -75,32 +121,9 @@ const RequestSignatureDialog: React.FC<RequestSignatureDialogProps> = ({
       return;
     }
     
-    // Validate inputs
-    if (!title.trim()) {
-      toast({
-        variant: "destructive",
-        title: "Missing title",
-        description: "Please provide a title for the signature request."
-      });
-      return;
-    }
-    
-    // Validate signers
-    const validSigners = signers.filter(s => s.name.trim() && s.email.trim());
-    if (validSigners.length === 0) {
-      toast({
-        variant: "destructive",
-        title: "No signers",
-        description: "Please add at least one signer."
-      });
-      return;
-    }
-    
-    setIsSubmitting(true);
-    
     try {
       // Convert to proper signer format
-      const signatureSigners: SignatureSigner[] = validSigners.map((s, index) => ({
+      const signatureSigners: SignatureSigner[] = data.signers.map((s, index) => ({
         name: s.name.trim(),
         email: s.email.trim(),
         order: index + 1,
@@ -109,10 +132,10 @@ const RequestSignatureDialog: React.FC<RequestSignatureDialogProps> = ({
       
       // Create signature request
       await createSignatureRequest(document, signatureSigners, {
-        title,
-        message,
+        title: data.title,
+        message: data.message,
         createdBy: user.id,
-        expiresAt: expirationDate?.toISOString(),
+        expiresAt: data.expirationDate?.toISOString(),
       });
       
       toast({
@@ -120,8 +143,11 @@ const RequestSignatureDialog: React.FC<RequestSignatureDialogProps> = ({
         description: "The signers will receive an email with instructions."
       });
       
-      // Close dialog and trigger refresh if needed
+      // Reset form and close dialog
+      reset();
       onOpenChange(false);
+      
+      // Trigger refresh if needed
       if (onRequestComplete) {
         onRequestComplete();
       }
@@ -132,15 +158,30 @@ const RequestSignatureDialog: React.FC<RequestSignatureDialogProps> = ({
         title: "Failed to send signature request",
         description: error instanceof Error ? error.message : "An unknown error occurred."
       });
-    } finally {
-      setIsSubmitting(false);
     }
   };
+  
+  // Reset form when dialog opens/closes
+  React.useEffect(() => {
+    if (!open) {
+      // Small delay to avoid flashing the reset form before dialog closes
+      const timer = setTimeout(() => reset(), 300);
+      return () => clearTimeout(timer);
+    } else {
+      // Set initial values when dialog opens
+      reset({
+        title: document.name,
+        message: `Please sign this document: ${document.name}`,
+        signers: [{ name: '', email: '' }],
+        expirationDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      });
+    }
+  }, [open, document.name, reset]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange} {...props}>
       <DialogContent className="sm:max-w-[525px]">
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit(onSubmit)}>
           <DialogHeader>
             <DialogTitle>Request Signatures</DialogTitle>
             <DialogDescription>
@@ -149,24 +190,34 @@ const RequestSignatureDialog: React.FC<RequestSignatureDialogProps> = ({
           </DialogHeader>
           
           <div className="grid gap-4 py-4">
-            <SignatureFormFields 
+            {/* Title and Message fields */}
+            <SignatureFormFields
               title={title}
               message={message}
-              onTitleChange={setTitle}
-              onMessageChange={setMessage}
+              onTitleChange={handleTitleChange}
+              onMessageChange={handleMessageChange}
             />
             
-            <ExpirationDatePicker 
+            {/* Expiration Date */}
+            <ExpirationDatePicker
               expirationDate={expirationDate}
-              onExpirationDateChange={setExpirationDate}
+              onExpirationDateChange={handleExpirationDateChange}
             />
             
-            <SignersList 
+            {/* Signers List */}
+            <SignersList
               signers={signers}
               onAddSigner={handleAddSigner}
               onRemoveSigner={handleRemoveSigner}
               onSignerChange={handleSignerChange}
             />
+            
+            {/* Display validation errors */}
+            {errors.signers && (
+              <p className="text-sm font-medium text-destructive">
+                {errors.signers.message}
+              </p>
+            )}
           </div>
           
           <DialogFooter>
