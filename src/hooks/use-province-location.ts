@@ -2,7 +2,11 @@
 import { useState, useEffect } from 'react';
 import { useToast } from '@/components/ui/use-toast';
 
-export const useProvinceLocation = () => {
+type ProvinceLocationOptions = {
+  onLocationDetected?: (province: string) => void;
+};
+
+export const useProvinceLocation = (options?: ProvinceLocationOptions) => {
   const [province, setProvince] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -18,6 +22,10 @@ export const useProvinceLocation = () => {
         const storedProvince = localStorage.getItem('selectedProvince');
         if (storedProvince) {
           setProvince(storedProvince);
+          // Call the callback if provided
+          if (options?.onLocationDetected) {
+            options.onLocationDetected(storedProvince);
+          }
           setLoading(false);
           return;
         }
@@ -65,21 +73,37 @@ export const useProvinceLocation = () => {
           if (detectedProvince) {
             setProvince(detectedProvince);
             localStorage.setItem('selectedProvince', detectedProvince);
+            // Call the callback if provided
+            if (options?.onLocationDetected) {
+              options.onLocationDetected(detectedProvince);
+            }
           } else {
             // If we couldn't detect a province, default to a fallback
             setProvince('all');
             localStorage.setItem('selectedProvince', 'all');
+            // Call the callback if provided
+            if (options?.onLocationDetected) {
+              options.onLocationDetected('all');
+            }
           }
         } else {
           // If geocoding failed, use fallback
           setProvince('all');
           localStorage.setItem('selectedProvince', 'all');
+          // Call the callback if provided
+          if (options?.onLocationDetected) {
+            options.onLocationDetected('all');
+          }
         }
       } catch (err) {
         // Silently handle the error and use a fallback
         console.error("Error detecting province:", err);
         setProvince('all');
         localStorage.setItem('selectedProvince', 'all');
+        // Call the callback if provided with the fallback
+        if (options?.onLocationDetected) {
+          options.onLocationDetected('all');
+        }
         setError(err instanceof Error ? err : new Error('Unknown error'));
       } finally {
         setLoading(false);
@@ -87,7 +111,7 @@ export const useProvinceLocation = () => {
     };
     
     detectUserProvince();
-  }, []);
+  }, [options]);
   
   return { province, loading, error, setProvince };
 };
