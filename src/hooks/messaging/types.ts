@@ -8,19 +8,10 @@ export interface MessagingState {
   currentConversation: Conversation | null;
 }
 
-export interface UseConversationsReturn {
-  loading: boolean;
-  conversations: Conversation[];
-  fetchConversations: () => Promise<void>;
-  setCurrentConversation: (conversation: Conversation | null) => void;
-  currentConversation: Conversation | null;
-  createConversation: (
-    receiverId: string, 
-    subject?: string, 
-    initialMessage?: string, 
-    propertyId?: string
-  ) => Promise<Conversation | null>;
-}
+// Re-export conversation types
+export * from './conversations/types';
+// Re-export message types
+export * from './messages/types';
 
 export interface UseMessagesReturn {
   loading: boolean;
