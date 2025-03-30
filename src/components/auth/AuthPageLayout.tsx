@@ -30,12 +30,14 @@ const AuthPageLayout = ({
         <div className="mt-8 bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           {children}
           
-          <div className="mt-6 text-center text-sm">
-            <span className="text-zen-gray-600">{footerText}</span>
-            <Link to={footerLinkTo} className="ml-1 font-medium text-zen-blue-600 hover:text-zen-blue-500">
-              {footerLinkText}
-            </Link>
-          </div>
+          {footerText && footerLinkText && footerLinkTo && (
+            <div className="mt-6 text-center text-sm">
+              <span className="text-zen-gray-600">{footerText}</span>
+              <Link to={footerLinkTo} className="ml-1 font-medium text-zen-blue-600 hover:text-zen-blue-500">
+                {footerLinkText}
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </div>

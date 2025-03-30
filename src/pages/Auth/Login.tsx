@@ -131,9 +131,9 @@ const Login = () => {
     <AuthPageLayout
       title="Welcome back"
       subtitle="Sign in to continue to your TransacZen Haven account"
-      footerText="Don't have an account?"
-      footerLinkText="Sign up now"
-      footerLinkTo="/signup"
+      footerText=""
+      footerLinkText=""
+      footerLinkTo=""
     >
       <LoginForm 
         email={email}
