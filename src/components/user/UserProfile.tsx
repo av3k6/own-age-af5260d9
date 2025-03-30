@@ -1,4 +1,5 @@
 
+import { useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -8,7 +9,7 @@ import BasicInfoTab from "./profile/BasicInfoTab";
 import RoleSpecificTab from "./profile/RoleSpecificTab";
 import PreferencesTab from "./profile/PreferencesTab";
 import ProfileActions from "./profile/ProfileActions";
-import { useEffect } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const UserProfile = () => {
   const { user } = useAuth();
@@ -25,7 +26,9 @@ const UserProfile = () => {
   // Log when loading state changes for debugging
   useEffect(() => {
     console.log("UserProfile component - isLoading state:", isLoading);
-  }, [isLoading]);
+    console.log("Current user data:", user);
+    console.log("Profile data:", profileData);
+  }, [isLoading, user, profileData]);
 
   const handleCancel = () => {
     console.log("Cancel button clicked, current loading state:", isLoading);
@@ -37,6 +40,31 @@ const UserProfile = () => {
     console.log("Save button clicked");
     handleSaveProfile();
   };
+
+  // Show a loading skeleton while user data is being fetched
+  if (isLoading && !profileData?.fullName) {
+    return (
+      <Card className="w-full max-w-4xl mx-auto">
+        <CardHeader>
+          <CardTitle className="text-2xl">User Profile</CardTitle>
+          <CardDescription>Loading your information...</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-6">
+            <div className="flex items-center space-x-4">
+              <Skeleton className="h-12 w-12 rounded-full" />
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-[250px]" />
+                <Skeleton className="h-4 w-[200px]" />
+              </div>
+            </div>
+            <Skeleton className="h-[125px] w-full" />
+            <Skeleton className="h-[125px] w-full" />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="w-full max-w-4xl mx-auto">

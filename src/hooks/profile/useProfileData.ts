@@ -2,8 +2,11 @@
 import { useState, useEffect } from "react";
 import { User } from "@supabase/supabase-js";
 import { UserProfileData } from "@/types/profile";
+import { useSupabase } from "@/hooks/useSupabase";
 
 export const useProfileData = (user: User | null) => {
+  const { supabase } = useSupabase();
+  const [isLoading, setIsLoading] = useState(true);
   const [profileData, setProfileData] = useState<UserProfileData>({
     fullName: "",
     phone: "",
@@ -27,31 +30,59 @@ export const useProfileData = (user: User | null) => {
 
   // Load user data when the component mounts or user changes
   useEffect(() => {
-    if (user) {
-      console.log("Loading user data from metadata:", user.user_metadata);
-      
-      setProfileData({
-        fullName: user.user_metadata?.full_name || "",
-        phone: user.user_metadata?.phone || "",
-        bio: user.user_metadata?.bio || "",
-        role: user.user_metadata?.role || "buyer",
-        address: {
-          street: user.user_metadata?.address?.street || "",
-          city: user.user_metadata?.address?.city || "",
-          province: user.user_metadata?.address?.province || "",
-          postalCode: user.user_metadata?.address?.postalCode || "",
-          country: user.user_metadata?.address?.country || "Canada",
-        },
-        preferredLocations: user.user_metadata?.preferredLocations || [],
-        budgetMin: user.user_metadata?.budgetRange?.min || 0,
-        budgetMax: user.user_metadata?.budgetRange?.max || 1000000,
-        propertyTypePreferences: user.user_metadata?.propertyTypePreferences || [],
-        serviceType: user.user_metadata?.serviceType || "",
-        companyName: user.user_metadata?.companyName || "",
-        licenseNumber: user.user_metadata?.licenseNumber || "",
-      });
-    }
-  }, [user]);
+    const loadUserProfile = async () => {
+      if (!user?.id) {
+        console.log("No user ID available, skipping profile load");
+        setIsLoading(false);
+        return;
+      }
+
+      setIsLoading(true);
+      console.log("Loading user data for ID:", user.id);
+
+      try {
+        // First try to get the user's metadata from auth
+        const { data: userData, error: userError } = await supabase.auth.getUser();
+        
+        if (userError) {
+          console.error("Error fetching user data:", userError);
+          setIsLoading(false);
+          return;
+        }
+
+        const userMetadata = userData?.user?.user_metadata;
+        console.log("Fetched user metadata:", userMetadata);
+        
+        // Update profile with metadata if available
+        setProfileData({
+          fullName: userMetadata?.full_name || "",
+          phone: userMetadata?.phone || "",
+          bio: userMetadata?.bio || "",
+          role: userMetadata?.role || "buyer",
+          address: {
+            street: userMetadata?.address?.street || "",
+            city: userMetadata?.address?.city || "",
+            province: userMetadata?.address?.province || "",
+            postalCode: userMetadata?.address?.postalCode || "",
+            country: userMetadata?.address?.country || "Canada",
+          },
+          preferredLocations: userMetadata?.preferredLocations || [],
+          budgetMin: userMetadata?.budgetRange?.min || 0,
+          budgetMax: userMetadata?.budgetRange?.max || 1000000,
+          propertyTypePreferences: userMetadata?.propertyTypePreferences || [],
+          serviceType: userMetadata?.serviceType || "",
+          companyName: userMetadata?.companyName || "",
+          licenseNumber: userMetadata?.licenseNumber || "",
+        });
+      } catch (error) {
+        console.error("Error in loading user profile:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadUserProfile();
+  }, [user, supabase]);
 
   const [isEditing, setIsEditing] = useState(false);
 
@@ -59,6 +90,7 @@ export const useProfileData = (user: User | null) => {
     profileData,
     setProfileData,
     isEditing,
-    setIsEditing
+    setIsEditing,
+    isLoading
   };
 };

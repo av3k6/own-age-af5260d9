@@ -60,9 +60,19 @@ const ProfileActions = ({
           variant="outline"
           className="min-w-[140px]"
           type="button"
+          disabled={isLoading}
         >
-          <Edit className="mr-2 h-4 w-4" />
-          Edit Profile
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Loading...
+            </>
+          ) : (
+            <>
+              <Edit className="mr-2 h-4 w-4" />
+              Edit Profile
+            </>
+          )}
         </Button>
       )}
     </div>

@@ -15,7 +15,8 @@ export const useUserProfile = (user: User | null) => {
     profileData, 
     setProfileData,
     isEditing,
-    setIsEditing
+    setIsEditing,
+    isLoading: isProfileLoading
   } = useProfileData(user);
 
   const {
@@ -29,9 +30,12 @@ export const useUserProfile = (user: User | null) => {
   const professionalProfileHooks = useProfessionalProfile(profileData, setProfileData);
 
   const {
-    isLoading,
+    isLoading: isSaving,
     handleSaveProfile
   } = useProfileSave(user, profileData, setIsEditing);
+
+  // Combine loading states
+  const isLoading = isProfileLoading || isSaving;
 
   return {
     profileData,
