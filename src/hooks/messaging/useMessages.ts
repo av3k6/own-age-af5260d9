@@ -24,14 +24,33 @@ export function useMessages(): UseMessagesReturn {
     
     setState(prev => ({ ...prev, loading: true }));
     try {
+      console.log("Fetching messages for conversation:", conversationId);
+      
+      // Check if the conversation exists
+      const { data: conversation, error: convError } = await supabase
+        .from('conversations')
+        .select('*')
+        .eq('id', conversationId)
+        .single();
+      
+      if (convError) {
+        console.error("Error fetching conversation:", convError);
+        throw new Error("Conversation not found");
+      }
+      
+      // Fetch messages
       const { data, error } = await supabase
         .from('messages')
         .select('*')
         .eq('conversationId', conversationId)
         .order('createdAt', { ascending: true });
         
-      if (error) throw error;
+      if (error) {
+        console.error("Error in supabase query:", error);
+        throw error;
+      }
       
+      console.log("Messages fetched:", data?.length || 0);
       setState(prev => ({
         ...prev,
         messages: data || [],
@@ -43,11 +62,11 @@ export function useMessages(): UseMessagesReturn {
     } catch (error) {
       console.error('Error fetching messages:', error);
       toast({
-        title: "Error fetching messages",
+        title: "Could not load messages",
         description: "Please try again later",
         variant: "destructive",
       });
-      setState(prev => ({ ...prev, loading: false }));
+      setState(prev => ({ ...prev, loading: false, messages: [] }));
     }
   };
 
@@ -56,17 +75,24 @@ export function useMessages(): UseMessagesReturn {
     
     setState(prev => ({ ...prev, loading: true }));
     try {
+      console.log("Sending message to conversation:", conversationId);
+      
       // Get the conversation participants to find the recipient
-      const { data: conversation } = await supabase
+      const { data: conversation, error: convError } = await supabase
         .from('conversations')
-        .select('participants')
+        .select('*')
         .eq('id', conversationId)
         .single();
+      
+      if (convError) {
+        console.error("Error fetching conversation:", convError);
+        throw new Error("Conversation not found");
+      }
       
       if (!conversation) throw new Error("Conversation not found");
       
       // Find the recipient (the participant who isn't the current user)
-      const receiverId = conversation.participants.find(id => id !== user.id);
+      const receiverId = conversation.participants.find((id: string) => id !== user.id);
       if (!receiverId) throw new Error("Recipient not found");
       
       // Create message with proper typing
@@ -78,6 +104,12 @@ export function useMessages(): UseMessagesReturn {
         conversationId,
         createdAt: new Date().toISOString(),
       };
+      
+      console.log("Preparing to send message:", {
+        senderId: user.id,
+        receiverId,
+        conversationId
+      });
       
       // Upload attachments if any
       let messageAttachments: Attachment[] = [];
@@ -116,25 +148,35 @@ export function useMessages(): UseMessagesReturn {
         .insert([newMessage])
         .select();
         
-      if (error) throw error;
+      if (error) {
+        console.error("Error inserting message:", error);
+        throw error;
+      }
+      
+      console.log("Message sent successfully:", data);
       
       // Update conversation's last message timestamp
       await supabase
         .from('conversations')
-        .update({ lastMessageAt: new Date().toISOString() })
+        .update({ 
+          lastMessageAt: new Date().toISOString(),
+          unreadCount: conversation.unreadCount + 1
+        })
         .eq('id', conversationId);
         
       // Update local state
-      setState(prev => ({
-        ...prev,
-        messages: [...prev.messages, data[0]],
-        loading: false
-      }));
-      
-      toast({
-        title: "Message sent",
-        description: "Your message has been sent successfully",
-      });
+      if (data && data.length > 0) {
+        setState(prev => ({
+          ...prev,
+          messages: [...prev.messages, data[0]],
+          loading: false
+        }));
+        
+        toast({
+          title: "Message sent",
+          description: "Your message has been sent successfully",
+        });
+      }
     } catch (error) {
       console.error('Error sending message:', error);
       toast({
@@ -143,6 +185,7 @@ export function useMessages(): UseMessagesReturn {
         variant: "destructive",
       });
       setState(prev => ({ ...prev, loading: false }));
+      throw error; // Re-throw to allow handling in the component
     }
   };
 
