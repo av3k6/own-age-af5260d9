@@ -1,13 +1,10 @@
 
 import { Button } from "@/components/ui/button";
+import { useSocialAuth, SocialProvider } from "@/hooks/useSocialAuth";
 
-interface SocialLoginButtonsProps {
-  onGoogleSignIn: () => Promise<void>;
-  onFacebookSignIn: () => Promise<void>;
-  isLoading: boolean;
-}
-
-const SocialLoginButtons = ({ onGoogleSignIn, onFacebookSignIn, isLoading }: SocialLoginButtonsProps) => {
+const SocialLoginButtons = () => {
+  const { isLoading, handleSocialSignIn } = useSocialAuth();
+  
   return (
     <div className="mt-6">
       <div className="relative">
@@ -24,7 +21,7 @@ const SocialLoginButtons = ({ onGoogleSignIn, onFacebookSignIn, isLoading }: Soc
           <Button
             variant="outline"
             className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-zen-gray-500 hover:bg-gray-50"
-            onClick={onGoogleSignIn}
+            onClick={() => handleSocialSignIn("google")}
             disabled={isLoading}
           >
             <span className="sr-only">Sign in with Google</span>
@@ -38,7 +35,7 @@ const SocialLoginButtons = ({ onGoogleSignIn, onFacebookSignIn, isLoading }: Soc
           <Button
             variant="outline"
             className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-zen-gray-500 hover:bg-gray-50"
-            onClick={onFacebookSignIn}
+            onClick={() => handleSocialSignIn("facebook")}
             disabled={isLoading}
           >
             <span className="sr-only">Sign in with Facebook</span>

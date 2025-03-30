@@ -3,13 +3,10 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/components/ui/use-toast";
 import { UserRole } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
 import SocialLoginButtons from "./SocialLoginButtons";
-import { useSupabase } from "@/hooks/useSupabase";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -38,7 +35,6 @@ const SignupForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const { signUp } = useAuth();
-  const { supabase } = useSupabase();
   const navigate = useNavigate();
 
   const form = useForm<SignupFormValues>({
@@ -79,50 +75,6 @@ const SignupForm = () => {
       toast({
         title: "Error",
         description: error?.message || "Failed to create account. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleGoogleSignUp = async () => {
-    try {
-      setIsLoading(true);
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/dashboard`,
-        },
-      });
-      
-      if (error) throw error;
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error?.message || "Failed to sign up with Google",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleFacebookSignUp = async () => {
-    try {
-      setIsLoading(true);
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: "facebook",
-        options: {
-          redirectTo: `${window.location.origin}/dashboard`,
-        },
-      });
-      
-      if (error) throw error;
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error?.message || "Failed to sign up with Facebook",
         variant: "destructive",
       });
     } finally {
@@ -227,11 +179,7 @@ const SignupForm = () => {
         </form>
       </Form>
 
-      <SocialLoginButtons 
-        onGoogleSignIn={handleGoogleSignUp}
-        onFacebookSignIn={handleFacebookSignUp}
-        isLoading={isLoading}
-      />
+      <SocialLoginButtons />
     </>
   );
 };
