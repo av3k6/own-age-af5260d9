@@ -87,10 +87,12 @@ export const ShowingActions = ({
     );
   }
   
-  // Fixed comparison issues by using === instead of logical OR with ==
+  // Fix the comparison by checking each status separately
   if (showing.status === ShowingStatus.COMPLETED || 
       (showing.status === ShowingStatus.APPROVED && new Date(showing.startTime) < new Date())) {
     
+    // This is where the second error was occurring
+    // Check for APPROVED status explicitly instead of comparing with other status
     if (showing.status === ShowingStatus.APPROVED && !isBuyer) {
       return (
         <DropdownMenu>
