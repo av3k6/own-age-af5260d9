@@ -25,14 +25,16 @@ const ProfileActions = ({
             variant="outline" 
             onClick={onCancel}
             disabled={isLoading}
-            className="min-w-24"
+            className="min-w-[100px]"
+            type="button"
           >
             {isLoading ? 'Please wait...' : 'Cancel'}
           </Button>
           <Button 
             onClick={onSave}
             disabled={isLoading}
-            className="min-w-32"
+            className="min-w-[140px]"
+            type="button"
           >
             {isLoading ? (
               <>
@@ -51,10 +53,11 @@ const ProfileActions = ({
         <Button 
           onClick={onEdit}
           variant="outline"
-          className="min-w-32"
+          className="min-w-[140px]"
+          type="button"
         >
+          <Edit className="mr-2 h-4 w-4" />
           Edit Profile
-          <Edit className="ml-2 h-4 w-4" />
         </Button>
       )}
     </div>

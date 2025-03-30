@@ -100,6 +100,7 @@ export const useUserProfile = (user: User | null) => {
     }
     
     console.log("Starting profile save...");
+    console.log("Current user:", user);
     setIsLoading(true);
     
     try {
@@ -123,7 +124,7 @@ export const useUserProfile = (user: User | null) => {
       
       console.log("Updating user with metadata:", metadataUpdate);
       
-      // Use the correct update method. Supabase expects an object with 'data' property
+      // The key fix: Explicitly pass the data as a direct property of the options object
       const { error, data } = await supabase.auth.updateUser({
         data: metadataUpdate
       });
