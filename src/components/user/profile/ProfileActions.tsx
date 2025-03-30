@@ -18,19 +18,21 @@ const ProfileActions = ({
   onSave
 }: ProfileActionsProps) => {
   return (
-    <div className="flex justify-end gap-2">
+    <div className="flex w-full justify-end gap-2">
       {isEditing ? (
         <>
           <Button 
             variant="outline" 
             onClick={onCancel}
             disabled={isLoading}
+            className="min-w-24"
           >
-            Cancel
+            {isLoading ? 'Please wait...' : 'Cancel'}
           </Button>
           <Button 
             onClick={onSave}
             disabled={isLoading}
+            className="min-w-32"
           >
             {isLoading ? (
               <>
@@ -49,6 +51,7 @@ const ProfileActions = ({
         <Button 
           onClick={onEdit}
           variant="outline"
+          className="min-w-32"
         >
           Edit Profile
           <Edit className="ml-2 h-4 w-4" />

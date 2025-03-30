@@ -99,7 +99,7 @@ export const useUserProfile = (user: User | null) => {
       return;
     }
     
-    console.log("Saving profile data:", profileData);
+    console.log("Starting profile save...");
     setIsLoading(true);
     
     try {
@@ -123,12 +123,13 @@ export const useUserProfile = (user: User | null) => {
       
       console.log("Updating user with metadata:", metadataUpdate);
       
+      // Use the correct update method. Supabase expects an object with 'data' property
       const { error, data } = await supabase.auth.updateUser({
         data: metadataUpdate
       });
 
       if (error) {
-        console.error("Error updating profile:", error.message);
+        console.error("Error updating profile:", error);
         throw error;
       }
 
@@ -149,6 +150,7 @@ export const useUserProfile = (user: User | null) => {
       });
     } finally {
       setIsLoading(false);
+      console.log("Profile save completed, loading state set to false");
     }
   };
 
