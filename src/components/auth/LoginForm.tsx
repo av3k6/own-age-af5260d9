@@ -10,6 +10,8 @@ import { Icons } from "@/components/Icons";
 
 interface LoginFormProps {
   onSubmit?: (e: React.FormEvent) => Promise<void>;
+  onGoogleSignIn?: () => Promise<void>;
+  onFacebookSignIn?: () => Promise<void>;
   email?: string;
   setEmail?: React.Dispatch<React.SetStateAction<string>>;
   password?: string;
@@ -19,6 +21,8 @@ interface LoginFormProps {
 
 const LoginForm = ({
   onSubmit,
+  onGoogleSignIn,
+  onFacebookSignIn,
   email: externalEmail,
   setEmail: externalSetEmail,
   password: externalPassword,
@@ -63,7 +67,8 @@ const LoginForm = ({
           title: "Success",
           description: "Logged in successfully!",
         });
-        navigate("/dashboard");
+        // Use a delay to ensure auth state is updated before navigation
+        setTimeout(() => navigate("/dashboard"), 1000);
       }
     } catch (error) {
       toast({
@@ -74,6 +79,22 @@ const LoginForm = ({
     } finally {
       setLocalIsLoading(false);
     }
+  };
+
+  const handleGoogleSignIn = async () => {
+    if (onGoogleSignIn) {
+      await onGoogleSignIn();
+      return;
+    }
+    // Default implementation if not provided
+  };
+
+  const handleFacebookSignIn = async () => {
+    if (onFacebookSignIn) {
+      await onFacebookSignIn();
+      return;
+    }
+    // Default implementation if not provided
   };
 
   return (
@@ -120,7 +141,10 @@ const LoginForm = ({
         </Link>
       </div>
 
-      <SocialLoginButtons />
+      <SocialLoginButtons 
+        onGoogleSignIn={handleGoogleSignIn}
+        onFacebookSignIn={handleFacebookSignIn}
+      />
 
       <div className="text-center text-sm text-zen-gray-500">
         Don't have an account?{" "}

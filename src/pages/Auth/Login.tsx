@@ -1,6 +1,6 @@
 
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSupabase } from "@/hooks/useSupabase";
@@ -12,9 +12,19 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const { signIn, user } = useAuth();
+  const { signIn, user, isInitialized } = useAuth();
   const { supabase } = useSupabase();
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user && isInitialized) {
+      const redirectTo = location.state?.from || "/dashboard";
+      console.log("User already logged in, redirecting to:", redirectTo);
+      navigate(redirectTo, { replace: true });
+    }
+  }, [user, isInitialized, navigate, location.state]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,11 +53,20 @@ const Login = () => {
         title: "Success",
         description: "Logged in successfully!",
       });
-      // Navigate on successful login with a small delay to allow auth state to update
-      setTimeout(() => navigate("/dashboard"), 500);
+      
+      // Get destination from location state or default to dashboard
+      const redirectTo = location.state?.from || "/dashboard";
+      console.log("Redirecting to:", redirectTo);
+      
+      // Use a longer delay to ensure auth state is fully updated
+      setTimeout(() => navigate(redirectTo, { replace: true }), 1000);
     } catch (error: any) {
       console.error("Login error:", error);
-      // Toast is already shown in the AuthContext
+      toast({
+        title: "Login Error",
+        description: error?.message || "Failed to sign in",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -112,6 +131,8 @@ const Login = () => {
         setPassword={setPassword}
         isLoading={isLoading}
         onSubmit={handleSubmit}
+        onGoogleSignIn={handleGoogleSignIn}
+        onFacebookSignIn={handleFacebookSignIn}
       />
     </AuthPageLayout>
   );
