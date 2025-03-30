@@ -31,6 +31,7 @@ export const ShowingActions = ({
   onUpdateStatus,
   isProcessing 
 }: ShowingActionsProps) => {
+  // Check for processing state
   if (isProcessing) {
     return (
       <Button variant="ghost" size="icon" disabled>
@@ -39,6 +40,7 @@ export const ShowingActions = ({
     );
   }
   
+  // Seller actions for requested showings
   if (!isBuyer && showing.status === ShowingStatus.REQUESTED) {
     return (
       <div className="flex space-x-2">
@@ -62,6 +64,7 @@ export const ShowingActions = ({
     );
   }
   
+  // Actions for approved showings
   if (showing.status === ShowingStatus.APPROVED) {
     return (
       <DropdownMenu>
@@ -87,7 +90,7 @@ export const ShowingActions = ({
     );
   }
   
-  // First handle completed showings
+  // Handle completed showings
   if (showing.status === ShowingStatus.COMPLETED) {
     return (
       <Button variant="ghost" size="icon" onClick={() => onView(showing)}>
@@ -96,7 +99,7 @@ export const ShowingActions = ({
     );
   }
   
-  // Then separately handle approved showings with past start time
+  // Handle past approved showings for sellers
   if (showing.status === ShowingStatus.APPROVED && new Date(showing.startTime) < new Date()) {
     if (!isBuyer) {
       return (
@@ -129,7 +132,16 @@ export const ShowingActions = ({
     );
   }
   
-  // Default fallback for other statuses
+  // For cancelled or declined showings, or any other state
+  if (showing.status === ShowingStatus.CANCELLED || showing.status === ShowingStatus.DECLINED) {
+    return (
+      <Button variant="ghost" size="icon" onClick={() => onView(showing)}>
+        <ExternalLink className="h-5 w-5" />
+      </Button>
+    );
+  }
+  
+  // Default fallback for any other status
   return (
     <Button variant="ghost" size="icon" onClick={() => onView(showing)}>
       <ExternalLink className="h-5 w-5" />
