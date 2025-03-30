@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -5,15 +6,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/components/ui/use-toast";
-import { Eye, EyeOff } from "lucide-react";
 import { UserRole } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
 import SocialLoginButtons from "./SocialLoginButtons";
 import { useSupabase } from "@/hooks/useSupabase";
-import { Form, FormField, FormItem, FormLabel, FormControl } from "@/components/ui/form";
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import PasswordInput from "./PasswordInput";
+import TermsCheckbox from "./TermsCheckbox";
+import RoleSelector from "./RoleSelector";
 
 const signupSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -32,8 +35,6 @@ const signupSchema = z.object({
 type SignupFormValues = z.infer<typeof signupSchema>;
 
 const SignupForm = () => {
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const { signUp } = useAuth();
@@ -48,7 +49,7 @@ const SignupForm = () => {
       password: "",
       confirmPassword: "",
       role: UserRole.BUYER,
-      terms: false,
+      terms: false as unknown as true, // Type assertion to satisfy zod
     },
   });
 
@@ -146,6 +147,7 @@ const SignupForm = () => {
                     className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-zen-blue-500 focus:border-zen-blue-500 sm:text-sm"
                   />
                 </FormControl>
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -164,6 +166,7 @@ const SignupForm = () => {
                     className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-zen-blue-500 focus:border-zen-blue-500 sm:text-sm"
                   />
                 </FormControl>
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -175,26 +178,15 @@ const SignupForm = () => {
               <FormItem>
                 <FormLabel>Password</FormLabel>
                 <FormControl>
-                  <div className="relative">
-                    <Input
-                      {...field}
-                      type={showPassword ? "text" : "password"}
-                      autoComplete="new-password"
-                      className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-zen-blue-500 focus:border-zen-blue-500 sm:text-sm"
-                    />
-                    <button
-                      type="button"
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm leading-5"
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? (
-                        <EyeOff className="h-4 w-4 text-gray-400" />
-                      ) : (
-                        <Eye className="h-4 w-4 text-gray-400" />
-                      )}
-                    </button>
-                  </div>
+                  <PasswordInput 
+                    id="password"
+                    value={field.value}
+                    onChange={field.onChange}
+                    autoComplete="new-password"
+                    required
+                  />
                 </FormControl>
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -206,87 +198,22 @@ const SignupForm = () => {
               <FormItem>
                 <FormLabel>Confirm Password</FormLabel>
                 <FormControl>
-                  <div className="relative">
-                    <Input
-                      {...field}
-                      type={showConfirmPassword ? "text" : "password"}
-                      autoComplete="new-password"
-                      className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-zen-blue-500 focus:border-zen-blue-500 sm:text-sm"
-                    />
-                    <button
-                      type="button"
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm leading-5"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    >
-                      {showConfirmPassword ? (
-                        <EyeOff className="h-4 w-4 text-gray-400" />
-                      ) : (
-                        <Eye className="h-4 w-4 text-gray-400" />
-                      )}
-                    </button>
-                  </div>
+                  <PasswordInput 
+                    id="confirmPassword"
+                    value={field.value}
+                    onChange={field.onChange}
+                    autoComplete="new-password"
+                    required
+                  />
                 </FormControl>
+                <FormMessage />
               </FormItem>
             )}
           />
           
-          <FormField
-            control={form.control}
-            name="role"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>I am a:</FormLabel>
-                <FormControl>
-                  <RadioGroup 
-                    value={field.value} 
-                    onValueChange={field.onChange}
-                    className="flex space-x-2"
-                  >
-                    <div className="flex items-center space-x-2 bg-white border border-gray-200 rounded-md px-4 py-2 flex-1 cursor-pointer hover:bg-gray-50">
-                      <RadioGroupItem value={UserRole.BUYER} id="buyer" />
-                      <Label htmlFor="buyer" className="cursor-pointer">Buyer</Label>
-                    </div>
-                    <div className="flex items-center space-x-2 bg-white border border-gray-200 rounded-md px-4 py-2 flex-1 cursor-pointer hover:bg-gray-50">
-                      <RadioGroupItem value={UserRole.SELLER} id="seller" />
-                      <Label htmlFor="seller" className="cursor-pointer">Seller</Label>
-                    </div>
-                    <div className="flex items-center space-x-2 bg-white border border-gray-200 rounded-md px-4 py-2 flex-1 cursor-pointer hover:bg-gray-50">
-                      <RadioGroupItem value={UserRole.PROFESSIONAL} id="professional" />
-                      <Label htmlFor="professional" className="cursor-pointer">Professional</Label>
-                    </div>
-                  </RadioGroup>
-                </FormControl>
-              </FormItem>
-            )}
-          />
+          <RoleSelector control={form.control} />
 
-          <FormField
-            control={form.control}
-            name="terms"
-            render={({ field }) => (
-              <FormItem>
-                <div className="flex items-center">
-                  <input
-                    id="terms"
-                    type="checkbox"
-                    checked={field.value}
-                    onChange={field.onChange}
-                    className="h-4 w-4 text-zen-blue-600 focus:ring-zen-blue-500 border-gray-300 rounded"
-                  />
-                  <Label htmlFor="terms" className="ml-2 block text-sm text-zen-gray-900">
-                    I agree to the{" "}
-                    <Link to="/terms" className="font-medium text-zen-blue-600 hover:text-zen-blue-500">
-                      Terms of Service
-                    </Link>{" "}
-                    and{" "}
-                    <Link to="/privacy" className="font-medium text-zen-blue-600 hover:text-zen-blue-500">
-                      Privacy Policy
-                    </Link>
-                  </Label>
-                </div>
-              </FormItem>
-            )}
-          />
+          <TermsCheckbox control={form.control} />
 
           <div>
             <Button
