@@ -1,4 +1,5 @@
 
+// Export all components from this directory
 export { default as FilterPanel } from './FilterPanel';
 export { default as PropertyGrid } from './PropertyGrid';
 export { default as ResultsHeader } from './ResultsHeader';
