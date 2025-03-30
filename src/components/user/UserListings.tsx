@@ -59,10 +59,11 @@ const UserListings = () => {
           features: listing.features || [],
           images: listing.images || [],
           sellerId: listing.seller_id,
-          status: listing.status as ListingStatus || "active",
+          // Convert the status string to a valid ListingStatus enum value
+          status: (listing.status as ListingStatus) || ListingStatus.ACTIVE,
           createdAt: new Date(listing.created_at),
           updatedAt: new Date(listing.updated_at),
-        })) : [];
+        })) as PropertyListing[] : [];
 
         setListings(formattedListings);
       } catch (err) {
