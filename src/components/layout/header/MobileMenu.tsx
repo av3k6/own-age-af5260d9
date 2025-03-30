@@ -35,10 +35,10 @@ const MobileMenu = ({ isAuthenticated }: MobileMenuProps) => {
         </button>
       </div>
 
-      {/* Mobile menu dropdown */}
+      {/* Mobile menu dropdown - Fixed positioning to prevent cutoff */}
       {isMenuOpen && (
-        <div className="md:hidden px-4 py-3 bg-background border-b shadow-sm transition-colors">
-          <div className="flex flex-col space-y-3">
+        <div className="absolute left-0 right-0 top-16 z-50 bg-background border-b shadow-md transition-colors">
+          <div className="px-4 py-3 flex flex-col space-y-3">
             <Link to="/buy" className="text-foreground hover:text-primary py-2 transition-colors">
               Buy
             </Link>
