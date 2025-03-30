@@ -87,6 +87,7 @@ export const ShowingActions = ({
     );
   }
   
+  // Fixed comparison issues by using === instead of logical OR with ==
   if (showing.status === ShowingStatus.COMPLETED || 
       (showing.status === ShowingStatus.APPROVED && new Date(showing.startTime) < new Date())) {
     
