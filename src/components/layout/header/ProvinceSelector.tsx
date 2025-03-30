@@ -25,36 +25,48 @@ const ProvinceSelector = ({ className = "" }: ProvinceSelectorProps) => {
 
   // Check localStorage for a saved province
   useEffect(() => {
-    const savedProvince = localStorage.getItem("selectedProvince");
-    if (savedProvince) {
-      setSelectedProvince(savedProvince);
+    try {
+      const savedProvince = localStorage.getItem("selectedProvince");
+      if (savedProvince) {
+        setSelectedProvince(savedProvince);
+      }
+    } catch (error) {
+      console.error("Error loading province from localStorage:", error);
     }
   }, []);
 
-  // Use our new hook to get the user's location
+  // Use our hook to get the user's location
   useProvinceLocation({
     onLocationDetected: (province) => {
       if (province && province !== selectedProvince) {
-        setSelectedProvince(province);
-        localStorage.setItem("selectedProvince", province);
-        
-        // Show a toast to inform the user
-        const provinceName = provinces.find(p => p.value === province)?.fullName || province;
-        toast({
-          title: "Location detected",
-          description: `Showing properties in ${provinceName}`,
-        });
+        try {
+          setSelectedProvince(province);
+          localStorage.setItem("selectedProvince", province);
+          
+          // Show a toast to inform the user
+          const provinceName = provinces.find(p => p.value === province)?.fullName || province;
+          toast({
+            title: "Location detected",
+            description: `Showing properties in ${provinceName}`,
+          });
+        } catch (error) {
+          console.error("Error setting province:", error);
+        }
       }
     }
   });
 
   const handleProvinceChange = (value: string) => {
-    setSelectedProvince(value);
-    // Save to localStorage for persistence
-    localStorage.setItem("selectedProvince", value);
-    // If we're not on the homepage, navigate there to see filtered properties
-    if (window.location.pathname !== '/') {
-      navigate('/');
+    try {
+      setSelectedProvince(value);
+      // Save to localStorage for persistence
+      localStorage.setItem("selectedProvince", value);
+      // If we're not on the homepage, navigate there to see filtered properties
+      if (window.location.pathname !== '/') {
+        navigate('/');
+      }
+    } catch (error) {
+      console.error("Error changing province:", error);
     }
   };
 

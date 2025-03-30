@@ -17,9 +17,13 @@ const FeaturedListings = () => {
 
   // Load saved province from localStorage on component mount
   useEffect(() => {
-    const savedProvince = localStorage.getItem("selectedProvince");
-    if (savedProvince) {
-      setSelectedProvince(savedProvince);
+    try {
+      const savedProvince = localStorage.getItem("selectedProvince");
+      if (savedProvince) {
+        setSelectedProvince(savedProvince);
+      }
+    } catch (error) {
+      console.error("Error loading province from localStorage:", error);
     }
   }, []);
 
@@ -29,7 +33,7 @@ const FeaturedListings = () => {
       setFilteredListings(featuredListings);
     } else {
       const filtered = featuredListings.filter(
-        listing => listing.address.state === selectedProvince
+        listing => listing.address && listing.address.state === selectedProvince
       );
       setFilteredListings(filtered);
     }
