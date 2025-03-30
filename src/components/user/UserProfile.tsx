@@ -8,6 +8,7 @@ import BasicInfoTab from "./profile/BasicInfoTab";
 import RoleSpecificTab from "./profile/RoleSpecificTab";
 import PreferencesTab from "./profile/PreferencesTab";
 import ProfileActions from "./profile/ProfileActions";
+import { useEffect } from "react";
 
 const UserProfile = () => {
   const { user } = useAuth();
@@ -28,6 +29,16 @@ const UserProfile = () => {
     removePropertyTypePreference,
     handleSaveProfile
   } = useUserProfile(user as unknown as SupabaseUser);
+
+  // Log when loading state changes for debugging
+  useEffect(() => {
+    console.log("Profile isLoading state:", isLoading);
+  }, [isLoading]);
+
+  const handleCancel = () => {
+    if (isLoading) return; // Don't allow cancel if currently loading
+    setIsEditing(false);
+  };
 
   return (
     <Card className="w-full max-w-4xl mx-auto">
@@ -90,7 +101,7 @@ const UserProfile = () => {
           isEditing={isEditing}
           isLoading={isLoading}
           onEdit={() => setIsEditing(true)}
-          onCancel={() => setIsEditing(false)}
+          onCancel={handleCancel}
           onSave={handleSaveProfile}
         />
       </CardFooter>

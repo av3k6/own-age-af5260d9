@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { Edit, Save } from "lucide-react";
+import { Edit, Save, Loader2 } from "lucide-react";
 
 interface ProfileActionsProps {
   isEditing: boolean;
@@ -32,8 +32,17 @@ const ProfileActions = ({
             onClick={onSave}
             disabled={isLoading}
           >
-            {isLoading ? "Saving..." : "Save Changes"}
-            <Save className="ml-2 h-4 w-4" />
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> 
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="ml-2 h-4 w-4" />
+                Save Changes
+              </>
+            )}
           </Button>
         </>
       ) : (
