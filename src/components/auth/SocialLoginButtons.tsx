@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { useSocialAuth, SocialProvider } from "@/hooks/useSocialAuth";
+import { useSocialAuth } from "@/hooks/useSocialAuth";
 
 const SocialLoginButtons = () => {
   const { isLoading, handleSocialSignIn } = useSocialAuth();

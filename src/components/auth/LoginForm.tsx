@@ -1,109 +1,103 @@
-
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import SocialLoginButtons from "./SocialLoginButtons";
+import { Icons } from "@/components/Icons";
 
-interface LoginFormProps {
-  onSubmit: (e: React.FormEvent) => Promise<void>;
-  email: string;
-  setEmail: (email: string) => void;
-  password: string;
-  setPassword: (password: string) => void;
-  isLoading: boolean;
-}
+const LoginForm = () => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const { signIn } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
 
-const LoginForm = ({ onSubmit, email, setEmail, password, setPassword, isLoading }: LoginFormProps) => {
-  const [showPassword, setShowPassword] = useState(false);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      const { error } = await signIn(email, password);
+
+      if (error) {
+        toast({
+          title: "Error",
+          description: error.message || "Invalid credentials",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: "Logged in successfully!",
+        });
+        navigate("/dashboard");
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to sign in. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
-    <form className="space-y-6" onSubmit={onSubmit}>
-      <div>
-        <Label htmlFor="email" className="block text-sm font-medium text-zen-gray-700">
-          Email address
-        </Label>
-        <div className="mt-1">
+    <div className="space-y-6">
+      <div className="flex flex-col space-y-1.5 text-center">
+        <h1 className="text-2xl font-semibold">Welcome back!</h1>
+        <p className="text-zen-gray-500 text-sm">
+          Log in to your TransacZen Haven account
+        </p>
+      </div>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div>
           <Input
-            id="email"
-            name="email"
             type="email"
-            autoComplete="email"
-            required
+            placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-zen-blue-500 focus:border-zen-blue-500 sm:text-sm"
           />
         </div>
-      </div>
-
-      <div>
-        <Label htmlFor="password" className="block text-sm font-medium text-zen-gray-700">
-          Password
-        </Label>
-        <div className="mt-1 relative">
+        <div>
           <Input
-            id="password"
-            name="password"
-            type={showPassword ? "text" : "password"}
-            autoComplete="current-password"
-            required
+            type="password"
+            placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-zen-blue-500 focus:border-zen-blue-500 sm:text-sm"
           />
-          <button
-            type="button"
-            className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm leading-5"
-            onClick={() => setShowPassword(!showPassword)}
-          >
-            {showPassword ? (
-              <EyeOff className="h-4 w-4 text-gray-400" />
-            ) : (
-              <Eye className="h-4 w-4 text-gray-400" />
-            )}
-          </button>
         </div>
-      </div>
-
-      <div className="flex items-center justify-between">
-        <RememberMeOption />
-
-        <div className="text-sm">
-          <Link to="/forgot-password" className="font-medium text-zen-blue-600 hover:text-zen-blue-500">
-            Forgot your password?
-          </Link>
-        </div>
-      </div>
-
-      <div>
         <Button
           type="submit"
           className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-zen-blue-500 hover:bg-zen-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zen-blue-500"
           disabled={isLoading}
         >
-          {isLoading ? "Signing in..." : "Sign in"}
+          {isLoading && (
+            <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+          )}
+          Sign In
         </Button>
+      </form>
+      <div className="text-sm text-zen-gray-500">
+        <Link to="/forgot-password" className="hover:underline">
+          Forgot password?
+        </Link>
       </div>
-    </form>
-  );
-};
 
-const RememberMeOption = () => {
-  return (
-    <div className="flex items-center">
-      <input
-        id="remember-me"
-        name="remember-me"
-        type="checkbox"
-        className="h-4 w-4 text-zen-blue-600 focus:ring-zen-blue-500 border-gray-300 rounded"
-      />
-      <Label htmlFor="remember-me" className="ml-2 block text-sm text-zen-gray-900">
-        Remember me
-      </Label>
+      <SocialLoginButtons />
+
+      <div className="text-center text-sm text-zen-gray-500">
+        Don't have an account?{" "}
+        <Link to="/signup" className="hover:underline">
+          Sign up
+        </Link>
+      </div>
     </div>
   );
 };
