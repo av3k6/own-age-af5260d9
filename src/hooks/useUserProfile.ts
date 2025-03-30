@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { User } from "@supabase/supabase-js";
 import { useSupabase } from "@/hooks/useSupabase";
 import { useToast } from "@/hooks/use-toast";
@@ -32,25 +32,53 @@ export const useUserProfile = (user: User | null) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [profileData, setProfileData] = useState<UserProfileData>({
-    fullName: user?.user_metadata?.full_name || "",
-    phone: user?.user_metadata?.phone || "",
-    bio: user?.user_metadata?.bio || "",
-    role: user?.user_metadata?.role || "buyer",
+    fullName: "",
+    phone: "",
+    bio: "",
+    role: "buyer",
     address: {
-      street: user?.user_metadata?.address?.street || "",
-      city: user?.user_metadata?.address?.city || "",
-      province: user?.user_metadata?.address?.province || "",
-      postalCode: user?.user_metadata?.address?.postalCode || "",
-      country: user?.user_metadata?.address?.country || "Canada",
+      street: "",
+      city: "",
+      province: "",
+      postalCode: "",
+      country: "Canada",
     },
-    preferredLocations: user?.user_metadata?.preferredLocations || [],
-    budgetMin: user?.user_metadata?.budgetRange?.min || 0,
-    budgetMax: user?.user_metadata?.budgetRange?.max || 1000000,
-    propertyTypePreferences: user?.user_metadata?.propertyTypePreferences || [],
-    serviceType: user?.user_metadata?.serviceType || "",
-    companyName: user?.user_metadata?.companyName || "",
-    licenseNumber: user?.user_metadata?.licenseNumber || "",
+    preferredLocations: [],
+    budgetMin: 0,
+    budgetMax: 1000000,
+    propertyTypePreferences: [],
+    serviceType: "",
+    companyName: "",
+    licenseNumber: "",
   });
+
+  // Load user data when the component mounts or user changes
+  useEffect(() => {
+    if (user) {
+      console.log("Loading user data from metadata:", user.user_metadata);
+      
+      setProfileData({
+        fullName: user.user_metadata?.full_name || "",
+        phone: user.user_metadata?.phone || "",
+        bio: user.user_metadata?.bio || "",
+        role: user.user_metadata?.role || "buyer",
+        address: {
+          street: user.user_metadata?.address?.street || "",
+          city: user.user_metadata?.address?.city || "",
+          province: user.user_metadata?.address?.province || "",
+          postalCode: user.user_metadata?.address?.postalCode || "",
+          country: user.user_metadata?.address?.country || "Canada",
+        },
+        preferredLocations: user.user_metadata?.preferredLocations || [],
+        budgetMin: user.user_metadata?.budgetRange?.min || 0,
+        budgetMax: user.user_metadata?.budgetRange?.max || 1000000,
+        propertyTypePreferences: user.user_metadata?.propertyTypePreferences || [],
+        serviceType: user.user_metadata?.serviceType || "",
+        companyName: user.user_metadata?.companyName || "",
+        licenseNumber: user.user_metadata?.licenseNumber || "",
+      });
+    }
+  }, [user]);
 
   const [newLocation, setNewLocation] = useState("");
   const [newPropertyType, setNewPropertyType] = useState("");
@@ -141,6 +169,7 @@ export const useUserProfile = (user: User | null) => {
         description: "Your profile information has been updated successfully.",
       });
       
+      // We only change editing state after the update is fully complete
       setIsEditing(false);
     } catch (error: any) {
       console.error("Profile update error:", error);
