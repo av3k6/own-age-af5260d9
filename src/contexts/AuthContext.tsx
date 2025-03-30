@@ -26,7 +26,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log("Getting session...");
         
         // Set a timeout to ensure we don't get stuck waiting for Supabase
-        const timeoutPromise = new Promise((_, reject) => {
+        const timeoutPromise = new Promise<never>((_, reject) => {
           setTimeout(() => reject(new Error('Session fetch timed out')), 2000);
         });
         
@@ -35,7 +35,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         let session;
         try {
-          const result = await Promise.race([sessionPromise, timeoutPromise]);
+          // Type the result of the race properly
+          const result = await Promise.race([sessionPromise, timeoutPromise]) as typeof sessionPromise;
           session = result.data.session;
         } catch (err) {
           console.warn("Session fetch timed out, proceeding with null session");
