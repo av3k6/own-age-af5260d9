@@ -1,3 +1,4 @@
+
 export enum UserRole {
   BUYER = "buyer",
   SELLER = "seller",
@@ -33,7 +34,7 @@ export enum ProfessionalType {
 export interface User {
   id: string;
   email: string;
-  name: string;
+  name: string;  // Ensuring name is required
   role: UserRole;
   phone?: string;
   profileImage?: string;

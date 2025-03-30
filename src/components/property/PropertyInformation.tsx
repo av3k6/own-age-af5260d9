@@ -76,6 +76,7 @@ export default function PropertyInformation({ property }: PropertyInformationPro
           <ScheduleShowingDialog 
             propertyId={property.id} 
             propertyTitle={property.title}
+            sellerId={property.sellerId}
           />
           
           <ContactSellerDialog

@@ -1,9 +1,8 @@
-
 import { useState, useEffect } from "react";
 import { useSupabase } from "@/hooks/useSupabase";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { Showing, ShowingStatus, PropertyListing } from "@/types";
+import { Showing, ShowingStatus, PropertyListing, PropertyType } from "@/types";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -57,7 +56,6 @@ interface ShowingWithProperty extends Showing {
   buyerName?: string;
 }
 
-// Helper to get color based on status
 const getStatusBadge = (status: ShowingStatus) => {
   switch (status) {
     case ShowingStatus.REQUESTED:
@@ -75,7 +73,6 @@ const getStatusBadge = (status: ShowingStatus) => {
   }
 };
 
-// Helper for formatting address
 const formatAddress = (address: any) => {
   if (!address) return "Address not available";
   return `${address.street}, ${address.city}, ${address.state} ${address.zipCode}`;
@@ -121,7 +118,6 @@ export default function ShowingRequestManager({ isBuyer = false }: ShowingReques
           )
         `);
 
-      // Filter based on user role
       if (isBuyer) {
         query = query.eq('buyer_id', user.id);
       } else {
@@ -154,10 +150,9 @@ export default function ShowingRequestManager({ isBuyer = false }: ShowingReques
               title: item.properties.title,
               address: item.properties.address,
               images: item.properties.images || [],
-              // Add minimum required fields with placeholder values
               description: "",
               price: 0,
-              propertyType: "house",
+              propertyType: PropertyType.HOUSE,
               bedrooms: 0,
               bathrooms: 0,
               squareFeet: 0,
@@ -225,7 +220,6 @@ export default function ShowingRequestManager({ isBuyer = false }: ShowingReques
         
       if (error) throw error;
       
-      // Update local state
       setShowings(prev => 
         prev.map(s => 
           s.id === showingId 
@@ -242,17 +236,12 @@ export default function ShowingRequestManager({ isBuyer = false }: ShowingReques
         });
       }
       
-      // Show success message
       toast.success(`Showing ${newStatus.toLowerCase()} successfully`);
       
-      // Close dialog if open
       setIsViewDialogOpen(false);
       
-      // Send notification to buyer/seller
       const showing = showings.find(s => s.id === showingId);
       if (showing) {
-        // In a real app, this would trigger a serverless function
-        // to send email/push notifications
         console.log(`Notification for showing ${showingId}: Status changed to ${newStatus}`);
       }
       
@@ -264,7 +253,6 @@ export default function ShowingRequestManager({ isBuyer = false }: ShowingReques
     }
   };
   
-  // SHOWING ACTIONS based on current status and user role
   const renderActions = (showing: ShowingWithProperty) => {
     if (isProcessing) {
       return (
@@ -274,7 +262,6 @@ export default function ShowingRequestManager({ isBuyer = false }: ShowingReques
       );
     }
     
-    // For sellers looking at requests
     if (!isBuyer && showing.status === ShowingStatus.REQUESTED) {
       return (
         <div className="flex space-x-2">
@@ -298,7 +285,6 @@ export default function ShowingRequestManager({ isBuyer = false }: ShowingReques
       );
     }
     
-    // For approved showings that can be cancelled by either party
     if (showing.status === ShowingStatus.APPROVED) {
       return (
         <DropdownMenu>
@@ -324,11 +310,9 @@ export default function ShowingRequestManager({ isBuyer = false }: ShowingReques
       );
     }
     
-    // For past showings
     if (showing.status === ShowingStatus.COMPLETED || 
         (showing.status === ShowingStatus.APPROVED && new Date(showing.startTime) < new Date())) {
       
-      // If showing is in the past but not marked complete
       if (showing.status === ShowingStatus.APPROVED && !isBuyer) {
         return (
           <DropdownMenu>
@@ -353,15 +337,13 @@ export default function ShowingRequestManager({ isBuyer = false }: ShowingReques
         );
       }
       
-      // For buyers or completed showings
       return (
         <Button variant="ghost" size="icon" onClick={() => handleViewShowing(showing)}>
           <ExternalLink className="h-5 w-5" />
         </Button>
       );
     }
-
-    // Default view action for cancelled/declined showings
+    
     return (
       <Button variant="ghost" size="icon" onClick={() => handleViewShowing(showing)}>
         <ExternalLink className="h-5 w-5" />
@@ -369,7 +351,6 @@ export default function ShowingRequestManager({ isBuyer = false }: ShowingReques
     );
   };
 
-  // Render the showing details view
   const renderShowingDetails = () => {
     if (!selectedShowing) return null;
     
@@ -426,7 +407,6 @@ export default function ShowingRequestManager({ isBuyer = false }: ShowingReques
             </div>
             
             {isBuyer ? (
-              // If buyer is viewing, show seller contact info
               <div className="rounded-md border p-4 space-y-2">
                 <h4 className="text-sm font-medium">Seller Information</h4>
                 <div className="flex items-center">
@@ -448,7 +428,6 @@ export default function ShowingRequestManager({ isBuyer = false }: ShowingReques
                 )}
               </div>
             ) : (
-              // If seller is viewing, show buyer contact info
               <div className="rounded-md border p-4 space-y-2">
                 <h4 className="text-sm font-medium">Buyer Information</h4>
                 <div className="flex items-center">
