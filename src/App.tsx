@@ -5,6 +5,7 @@ import {
   Route,
   Routes,
   Navigate,
+  useNavigate,
 } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -37,17 +38,20 @@ function App() {
 }
 
 function AppContent() {
-  const { user, loading } = useAuth();
+  const { user, loading, checkIsAuthenticated } = useAuth();
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    // Simulate initialization delay
-    setTimeout(() => {
+    const initializeAuth = async () => {
+      // Verify authentication state on app load
+      await checkIsAuthenticated();
       setIsInitialized(true);
-    }, 500);
-  }, []);
+    };
+    
+    initializeAuth();
+  }, [checkIsAuthenticated]);
 
-  if (!isInitialized) {
+  if (!isInitialized || loading) {
     return (
       <div className="flex items-center justify-center h-screen">
         <p className="text-lg font-semibold">Loading...</p>
@@ -67,7 +71,7 @@ function AppContent() {
             user ? (
               <Sell />
             ) : (
-              <Navigate to="/login" replace />
+              <Navigate to="/login" replace state={{ from: "/sell" }} />
             )
           }
         />
@@ -77,7 +81,7 @@ function AppContent() {
             user ? (
               <Dashboard />
             ) : (
-              <Navigate to="/login" replace />
+              <Navigate to="/login" replace state={{ from: "/dashboard" }} />
             )
           }
         />
@@ -87,7 +91,7 @@ function AppContent() {
             user ? (
               <Profile />
             ) : (
-              <Navigate to="/login" replace />
+              <Navigate to="/login" replace state={{ from: "/profile" }} />
             )
           }
         />
@@ -97,17 +101,17 @@ function AppContent() {
             user ? (
               <UserShowings />
             ) : (
-              <Navigate to="/login" replace />
+              <Navigate to="/login" replace state={{ from: "/showings" }} />
             )
           }
         />
         <Route
           path="/property/:id/make-offer"
-          element={user ? <MakeOffer /> : <Navigate to="/login" replace />}
+          element={user ? <MakeOffer /> : <Navigate to="/login" replace state={{ from: window.location.pathname }} />}
         />
         <Route
           path="/property/:id/edit"
-          element={user ? <EditListing /> : <Navigate to="/login" replace />}
+          element={user ? <EditListing /> : <Navigate to="/login" replace state={{ from: window.location.pathname }} />}
         />
       </Route>
       

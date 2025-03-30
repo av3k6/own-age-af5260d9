@@ -14,8 +14,8 @@ const UserMenu = ({ isMobile = false }: UserMenuProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  // Get user's full name from metadata or fall back to email username
-  const userDisplayName = user?.user_metadata?.full_name || user?.name || 
+  // Get user's display name from available sources
+  const userDisplayName = user?.name || 
                           (user?.email ? user.email.split('@')[0] : 'User');
 
   const handleSignOut = async () => {

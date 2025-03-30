@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { Eye, EyeOff } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 import { useSupabase } from "@/hooks/useSupabase";
 
 const Login = () => {
@@ -13,6 +14,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { signIn } = useAuth();
   const { supabase } = useSupabase();
   const navigate = useNavigate();
 
@@ -31,28 +33,17 @@ const Login = () => {
     try {
       setIsLoading(true);
       
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const { error } = await signIn(email, password);
       
       if (error) {
         throw error;
       }
       
-      toast({
-        title: "Success",
-        description: "You have successfully logged in",
-      });
-      
-      navigate("/");
+      // Navigate on successful login
+      navigate("/dashboard");
     } catch (error: any) {
       console.error("Login error:", error);
-      toast({
-        title: "Error",
-        description: error?.message || "Failed to log in. Please try again.",
-        variant: "destructive",
-      });
+      // Toast is already shown in the AuthContext
     } finally {
       setIsLoading(false);
     }
@@ -64,7 +55,7 @@ const Login = () => {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/`,
+          redirectTo: `${window.location.origin}/dashboard`,
         },
       });
       
@@ -86,7 +77,7 @@ const Login = () => {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "facebook",
         options: {
-          redirectTo: `${window.location.origin}/`,
+          redirectTo: `${window.location.origin}/dashboard`,
         },
       });
       
