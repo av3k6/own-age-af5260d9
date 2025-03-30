@@ -44,15 +44,20 @@ function AppContent() {
 
   useEffect(() => {
     const initializeAuth = async () => {
-      // Verify authentication state on app load
-      await checkIsAuthenticated();
-      setIsInitialized(true);
+      try {
+        // Verify authentication state on app load
+        await checkIsAuthenticated();
+      } catch (error) {
+        console.error("Auth initialization error:", error);
+      } finally {
+        setIsInitialized(true);
+      }
     };
     
     initializeAuth();
   }, [checkIsAuthenticated]);
 
-  if (!isInitialized || loading) {
+  if (!isInitialized) {
     return (
       <div className="flex items-center justify-center h-screen">
         <p className="text-lg font-semibold">Loading...</p>
@@ -62,10 +67,11 @@ function AppContent() {
 
   // Update the routes array to include our new document management route
   const routes = [
-    <Route path="/" element={<Home />} />,
-    <Route path="/buy" element={<Buy />} />,
-    <Route path="/property/:id" element={<PropertyDetail />} />,
+    <Route key="home" path="/" element={<Home />} />,
+    <Route key="buy" path="/buy" element={<Buy />} />,
+    <Route key="property" path="/property/:id" element={<PropertyDetail />} />,
     <Route
+      key="sell"
       path="/sell"
       element={
         user ? (
@@ -76,6 +82,7 @@ function AppContent() {
       }
     />,
     <Route
+      key="dashboard"
       path="/dashboard"
       element={
         user ? (
@@ -86,6 +93,7 @@ function AppContent() {
       }
     />,
     <Route
+      key="profile"
       path="/profile"
       element={
         user ? (
@@ -96,6 +104,7 @@ function AppContent() {
       }
     />,
     <Route
+      key="showings"
       path="/showings"
       element={
         user ? (
@@ -106,14 +115,17 @@ function AppContent() {
       }
     />,
     <Route
+      key="make-offer"
       path="/property/:id/make-offer"
       element={user ? <MakeOffer /> : <Navigate to="/login" replace state={{ from: window.location.pathname }} />}
     />,
     <Route
+      key="edit-listing"
       path="/property/:id/edit"
       element={user ? <EditListing /> : <Navigate to="/login" replace state={{ from: window.location.pathname }} />}
     />,
     <Route
+      key="documents"
       path="/documents"
       element={<DocumentManagement />}
     />,
