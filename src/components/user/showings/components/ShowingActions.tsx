@@ -87,13 +87,18 @@ export const ShowingActions = ({
     );
   }
   
-  // Fix the comparison by checking each status separately
-  if (showing.status === ShowingStatus.COMPLETED || 
-      (showing.status === ShowingStatus.APPROVED && new Date(showing.startTime) < new Date())) {
-    
-    // This is where the second error was occurring
-    // Check for APPROVED status explicitly instead of comparing with other status
-    if (showing.status === ShowingStatus.APPROVED && !isBuyer) {
+  // First handle completed showings
+  if (showing.status === ShowingStatus.COMPLETED) {
+    return (
+      <Button variant="ghost" size="icon" onClick={() => onView(showing)}>
+        <ExternalLink className="h-5 w-5" />
+      </Button>
+    );
+  }
+  
+  // Then separately handle approved showings with past start time
+  if (showing.status === ShowingStatus.APPROVED && new Date(showing.startTime) < new Date()) {
+    if (!isBuyer) {
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -124,6 +129,7 @@ export const ShowingActions = ({
     );
   }
   
+  // Default fallback for other statuses
   return (
     <Button variant="ghost" size="icon" onClick={() => onView(showing)}>
       <ExternalLink className="h-5 w-5" />
