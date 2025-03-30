@@ -6,9 +6,9 @@ export interface DocumentMetadata {
   size: number;
   url: string;
   path: string;
-  uploadedBy: string;
+  uploadedBy?: string;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
   category?: string;
   description?: string;
   version?: number;

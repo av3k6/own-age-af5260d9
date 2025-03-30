@@ -1,6 +1,6 @@
 
 import { Link } from "react-router-dom"
-import { Icons } from "../../../components/ui/icons"
+import { Icons } from "@/components/ui/icons"
 import { useAuth } from "@/contexts/AuthContext"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -13,12 +13,17 @@ import {
 import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 
-export function Navigation() {
+interface NavigationProps {
+  isAuthenticated?: boolean;
+  className?: string;
+}
+
+export function Navigation({ isAuthenticated, className = "" }: NavigationProps) {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
   return (
-    <nav className="hidden md:flex items-center space-x-6">
+    <nav className={className || "hidden md:flex items-center space-x-6"}>
       <Link
         to="/"
         className="text-base font-medium transition-colors hover:text-primary"
@@ -51,13 +56,13 @@ export function Navigation() {
         Documents
       </Link>
       
-      {user ? (
+      {user || isAuthenticated ? (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="h-8 w-8 rounded-full">
               <Avatar className="h-8 w-8">
-                <AvatarImage src={user.profileImage} alt={user.name} />
-                <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
+                <AvatarImage src={user?.profileImage} alt={user?.name} />
+                <AvatarFallback>{user?.name?.charAt(0) || 'U'}</AvatarFallback>
               </Avatar>
               <span className="sr-only">Open user menu</span>
             </Button>

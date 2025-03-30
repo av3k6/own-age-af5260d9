@@ -92,7 +92,7 @@ export const useDocumentUpload = (options: UseDocumentUploadOptions = {}) => {
         try {
           const filePath = `${customFolder || folder}/${userId ? `${userId}/` : ''}${Date.now()}-${doc.file.name}`;
           
-          // Create a manual upload with progress tracking
+          // Create a manual upload without onUploadProgress
           const { data, error } = await supabase.storage
             .from('storage')
             .upload(filePath, doc.file, {
@@ -101,6 +101,11 @@ export const useDocumentUpload = (options: UseDocumentUploadOptions = {}) => {
             });
             
           if (error) throw error;
+          
+          // Simulate upload completed
+          setDocuments(prev => 
+            prev.map((d, i) => i === index ? { ...d, progress: 100 } : d)
+          );
           
           const { data: urlData } = supabase.storage
             .from('storage')

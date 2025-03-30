@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSupabase } from '@/hooks/useSupabase';
@@ -60,17 +61,22 @@ const DocumentManager = () => {
               .eq('path', filePath)
               .single();
 
-            return {
+            // Create a document object that complies with DocumentMetadata interface
+            const document: DocumentMetadata = {
               id: file.id,
               name: file.name,
               type: file.metadata?.mimetype || 'application/octet-stream',
               size: file.metadata?.size || 0,
               createdAt: file.created_at || new Date().toISOString(),
+              updatedAt: file.updated_at || new Date().toISOString(),
               url: urlData.publicUrl,
               path: filePath,
+              uploadedBy: user.id,
               category: metaData?.category || 'Uncategorized',
               description: metaData?.description || '',
             };
+
+            return document;
           })
         );
 
@@ -125,12 +131,12 @@ const DocumentManager = () => {
       if (error) throw error;
 
       const url = URL.createObjectURL(data);
-      const a = window.document.createElement('a');
+      const a = document.createElement('a');
       a.href = url;
       a.download = doc.name;
-      window.document.body.appendChild(a);
+      document.body.appendChild(a);
       a.click();
-      window.document.body.removeChild(a);
+      document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
       toast({
