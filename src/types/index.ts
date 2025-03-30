@@ -6,3 +6,4 @@ export * from './property';
 export * from './showing';
 export * from './offer';
 export * from './document';
+export * from './message';

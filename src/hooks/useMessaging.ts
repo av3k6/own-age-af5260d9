@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSupabase } from "@/hooks/useSupabase";
-import { Conversation, Message } from "@/types/message";
+import { Conversation, Message, Attachment } from "@/types/message";
 
 export function useMessaging() {
   const [loading, setLoading] = useState(false);
@@ -88,8 +88,8 @@ export function useMessaging() {
       const receiverId = conversation.participants.find(id => id !== user.id);
       if (!receiverId) throw new Error("Recipient not found");
       
-      // Create message
-      const newMessage = {
+      // Create message with proper typing
+      const newMessage: Partial<Message> = {
         senderId: user.id,
         receiverId,
         content,
@@ -99,7 +99,7 @@ export function useMessaging() {
       };
       
       // Upload attachments if any
-      let messageAttachments = [];
+      let messageAttachments: Attachment[] = [];
       if (attachments && attachments.length > 0) {
         for (const file of attachments) {
           const filePath = `messages/${conversationId}/${Date.now()}_${file.name}`;
@@ -115,6 +115,7 @@ export function useMessaging() {
             .getPublicUrl(filePath);
             
           messageAttachments.push({
+            id: crypto.randomUUID(), // Generate a unique ID for the attachment
             name: file.name,
             size: file.size,
             type: file.type,
