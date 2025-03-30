@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Menu } from "lucide-react";
+import { Menu, MessageSquare } from "lucide-react";
 import ProvinceSelector from "./ProvinceSelector";
 import SearchBar from "./SearchBar";
 import UserMenu from "./UserMenu";
@@ -49,9 +49,15 @@ const MobileMenu = ({ isAuthenticated }: MobileMenuProps) => {
               Professionals
             </Link>
             {isAuthenticated && (
-              <Link to="/dashboard" className="text-foreground hover:text-primary py-2 transition-colors">
-                Dashboard
-              </Link>
+              <>
+                <Link to="/dashboard" className="text-foreground hover:text-primary py-2 transition-colors">
+                  Dashboard
+                </Link>
+                <Link to="/messages" className="text-foreground hover:text-primary py-2 flex items-center gap-2 transition-colors">
+                  <MessageSquare className="h-4 w-4" />
+                  Messages
+                </Link>
+              </>
             )}
             
             <div className="relative my-2">
