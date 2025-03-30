@@ -1,6 +1,6 @@
 
 import { Link } from "react-router-dom";
-import { Bell } from "lucide-react";
+import { Bell, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import ThemeToggle from "@/components/theme/ThemeToggle";
@@ -42,6 +42,13 @@ const Header = () => {
         {!isMobile && (
           <div className="hidden md:flex items-center gap-1">
             <SearchBar />
+            {user && (
+              <Link to="/messages">
+                <Button variant="ghost" size="icon">
+                  <MessageSquare className="h-5 w-5" />
+                </Button>
+              </Link>
+            )}
             <Button variant="ghost" size="icon">
               <Bell className="h-5 w-5" />
             </Button>
