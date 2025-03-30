@@ -32,12 +32,18 @@ const UserProfile = () => {
 
   // Log when loading state changes for debugging
   useEffect(() => {
-    console.log("Profile isLoading state:", isLoading);
+    console.log("UserProfile component - isLoading state:", isLoading);
   }, [isLoading]);
 
   const handleCancel = () => {
+    console.log("Cancel button clicked, current loading state:", isLoading);
     if (isLoading) return; // Don't allow cancel if currently loading
     setIsEditing(false);
+  };
+
+  const handleSave = () => {
+    console.log("Save button clicked");
+    handleSaveProfile();
   };
 
   return (
@@ -102,7 +108,7 @@ const UserProfile = () => {
           isLoading={isLoading}
           onEdit={() => setIsEditing(true)}
           onCancel={handleCancel}
-          onSave={handleSaveProfile}
+          onSave={handleSave}
         />
       </CardFooter>
     </Card>

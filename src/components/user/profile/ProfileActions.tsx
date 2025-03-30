@@ -17,6 +17,8 @@ const ProfileActions = ({
   onCancel,
   onSave
 }: ProfileActionsProps) => {
+  console.log("ProfileActions render - isLoading:", isLoading, "isEditing:", isEditing);
+  
   return (
     <div className="flex w-full justify-end gap-2">
       {isEditing ? (
