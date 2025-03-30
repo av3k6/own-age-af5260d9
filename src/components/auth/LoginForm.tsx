@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
@@ -35,6 +35,7 @@ const LoginForm = ({
   const { signIn } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Use external state if provided, otherwise use local state
   const isLoading = externalIsLoading !== undefined ? externalIsLoading : localIsLoading;
@@ -67,8 +68,12 @@ const LoginForm = ({
           title: "Success",
           description: "Logged in successfully!",
         });
+        
+        // Get destination from location state or default to dashboard
+        const redirectTo = location.state?.from || "/dashboard";
+        
         // Use a delay to ensure auth state is updated before navigation
-        setTimeout(() => navigate("/dashboard"), 1000);
+        setTimeout(() => navigate(redirectTo, { replace: true }), 500);
       }
     } catch (error) {
       toast({

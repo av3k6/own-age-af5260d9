@@ -32,38 +32,37 @@ export function Navigation({ isAuthenticated, className = "" }: NavigationProps)
         Home
       </Link>
       <Link
-        to="/properties"
+        to="/buy"
         className="text-base font-medium transition-colors hover:text-primary"
       >
-        Properties
+        Buy
       </Link>
       <Link
-        to="/agents"
+        to="/sell"
         className="text-base font-medium transition-colors hover:text-primary"
       >
-        Agents
+        Sell
       </Link>
       <Link
-        to="/contact"
+        to="/professionals"
         className="text-base font-medium transition-colors hover:text-primary"
       >
-        Contact
-      </Link>
-      
-      <Link
-        to="/documents"
-        className="text-base font-medium transition-colors hover:text-primary"
-      >
-        Documents
+        Professionals
       </Link>
       
       {user || isAuthenticated ? (
         <>
           <Link
-            to="/messages"
-            className="text-base font-medium transition-colors hover:text-primary flex items-center"
+            to="/dashboard"
+            className="text-base font-medium transition-colors hover:text-primary"
           >
-            <MessageSquare className="mr-1 h-4 w-4" />
+            Dashboard
+          </Link>
+          <Link
+            to="/messages"
+            className="text-base font-medium transition-colors hover:text-primary flex items-center gap-2"
+          >
+            <MessageSquare className="h-4 w-4" />
             Messages
           </Link>
         </>
@@ -111,7 +110,7 @@ export function Navigation({ isAuthenticated, className = "" }: NavigationProps)
               Login
             </Button>
           </Link>
-          <Link to="/register">
+          <Link to="/signup">
             <Button size="sm">Sign Up</Button>
           </Link>
         </>

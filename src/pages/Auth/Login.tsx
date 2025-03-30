@@ -17,7 +17,7 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Redirect if already logged in
+  // Redirect if already logged in, with more robust checking
   useEffect(() => {
     if (user && isInitialized) {
       const redirectTo = location.state?.from || "/dashboard";
@@ -58,8 +58,8 @@ const Login = () => {
       const redirectTo = location.state?.from || "/dashboard";
       console.log("Redirecting to:", redirectTo);
       
-      // Use a longer delay to ensure auth state is fully updated
-      setTimeout(() => navigate(redirectTo, { replace: true }), 1000);
+      // Use a delay to ensure auth state is fully updated before navigation
+      setTimeout(() => navigate(redirectTo, { replace: true }), 500);
     } catch (error: any) {
       console.error("Login error:", error);
       toast({
