@@ -17,8 +17,8 @@ export function useMessaging() {
   const {
     loading: messagesLoading,
     messages,
-    fetchMessages,
-    sendMessage,
+    fetchMessages: fetchMessagesBase,
+    sendMessage: sendMessageBase,
     markMessagesAsRead
   } = useMessages();
 
@@ -33,24 +33,24 @@ export function useMessaging() {
   // Fetch messages when currentConversation changes
   useEffect(() => {
     if (currentConversation) {
-      fetchMessages(currentConversation.id);
+      fetchMessagesBase(currentConversation.id);
     }
   }, [currentConversation?.id]);
 
   // Handle conversation selection with messages fetching
   const handleSelectConversation = (conversation: Conversation) => {
     setCurrentConversation(conversation);
-    fetchMessages(conversation.id);
+    fetchMessagesBase(conversation.id);
   };
 
   // Wrapper for sending a message that also handles refreshing the conversation list
   const handleSendMessage = async (conversationId: string, content: string, attachments?: File[]) => {
     console.log(`Sending message to conversation ${conversationId}: ${content}`);
     try {
-      await sendMessage(conversationId, content, attachments);
+      await sendMessageBase(conversationId, content, attachments);
       
       // Refresh the messages for this conversation
-      await fetchMessages(conversationId);
+      await fetchMessagesBase(conversationId);
       
       // Refresh the conversation list to show the updated last message
       await fetchConversations();
@@ -84,7 +84,7 @@ export function useMessaging() {
       // If there's an initial message, send it
       if (conversation && initialMessage) {
         console.log("Sending initial message:", initialMessage);
-        await sendMessage(conversation.id, initialMessage);
+        await sendMessageBase(conversation.id, initialMessage);
         
         // Refresh conversations after sending the message
         await fetchConversations();

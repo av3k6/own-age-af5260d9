@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -44,7 +43,7 @@ const Messaging = () => {
   // When a conversation is selected on mobile, switch to the message view
   const handleSelectConversation = (conversation: Conversation) => {
     setCurrentConversation(conversation);
-    fetchMessages(conversation.id);
+    fetchMessages(conversation);
     if (isMobile) {
       setShowConversations(false);
     }
@@ -60,7 +59,7 @@ const Messaging = () => {
     try {
       await sendMessage(currentConversation.id, content, attachments);
       // After sending message successfully, refresh messages
-      fetchMessages(currentConversation.id);
+      fetchMessages(currentConversation);
     } catch (error) {
       console.error("Error sending message:", error);
     }
