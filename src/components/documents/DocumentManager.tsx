@@ -10,6 +10,7 @@ import DocumentSearch from './DocumentSearch';
 import DocumentCategories from './DocumentCategories';
 import DocumentFilters from './DocumentFilters';
 import { useDocumentManagement } from '@/hooks/documents/useDocumentManagement';
+import SignatureRequests from './signatures/SignatureRequests';
 
 const DocumentManager = () => {
   const { user } = useAuth();
@@ -43,9 +44,10 @@ const DocumentManager = () => {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="upload" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="upload">Upload Documents</TabsTrigger>
               <TabsTrigger value="manage">Manage Documents</TabsTrigger>
+              <TabsTrigger value="signatures">E-Signatures</TabsTrigger>
             </TabsList>
             <TabsContent value="upload" className="pt-4">
               <DocumentUploader 
@@ -93,6 +95,9 @@ const DocumentManager = () => {
                   onDelete={handleDelete}
                 />
               </div>
+            </TabsContent>
+            <TabsContent value="signatures" className="pt-4">
+              <SignatureRequests />
             </TabsContent>
           </Tabs>
         </CardContent>

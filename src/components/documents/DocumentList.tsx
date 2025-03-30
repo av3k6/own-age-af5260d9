@@ -1,59 +1,73 @@
 
 import React from 'react';
-import { Button } from "@/components/ui/button";
 import { DocumentMetadata } from '@/types/document';
-import { Eye, Download, Trash2, Clock, FolderOpen, Filter, Search } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
+import { File, FileText, Download, Trash2, Search } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import SignatureActions from './signature/SignatureActions';
 
 interface DocumentListProps {
   documents: DocumentMetadata[];
   isLoading: boolean;
-  searchTerm: string;
-  onDownload: (doc: DocumentMetadata) => void;
-  onDelete: (doc: DocumentMetadata) => void;
+  searchTerm?: string;
+  onDownload: (document: DocumentMetadata) => void;
+  onDelete: (document: DocumentMetadata) => void;
 }
 
-const DocumentList = ({ 
-  documents, 
-  isLoading, 
+const DocumentList: React.FC<DocumentListProps> = ({
+  documents,
+  isLoading,
   searchTerm,
-  onDownload, 
-  onDelete 
-}: DocumentListProps) => {
-  const getFileIcon = (fileName: string) => {
-    const extension = fileName.split('.').pop()?.toLowerCase();
+  onDownload,
+  onDelete,
+}) => {
+  // Function to determine file type icon
+  const getFileIcon = (document: DocumentMetadata) => {
+    const extension = document.name.split('.').pop()?.toLowerCase();
     
     switch(extension) {
       case 'pdf':
-        return "bg-red-100 text-red-600";
+        return <File className="h-8 w-8 text-red-500" />;
       case 'doc':
       case 'docx':
-        return "bg-blue-100 text-blue-600";
+        return <File className="h-8 w-8 text-blue-500" />;
       case 'xls':
       case 'xlsx':
-        return "bg-green-100 text-green-600";
-      case 'jpg':
-      case 'jpeg':
-      case 'png':
-        return "bg-purple-100 text-purple-600";
+        return <File className="h-8 w-8 text-green-500" />;
       case 'txt':
-        return "bg-gray-100 text-gray-600";
+        return <File className="h-8 w-8 text-gray-500" />;
       default:
-        return "bg-gray-100 text-gray-600";
+        return <FileText className="h-8 w-8 text-muted-foreground" />;
     }
+  };
+
+  // Helper function to format file size
+  const formatFileSize = (bytes: number): string => {
+    if (bytes < 1024) return bytes + ' bytes';
+    else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+    else return (bytes / 1048576).toFixed(1) + ' MB';
+  };
+
+  // Helper function to format date
+  const formatDate = (dateString: string): string => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString(undefined, { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric' 
+    });
   };
 
   if (isLoading) {
     return (
-      <div className="space-y-2">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="flex items-center gap-4 p-3 border rounded-md">
-            <Skeleton className="h-12 w-12 rounded" />
-            <div className="space-y-2 flex-1">
-              <Skeleton className="h-4 w-1/3" />
-              <Skeleton className="h-3 w-1/4" />
+      <div className="space-y-4">
+        {[...Array(3)].map((_, index) => (
+          <div key={index} className="flex items-center p-4 border rounded-lg">
+            <Skeleton className="h-12 w-12 rounded mr-4" />
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-[200px]" />
+              <Skeleton className="h-3 w-[150px]" />
             </div>
-            <Skeleton className="h-9 w-20" />
           </div>
         ))}
       </div>
@@ -62,70 +76,56 @@ const DocumentList = ({
 
   if (documents.length === 0) {
     return (
-      <div className="text-center py-8">
-        <div className="mx-auto bg-muted/50 w-16 h-16 rounded-full flex items-center justify-center mb-3">
-          {searchTerm ? (
-            <Search className="h-8 w-8 text-muted-foreground" />
-          ) : (
-            <FolderOpen className="h-8 w-8 text-muted-foreground" />
-          )}
-        </div>
-        <h3 className="text-xl font-medium">No documents found</h3>
-        <p className="mt-1 text-muted-foreground">
-          {searchTerm
-            ? "No documents match your search criteria"
-            : "You haven't uploaded any documents yet"}
-        </p>
+      <div className="flex flex-col items-center justify-center p-8 text-center border rounded-lg bg-muted/30">
+        <FileText className="h-16 w-16 text-muted-foreground mb-4" />
+        <h3 className="text-lg font-medium">No documents found</h3>
+        {searchTerm ? (
+          <p className="text-muted-foreground mt-2">
+            No documents match your search term "{searchTerm}". Try a different search.
+          </p>
+        ) : (
+          <p className="text-muted-foreground mt-2">
+            Upload some documents to get started.
+          </p>
+        )}
       </div>
     );
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-4">
       {documents.map((document) => (
-        <div
-          key={document.id}
-          className="flex items-center p-3 border rounded-md hover:bg-muted/50 transition-colors"
-        >
-          <div className={`flex items-center justify-center h-12 w-12 rounded ${getFileIcon(document.name)}`}>
-            <span className="font-medium text-sm">{document.name.split('.').pop()?.toUpperCase()}</span>
-          </div>
-          
-          <div className="ml-4 flex-1 min-w-0">
-            <p className="font-medium truncate">{document.name}</p>
-            <div className="flex items-center text-xs text-muted-foreground">
-              <Clock className="mr-1 h-3 w-3" />
-              <span>
-                {new Date(document.createdAt).toLocaleDateString()}
-              </span>
-              <span className="mx-1">•</span>
-              <span>{(document.size / 1024).toFixed(1)} KB</span>
+        <div key={document.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg hover:bg-muted/20 transition-colors">
+          <div className="flex items-center">
+            {getFileIcon(document)}
+            <div className="ml-4">
+              <h4 className="font-medium">{document.name}</h4>
+              <div className="flex flex-col sm:flex-row sm:gap-4 text-sm text-muted-foreground">
+                <span>{formatFileSize(document.size)}</span>
+                <span>Uploaded: {formatDate(document.createdAt)}</span>
+                {document.category && <span>Category: {document.category}</span>}
+              </div>
             </div>
           </div>
           
-          <div className="flex items-center gap-1">
+          <div className="flex mt-4 sm:mt-0 gap-2">
+            <SignatureActions 
+              document={document} 
+            />
             <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => window.open(document.url, '_blank')}
-              title="View document"
-            >
-              <Eye className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
+              variant="outline"
+              size="sm"
               onClick={() => onDownload(document)}
-              title="Download document"
+              title="Download"
             >
               <Download className="h-4 w-4" />
             </Button>
             <Button
-              variant="ghost"
-              size="icon"
+              variant="outline"
+              size="sm"
               onClick={() => onDelete(document)}
               className="text-destructive hover:text-destructive"
-              title="Delete document"
+              title="Delete"
             >
               <Trash2 className="h-4 w-4" />
             </Button>
