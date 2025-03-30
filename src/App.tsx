@@ -19,6 +19,7 @@ import Profile from './pages/UserProfile';
 import PropertyDetail from './pages/PropertyDetail';
 import MakeOffer from "./pages/MakeOffer";
 import EditListing from "./pages/EditListing";
+import UserShowings from "./pages/UserShowings";
 import Layout from './pages/Layout';
 import NotFound from './pages/NotFound';
 
@@ -85,6 +86,16 @@ function AppContent() {
           element={
             user ? (
               <Profile />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
+        <Route
+          path="/showings"
+          element={
+            user ? (
+              <UserShowings />
             ) : (
               <Navigate to="/login" replace />
             )

@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Showing } from "@/types";
+import { Showing, ShowingStatus } from "@/types";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -16,9 +16,11 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import ShowingScheduler from "./ShowingScheduler";
 import { formatDate, formatTime } from "@/lib/formatters";
-import { Calendar, Clock, User } from "lucide-react";
+import { Calendar, Clock, User, Mail, Phone } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -31,23 +33,35 @@ const formSchema = z.object({
     message: "Please enter a valid email address.",
   }),
   notes: z.string().optional(),
+  agreeToTerms: z.boolean().refine(val => val === true, {
+    message: "You must agree to the terms to schedule a showing.",
+  }),
+  agreeToNotifications: z.boolean().optional(),
 });
 
 interface ShowingRequestFormProps {
   propertyId: string;
-  onRequestSubmit: (data: Partial<Showing> & { name: string; email: string; phone: string }) => void;
+  sellerId: string;
+  onRequestSubmit: (data: Partial<Showing> & { name: string; email: string; phone: string; agreeToNotifications: boolean }) => void;
 }
 
-export default function ShowingRequestForm({ propertyId, onRequestSubmit }: ShowingRequestFormProps) {
+export default function ShowingRequestForm({ 
+  propertyId, 
+  sellerId, 
+  onRequestSubmit 
+}: ShowingRequestFormProps) {
+  const { user } = useAuth();
   const [selectedShowing, setSelectedShowing] = useState<Partial<Showing> | null>(null);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
-      phone: "",
-      email: "",
+      name: user?.name || "",
+      phone: user?.phone || "",
+      email: user?.email || "",
       notes: "",
+      agreeToTerms: false,
+      agreeToNotifications: true,
     },
   });
 
@@ -59,28 +73,36 @@ export default function ShowingRequestForm({ propertyId, onRequestSubmit }: Show
     if (selectedShowing) {
       onRequestSubmit({
         ...selectedShowing,
+        buyerName: data.name,
+        buyerEmail: data.email,
+        buyerPhone: data.phone,
         notes: data.notes,
         name: data.name,
         email: data.email,
         phone: data.phone,
+        agreeToNotifications: !!data.agreeToNotifications,
       });
     }
   };
 
   return (
     <div className="space-y-6">
-      <ShowingScheduler propertyId={propertyId} onSchedule={handleScheduleSelection} />
+      <ShowingScheduler 
+        propertyId={propertyId} 
+        sellerId={sellerId}
+        onSchedule={handleScheduleSelection} 
+      />
       
       {selectedShowing && selectedShowing.startTime && (
         <div className="mt-6">
-          <div className="bg-zen-blue-50 p-4 rounded-lg mb-4">
-            <h3 className="font-medium text-zen-blue-800 mb-2">Showing Details</h3>
+          <div className="bg-primary/10 p-4 rounded-lg mb-4">
+            <h3 className="font-medium text-primary mb-2">Selected Showing Time</h3>
             <div className="flex flex-col space-y-2">
-              <div className="flex items-center text-zen-gray-600">
+              <div className="flex items-center text-muted-foreground">
                 <Calendar className="w-4 h-4 mr-2" /> 
                 <span>{formatDate(selectedShowing.startTime)}</span>
               </div>
-              <div className="flex items-center text-zen-gray-600">
+              <div className="flex items-center text-muted-foreground">
                 <Clock className="w-4 h-4 mr-2" /> 
                 <span>{formatTime(selectedShowing.startTime)} - {formatTime(selectedShowing.endTime as Date)}</span>
               </div>
@@ -96,7 +118,10 @@ export default function ShowingRequestForm({ propertyId, onRequestSubmit }: Show
                   <FormItem>
                     <FormLabel>Your Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="John Doe" {...field} />
+                      <div className="flex items-center">
+                        <User className="w-4 h-4 mr-2 text-muted-foreground" />
+                        <Input placeholder="John Doe" {...field} />
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -111,7 +136,10 @@ export default function ShowingRequestForm({ propertyId, onRequestSubmit }: Show
                     <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input type="email" placeholder="you@example.com" {...field} />
+                        <div className="flex items-center">
+                          <Mail className="w-4 h-4 mr-2 text-muted-foreground" />
+                          <Input type="email" placeholder="you@example.com" {...field} />
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -125,7 +153,10 @@ export default function ShowingRequestForm({ propertyId, onRequestSubmit }: Show
                     <FormItem>
                       <FormLabel>Phone Number</FormLabel>
                       <FormControl>
-                        <Input placeholder="(555) 123-4567" {...field} />
+                        <div className="flex items-center">
+                          <Phone className="w-4 h-4 mr-2 text-muted-foreground" />
+                          <Input placeholder="(555) 123-4567" {...field} />
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -150,6 +181,53 @@ export default function ShowingRequestForm({ propertyId, onRequestSubmit }: Show
                       Let the seller know if you have any special requirements.
                     </FormDescription>
                     <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="agreeToTerms"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>
+                        I agree to the showing terms and conditions
+                      </FormLabel>
+                      <FormDescription>
+                        By scheduling a showing, you agree to arrive on time and respect the property.
+                      </FormDescription>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="agreeToNotifications"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>
+                        I would like to receive notifications about this showing
+                      </FormLabel>
+                      <FormDescription>
+                        You'll receive email updates about your showing request status and reminders.
+                      </FormDescription>
+                    </div>
                   </FormItem>
                 )}
               />
