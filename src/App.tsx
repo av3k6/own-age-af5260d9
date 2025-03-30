@@ -45,11 +45,14 @@ function AppContent() {
   useEffect(() => {
     const initializeAuth = async () => {
       try {
+        console.log("Starting authentication check...");
         // Verify authentication state on app load
         await checkIsAuthenticated();
+        console.log("Authentication check completed successfully");
       } catch (error) {
         console.error("Auth initialization error:", error);
       } finally {
+        console.log("Setting isInitialized to true");
         setIsInitialized(true);
       }
     };
@@ -58,12 +61,15 @@ function AppContent() {
   }, [checkIsAuthenticated]);
 
   if (!isInitialized) {
+    console.log("App still initializing...");
     return (
       <div className="flex items-center justify-center h-screen">
         <p className="text-lg font-semibold">Loading...</p>
       </div>
     );
   }
+
+  console.log("App initialized, rendering routes");
 
   // Update the routes array to include our new document management route
   const routes = [

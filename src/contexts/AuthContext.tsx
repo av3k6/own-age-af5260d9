@@ -21,6 +21,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Check active sessions and sets the user
     const getSession = async () => {
       try {
+        console.log("Getting session...");
         const { data: { session } } = await supabase.auth.getSession();
         
         if (session?.user) {
@@ -36,6 +37,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(null);
       } finally {
         setLoading(false);
+        console.log("Auth loading state set to false");
       }
     };
 

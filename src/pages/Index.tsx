@@ -7,6 +7,7 @@ import CallToAction from "@/components/home/CallToAction";
 import SupabaseStatus from "@/components/auth/SupabaseStatus";
 
 const Index = () => {
+  console.log("Rendering Index/Home component");
   return (
     <div>
       <Hero />
