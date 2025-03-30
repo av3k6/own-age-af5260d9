@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
-import { MessageSquare, Bell } from "lucide-react"
+import { MessageSquare, Bell, Home, ShoppingBag, Store, User, LayoutDashboard } from "lucide-react"
 
 interface NavigationProps {
   isAuthenticated?: boolean;
@@ -27,26 +27,30 @@ export function Navigation({ isAuthenticated, className = "" }: NavigationProps)
     <nav className={className || "hidden md:flex items-center space-x-6"}>
       <Link
         to="/"
-        className="text-base font-medium transition-colors hover:text-primary"
+        className="text-base font-medium transition-colors hover:text-primary flex items-center gap-1.5"
       >
+        <Home className="h-4 w-4" />
         Home
       </Link>
       <Link
         to="/buy"
-        className="text-base font-medium transition-colors hover:text-primary"
+        className="text-base font-medium transition-colors hover:text-primary flex items-center gap-1.5"
       >
+        <ShoppingBag className="h-4 w-4" />
         Buy
       </Link>
       <Link
         to="/sell"
-        className="text-base font-medium transition-colors hover:text-primary"
+        className="text-base font-medium transition-colors hover:text-primary flex items-center gap-1.5"
       >
+        <Store className="h-4 w-4" />
         Sell
       </Link>
       <Link
         to="/professionals"
-        className="text-base font-medium transition-colors hover:text-primary"
+        className="text-base font-medium transition-colors hover:text-primary flex items-center gap-1.5"
       >
+        <User className="h-4 w-4" />
         Professionals
       </Link>
       
@@ -54,13 +58,14 @@ export function Navigation({ isAuthenticated, className = "" }: NavigationProps)
         <>
           <Link
             to="/dashboard"
-            className="text-base font-medium transition-colors hover:text-primary"
+            className="text-base font-medium transition-colors hover:text-primary flex items-center gap-1.5"
           >
+            <LayoutDashboard className="h-4 w-4" />
             Dashboard
           </Link>
           <Link
             to="/messages"
-            className="text-base font-medium transition-colors hover:text-primary flex items-center gap-2"
+            className="text-base font-medium transition-colors hover:text-primary flex items-center gap-1.5"
           >
             <MessageSquare className="h-4 w-4" />
             Messages

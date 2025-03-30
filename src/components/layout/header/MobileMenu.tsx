@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Menu, MessageSquare } from "lucide-react";
+import { Menu, MessageSquare, Home, ShoppingBag, Store, LayoutDashboard, User } from "lucide-react";
 import ProvinceSelector from "./ProvinceSelector";
 import SearchBar from "./SearchBar";
 import UserMenu from "./UserMenu";
@@ -39,18 +39,26 @@ const MobileMenu = ({ isAuthenticated }: MobileMenuProps) => {
       {isMenuOpen && (
         <div className="absolute left-0 right-0 top-16 z-50 bg-background border-b shadow-md transition-colors">
           <div className="px-4 py-3 flex flex-col space-y-3">
-            <Link to="/buy" className="text-foreground hover:text-primary py-2 transition-colors">
+            <Link to="/" className="text-foreground hover:text-primary py-2 transition-colors flex items-center gap-2">
+              <Home className="h-4 w-4" />
+              Home
+            </Link>
+            <Link to="/buy" className="text-foreground hover:text-primary py-2 transition-colors flex items-center gap-2">
+              <ShoppingBag className="h-4 w-4" />
               Buy
             </Link>
-            <Link to="/sell" className="text-foreground hover:text-primary py-2 transition-colors">
+            <Link to="/sell" className="text-foreground hover:text-primary py-2 transition-colors flex items-center gap-2">
+              <Store className="h-4 w-4" />
               Sell
             </Link>
-            <Link to="/professionals" className="text-foreground hover:text-primary py-2 transition-colors">
+            <Link to="/professionals" className="text-foreground hover:text-primary py-2 transition-colors flex items-center gap-2">
+              <User className="h-4 w-4" />
               Professionals
             </Link>
             {isAuthenticated && (
               <>
-                <Link to="/dashboard" className="text-foreground hover:text-primary py-2 transition-colors">
+                <Link to="/dashboard" className="text-foreground hover:text-primary py-2 transition-colors flex items-center gap-2">
+                  <LayoutDashboard className="h-4 w-4" />
                   Dashboard
                 </Link>
                 <Link to="/messages" className="text-foreground hover:text-primary py-2 flex items-center gap-2 transition-colors">
