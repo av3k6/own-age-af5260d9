@@ -16,6 +16,7 @@ const ListingStatusSection = () => {
       <h3 className="text-lg font-medium">Listing Status</h3>
       <RadioGroup 
         defaultValue={formData.status}
+        value={formData.status} // Add this to ensure the component reflects the current status
         onValueChange={(value) => handleStatusChange(value as ListingStatus)}
         className="space-y-3"
       >
@@ -32,6 +33,14 @@ const ListingStatusSection = () => {
           </Label>
         </div>
       </RadioGroup>
+      
+      {formData.status === ListingStatus.ACTIVE && (
+        <div className="text-sm text-muted-foreground">
+          <p className="mt-2">
+            Note: Active listings are immediately visible to all users. 
+          </p>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -26,7 +25,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { useSupabase } from "@/hooks/useSupabase";
 import { useAuth } from "@/contexts/AuthContext";
-import { PropertyType, Room } from "@/types";
+import { PropertyType, ListingStatus, Room } from "@/types";
 import { levelOptions } from "@/components/listing/steps/property-features/utils/propertyFeatures";
 
 const formSchema = z.object({
@@ -49,7 +48,7 @@ const formSchema = z.object({
   state: z.string().min(1),
   zipCode: z.string().min(1),
   features: z.string().optional(),
-  status: z.enum(["active", "pending", "sold", "expired"]),
+  status: z.nativeEnum(ListingStatus),
 });
 
 export default function EditListing() {
@@ -64,7 +63,6 @@ export default function EditListing() {
   const [bedroomRooms, setBedroomRooms] = useState<Room[]>([]);
   const [otherRooms, setOtherRooms] = useState<Room[]>([]);
   
-  // Room management state
   const [roomName, setRoomName] = useState("");
   const [roomLevel, setRoomLevel] = useState(levelOptions[0]);
   const [roomDimensions, setRoomDimensions] = useState("");
@@ -86,15 +84,13 @@ export default function EditListing() {
       state: "",
       zipCode: "",
       features: "",
-      status: "active",
+      status: ListingStatus.ACTIVE,
     },
   });
 
-  // Update bedroom count effect
   useEffect(() => {
     const bedroomCount = form.watch("bedrooms");
     
-    // If bedrooms decreased, trim the array
     if (bedroomCount < bedroomRooms.length) {
       setBedroomRooms(prev => prev.slice(0, bedroomCount));
     }
@@ -113,7 +109,6 @@ export default function EditListing() {
 
         if (error) throw error;
 
-        // Check if current user is the seller
         if (data.seller_id !== user.id) {
           toast({
             title: "Permission Denied",
@@ -124,7 +119,6 @@ export default function EditListing() {
           return;
         }
 
-        // Initialize room details
         if (data.room_details?.bedrooms) {
           setBedroomRooms(data.room_details.bedrooms);
         }
@@ -133,7 +127,6 @@ export default function EditListing() {
           setOtherRooms(data.room_details.otherRooms);
         }
 
-        // Populate form with existing data
         if (data) {
           form.reset({
             title: data.title,
@@ -180,12 +173,10 @@ export default function EditListing() {
     };
     
     if (roomType === "bedroom") {
-      // Check if we're already at the max bedrooms
-      const bedroomsCount = form.getValues("bedrooms");
-      if (bedroomRooms.length >= bedroomsCount) {
+      if (bedroomRooms.length >= form.getValues("bedrooms")) {
         toast({
           title: "Cannot Add More Bedrooms",
-          description: `You've specified ${bedroomsCount} bedrooms in total. Increase the bedroom count to add more room details.`,
+          description: `You've specified ${form.getValues("bedrooms")} bedrooms in total. Increase the bedroom count to add more room details.`,
           variant: "destructive",
         });
         return;
@@ -195,7 +186,6 @@ export default function EditListing() {
       setOtherRooms(prev => [...prev, newRoom]);
     }
     
-    // Reset form
     setRoomName("");
     setRoomDimensions("");
   };
@@ -229,12 +219,12 @@ export default function EditListing() {
     setIsSaving(true);
 
     try {
-      // Format features as array
       const featuresArray = values.features
         ? values.features.split(',').map(item => item.trim())
         : [];
 
-      // Update the property in Supabase
+      console.log("Updating listing status to:", values.status);
+
       const { error } = await supabase
         .from("property_listings")
         .update({
@@ -261,18 +251,18 @@ export default function EditListing() {
           updated_at: new Date().toISOString(),
         })
         .eq("id", id)
-        .eq("seller_id", user.id);
+        .eq("seller_id", user.id)
+        .select();
 
       if (error) throw error;
 
       toast({
         title: "Listing Updated",
-        description: "Your property listing has been updated successfully.",
+        description: `Your property listing has been updated successfully with status: ${values.status}.`,
       });
 
-      // Redirect to the property detail page
       navigate(`/property/${id}`);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to update listing:", error);
       toast({
         title: "Failed to Update Listing",
@@ -532,7 +522,7 @@ export default function EditListing() {
                         <FormLabel>Listing Status</FormLabel>
                         <Select
                           onValueChange={field.onChange}
-                          defaultValue={field.value}
+                          value={field.value}
                         >
                           <FormControl>
                             <SelectTrigger>
@@ -540,10 +530,10 @@ export default function EditListing() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="active">Active</SelectItem>
-                            <SelectItem value="pending">Pending</SelectItem>
-                            <SelectItem value="sold">Sold</SelectItem>
-                            <SelectItem value="expired">Expired</SelectItem>
+                            <SelectItem value={ListingStatus.ACTIVE}>Active</SelectItem>
+                            <SelectItem value={ListingStatus.PENDING}>Pending</SelectItem>
+                            <SelectItem value={ListingStatus.SOLD}>Sold</SelectItem>
+                            <SelectItem value={ListingStatus.EXPIRED}>Expired</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -630,7 +620,6 @@ export default function EditListing() {
                     </div>
                   </div>
                   
-                  {/* Display rooms */}
                   {bedroomRooms.length > 0 && (
                     <div className="space-y-2">
                       <h4 className="font-medium">Bedrooms</h4>

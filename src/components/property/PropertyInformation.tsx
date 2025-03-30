@@ -1,13 +1,15 @@
 
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { PropertyListing } from "@/types";
+import { PropertyListing, ListingStatus } from "@/types";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/formatters";
-import { Edit, Mail, MessageSquare, Phone, User } from "lucide-react";
+import { Edit, Mail, MessageSquare, Phone, User, EyeOff, Eye } from "lucide-react";
 import ScheduleShowingDialog from "./ScheduleShowingDialog";
 import ContactSellerDialog from "./ContactSellerDialog";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSupabase } from "@/hooks/useSupabase";
+import { useToast } from "@/hooks/use-toast";
 
 interface PropertyInformationProps {
   property: PropertyListing;
@@ -15,17 +17,62 @@ interface PropertyInformationProps {
 
 export default function PropertyInformation({ property }: PropertyInformationProps) {
   const { user } = useAuth();
+  const { supabase } = useSupabase();
+  const { toast } = useToast();
   const isOwner = user?.id === property.sellerId;
+  const [status, setStatus] = useState<ListingStatus>(property.status);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   // Determine seller display name based on ownership
   const sellerDisplayName = isOwner ? "Justin Redmond" : "Seller";
 
+  // Function to toggle listing status
+  const toggleListingStatus = async () => {
+    if (!isOwner) return;
+    
+    setIsUpdating(true);
+    const newStatus = status === ListingStatus.ACTIVE ? ListingStatus.PENDING : ListingStatus.ACTIVE;
+    
+    try {
+      const { error } = await supabase
+        .from("property_listings")
+        .update({ status: newStatus })
+        .eq("id", property.id)
+        .eq("seller_id", user!.id);
+
+      if (error) throw error;
+      
+      setStatus(newStatus);
+      toast({
+        title: "Status Updated",
+        description: `Listing is now ${newStatus === ListingStatus.ACTIVE ? "active" : "pending"}.`,
+      });
+    } catch (error: any) {
+      console.error("Error toggling status:", error);
+      toast({
+        title: "Update Failed",
+        description: "Could not update listing status. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   return (
     <div className="bg-white border rounded-lg shadow-sm p-6">
       <div className="mb-6">
-        <span className="inline-block px-3 py-1 text-sm font-medium text-white bg-zen-blue-500 rounded-full mb-2">
-          {property.propertyType.charAt(0).toUpperCase() + property.propertyType.slice(1)}
-        </span>
+        <div className="flex justify-between items-start">
+          <span className="inline-block px-3 py-1 text-sm font-medium text-white bg-zen-blue-500 rounded-full mb-2">
+            {property.propertyType.charAt(0).toUpperCase() + property.propertyType.slice(1)}
+          </span>
+          
+          <span className={`inline-block px-3 py-1 text-sm font-medium text-white rounded-full mb-2 ${
+            status === ListingStatus.ACTIVE ? 'bg-green-500' : 'bg-yellow-500'
+          }`}>
+            {status.charAt(0).toUpperCase() + status.slice(1)}
+          </span>
+        </div>
         
         <h1 className="text-2xl font-bold text-zen-gray-800 mb-2">
           {property.title}
@@ -70,6 +117,26 @@ export default function PropertyInformation({ property }: PropertyInformationPro
               Edit Listing
             </Button>
           </Link>
+          
+          <Button 
+            variant="outline" 
+            className="w-full" 
+            onClick={toggleListingStatus}
+            disabled={isUpdating}
+          >
+            {isUpdating ? (
+              "Updating..."
+            ) : (
+              <>
+                {status === ListingStatus.ACTIVE ? (
+                  <EyeOff className="h-4 w-4 mr-2" />
+                ) : (
+                  <Eye className="h-4 w-4 mr-2" />
+                )}
+                {status === ListingStatus.ACTIVE ? "Set to Pending" : "Set to Active"}
+              </>
+            )}
+          </Button>
         </div>
       ) : (
         <div className="space-y-3">
