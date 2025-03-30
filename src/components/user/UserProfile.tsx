@@ -19,14 +19,6 @@ const UserProfile = () => {
     isEditing,
     setIsEditing,
     isLoading,
-    newLocation,
-    setNewLocation,
-    newPropertyType,
-    setNewPropertyType,
-    addPreferredLocation,
-    removePreferredLocation,
-    addPropertyTypePreference,
-    removePropertyTypePreference,
     handleSaveProfile
   } = useUserProfile(user as unknown as SupabaseUser);
 
@@ -79,14 +71,6 @@ const UserProfile = () => {
               profileData={profileData}
               setProfileData={setProfileData}
               isEditing={isEditing}
-              newLocation={newLocation}
-              setNewLocation={setNewLocation}
-              newPropertyType={newPropertyType}
-              setNewPropertyType={setNewPropertyType}
-              addPreferredLocation={addPreferredLocation}
-              removePreferredLocation={removePreferredLocation}
-              addPropertyTypePreference={addPropertyTypePreference}
-              removePropertyTypePreference={removePropertyTypePreference}
             />
           </CardContent>
         </TabsContent>
