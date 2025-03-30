@@ -40,68 +40,70 @@ export const ShowingActions = ({
     );
   }
   
-  // Seller actions for requested showings
-  if (!isBuyer && showing.status === ShowingStatus.REQUESTED) {
-    return (
-      <div className="flex space-x-2">
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="border-green-500 text-green-600 hover:bg-green-50"
-          onClick={() => onUpdateStatus(showing.id, ShowingStatus.APPROVED)}
-        >
-          <CheckCircle className="h-4 w-4 mr-1" /> Approve
-        </Button>
-        <Button 
-          variant="outline" 
-          size="sm"
-          className="border-red-500 text-red-600 hover:bg-red-50"
-          onClick={() => onUpdateStatus(showing.id, ShowingStatus.DECLINED)}
-        >
-          <XCircle className="h-4 w-4 mr-1" /> Decline
-        </Button>
-      </div>
-    );
-  }
-  
-  // Actions for approved showings
-  if (showing.status === ShowingStatus.APPROVED) {
-    return (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon">
-            <MoreHorizontal className="h-5 w-5" />
+  // Handle each status explicitly to avoid TypeScript errors
+  switch (showing.status) {
+    // Seller actions for requested showings
+    case ShowingStatus.REQUESTED:
+      if (!isBuyer) {
+        return (
+          <div className="flex space-x-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="border-green-500 text-green-600 hover:bg-green-50"
+              onClick={() => onUpdateStatus(showing.id, ShowingStatus.APPROVED)}
+            >
+              <CheckCircle className="h-4 w-4 mr-1" /> Approve
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="border-red-500 text-red-600 hover:bg-red-50"
+              onClick={() => onUpdateStatus(showing.id, ShowingStatus.DECLINED)}
+            >
+              <XCircle className="h-4 w-4 mr-1" /> Decline
+            </Button>
+          </div>
+        );
+      }
+      break;
+      
+    // Actions for approved showings
+    case ShowingStatus.APPROVED:
+      // Check if it's a past showing (for sellers to mark as completed)
+      if (new Date(showing.startTime) < new Date()) {
+        if (!isBuyer) {
+          return (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <MoreHorizontal className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem 
+                  onClick={() => onUpdateStatus(showing.id, ShowingStatus.COMPLETED)}
+                >
+                  <CheckCircle className="h-4 w-4 mr-2" /> 
+                  Mark as Completed
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onView(showing)}>
+                  <ExternalLink className="h-4 w-4 mr-2" /> 
+                  View Details
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          );
+        }
+        
+        return (
+          <Button variant="ghost" size="icon" onClick={() => onView(showing)}>
+            <ExternalLink className="h-5 w-5" />
           </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem 
-            onClick={() => onUpdateStatus(showing.id, ShowingStatus.CANCELLED)}
-            className="text-red-600"
-          >
-            <XCircle className="h-4 w-4 mr-2" /> 
-            Cancel Showing
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onView(showing)}>
-            <ExternalLink className="h-4 w-4 mr-2" /> 
-            View Details
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    );
-  }
-  
-  // Handle completed showings
-  if (showing.status === ShowingStatus.COMPLETED) {
-    return (
-      <Button variant="ghost" size="icon" onClick={() => onView(showing)}>
-        <ExternalLink className="h-5 w-5" />
-      </Button>
-    );
-  }
-  
-  // Handle past approved showings for sellers
-  if (showing.status === ShowingStatus.APPROVED && new Date(showing.startTime) < new Date()) {
-    if (!isBuyer) {
+        );
+      }
+      
+      // Regular approved showings (not past)
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -111,10 +113,11 @@ export const ShowingActions = ({
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem 
-              onClick={() => onUpdateStatus(showing.id, ShowingStatus.COMPLETED)}
+              onClick={() => onUpdateStatus(showing.id, ShowingStatus.CANCELLED)}
+              className="text-red-600"
             >
-              <CheckCircle className="h-4 w-4 mr-2" /> 
-              Mark as Completed
+              <XCircle className="h-4 w-4 mr-2" /> 
+              Cancel Showing
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onView(showing)}>
               <ExternalLink className="h-4 w-4 mr-2" /> 
@@ -123,22 +126,23 @@ export const ShowingActions = ({
           </DropdownMenuContent>
         </DropdownMenu>
       );
-    }
-    
-    return (
-      <Button variant="ghost" size="icon" onClick={() => onView(showing)}>
-        <ExternalLink className="h-5 w-5" />
-      </Button>
-    );
-  }
-  
-  // For cancelled or declined showings, or any other state
-  if (showing.status === ShowingStatus.CANCELLED || showing.status === ShowingStatus.DECLINED) {
-    return (
-      <Button variant="ghost" size="icon" onClick={() => onView(showing)}>
-        <ExternalLink className="h-5 w-5" />
-      </Button>
-    );
+      
+    // Handle completed showings
+    case ShowingStatus.COMPLETED:
+      return (
+        <Button variant="ghost" size="icon" onClick={() => onView(showing)}>
+          <ExternalLink className="h-5 w-5" />
+        </Button>
+      );
+      
+    // For cancelled or declined showings
+    case ShowingStatus.CANCELLED:
+    case ShowingStatus.DECLINED:
+      return (
+        <Button variant="ghost" size="icon" onClick={() => onView(showing)}>
+          <ExternalLink className="h-5 w-5" />
+        </Button>
+      );
   }
   
   // Default fallback for any other status
