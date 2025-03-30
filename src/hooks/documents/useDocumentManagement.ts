@@ -1,8 +1,9 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { DocumentMetadata } from '@/types/document';
 import { useSupabase } from '@/hooks/useSupabase';
 import { useToast } from '@/hooks/use-toast';
+import { SortOption } from '@/components/documents/DocumentFilters';
 
 export const useDocumentManagement = (userId?: string) => {
   const [documents, setDocuments] = useState<DocumentMetadata[]>([]);
@@ -10,6 +11,8 @@ export const useDocumentManagement = (userId?: string) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState('all');
+  const [sortBy, setSortBy] = useState<SortOption>('date-desc');
+  const [selectedFileTypes, setSelectedFileTypes] = useState<string[]>([]);
   const { supabase } = useSupabase();
   const { toast } = useToast();
 
@@ -72,7 +75,6 @@ export const useDocumentManagement = (userId?: string) => {
         );
 
         setDocuments(docsWithMetadata);
-        setFilteredDocuments(docsWithMetadata);
       } catch (error) {
         console.error('Error loading documents:', error);
         toast({
@@ -88,15 +90,43 @@ export const useDocumentManagement = (userId?: string) => {
     loadDocuments();
   }, [userId, supabase, toast]);
 
-  // Filter documents based on search term and category
+  // Extract unique file types
+  const fileTypes = useMemo(() => {
+    const types = new Set<string>();
+    documents.forEach(doc => {
+      const extension = doc.name.split('.').pop()?.toLowerCase();
+      if (extension) {
+        types.add(extension);
+      }
+    });
+    return Array.from(types).sort();
+  }, [documents]);
+
+  // Filter and sort documents
   useEffect(() => {
     if (!documents.length) {
       setFilteredDocuments([]);
       return;
     }
 
-    let filtered = documents;
+    let filtered = [...documents];
 
+    // Apply category filter
+    if (activeCategory !== 'all') {
+      filtered = filtered.filter((doc) => 
+        doc.category?.toLowerCase() === activeCategory.toLowerCase()
+      );
+    }
+
+    // Apply file type filter
+    if (selectedFileTypes.length > 0) {
+      filtered = filtered.filter(doc => {
+        const extension = doc.name.split('.').pop()?.toLowerCase() || '';
+        return selectedFileTypes.includes(extension);
+      });
+    }
+
+    // Apply search term
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       filtered = filtered.filter(
@@ -107,12 +137,35 @@ export const useDocumentManagement = (userId?: string) => {
       );
     }
 
-    if (activeCategory !== 'all') {
-      filtered = filtered.filter((doc) => doc.category?.toLowerCase() === activeCategory.toLowerCase());
-    }
+    // Apply sorting
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'name-asc':
+          return a.name.localeCompare(b.name);
+        case 'name-desc':
+          return b.name.localeCompare(a.name);
+        case 'date-asc':
+          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        case 'date-desc':
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        case 'size-asc':
+          return a.size - b.size;
+        case 'size-desc':
+          return b.size - a.size;
+        default:
+          return 0;
+      }
+    });
 
     setFilteredDocuments(filtered);
-  }, [searchTerm, activeCategory, documents]);
+  }, [searchTerm, activeCategory, documents, sortBy, selectedFileTypes]);
+
+  const resetFilters = () => {
+    setSearchTerm('');
+    setActiveCategory('all');
+    setSortBy('date-desc');
+    setSelectedFileTypes([]);
+  };
 
   const handleDownload = async (doc: DocumentMetadata) => {
     try {
@@ -188,6 +241,12 @@ export const useDocumentManagement = (userId?: string) => {
     setActiveCategory,
     categories: uniqueCategories,
     handleDownload,
-    handleDelete
+    handleDelete,
+    sortBy,
+    setSortBy,
+    fileTypes,
+    selectedFileTypes,
+    setSelectedFileTypes,
+    resetFilters
   };
 };

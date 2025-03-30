@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import DocumentUploader from './DocumentUploader';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import DocumentList from './DocumentList';
 import DocumentSearch from './DocumentSearch';
 import DocumentCategories from './DocumentCategories';
+import DocumentFilters from './DocumentFilters';
 import { useDocumentManagement } from '@/hooks/documents/useDocumentManagement';
 
 const DocumentManager = () => {
@@ -22,7 +23,13 @@ const DocumentManager = () => {
     setActiveCategory,
     categories,
     handleDownload,
-    handleDelete
+    handleDelete,
+    sortBy,
+    setSortBy,
+    fileTypes,
+    selectedFileTypes,
+    setSelectedFileTypes,
+    resetFilters
   } = useDocumentManagement(user?.id);
 
   return (
@@ -56,10 +63,19 @@ const DocumentManager = () => {
             </TabsContent>
             <TabsContent value="manage" className="pt-4">
               <div className="space-y-4">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-col sm:flex-row">
                   <DocumentSearch 
                     searchTerm={searchTerm}
                     onSearchChange={setSearchTerm}
+                    onClear={() => setSearchTerm('')}
+                  />
+                  <DocumentFilters
+                    sortBy={sortBy}
+                    onSortChange={setSortBy}
+                    fileTypes={fileTypes}
+                    selectedFileTypes={selectedFileTypes}
+                    onFileTypeChange={setSelectedFileTypes}
+                    onFilterReset={resetFilters}
                   />
                 </div>
                 

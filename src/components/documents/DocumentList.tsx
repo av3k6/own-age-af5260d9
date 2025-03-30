@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { DocumentMetadata } from '@/types/document';
-import { Eye, Download, Trash2, Clock, FolderOpen } from "lucide-react";
+import { Eye, Download, Trash2, Clock, FolderOpen, Filter, Search } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface DocumentListProps {
@@ -63,8 +63,14 @@ const DocumentList = ({
   if (documents.length === 0) {
     return (
       <div className="text-center py-8">
-        <FolderOpen className="h-12 w-12 mx-auto text-muted-foreground" />
-        <h3 className="mt-2 text-xl font-medium">No documents found</h3>
+        <div className="mx-auto bg-muted/50 w-16 h-16 rounded-full flex items-center justify-center mb-3">
+          {searchTerm ? (
+            <Search className="h-8 w-8 text-muted-foreground" />
+          ) : (
+            <FolderOpen className="h-8 w-8 text-muted-foreground" />
+          )}
+        </div>
+        <h3 className="text-xl font-medium">No documents found</h3>
         <p className="mt-1 text-muted-foreground">
           {searchTerm
             ? "No documents match your search criteria"
