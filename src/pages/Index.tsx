@@ -16,35 +16,25 @@ const Index = () => {
   const [pageReady, setPageReady] = useState(false);
   const { toast } = useToast();
 
+  // Force page to be ready after a short timeout regardless of auth state
   useEffect(() => {
-    // Set a small timeout to ensure content loads properly
-    // This helps prevent flickering between loading states
+    const forceReadyTimer = setTimeout(() => {
+      console.log("Force setting page ready to true");
+      setPageReady(true);
+    }, 1000); // Reduced from 3000ms to 1000ms
+    
+    return () => clearTimeout(forceReadyTimer);
+  }, []);
+
+  // When auth initializes, set page ready immediately
+  useEffect(() => {
     if (isInitialized) {
-      console.log("Auth initialized, preparing to render content");
-      const timer = setTimeout(() => {
-        setPageReady(true);
-        console.log("Page ready state set to true");
-      }, 300);
-      return () => clearTimeout(timer);
+      console.log("Auth initialized, setting page ready");
+      setPageReady(true);
     }
   }, [isInitialized]);
 
-  // Force page ready after a maximum wait time to prevent endless loading
-  useEffect(() => {
-    const maxWaitTime = setTimeout(() => {
-      if (!pageReady) {
-        console.log("Maximum wait time reached, forcing page ready");
-        setPageReady(true);
-        toast({
-          title: "Some content may still be loading",
-          description: "You can continue browsing while we finish loading everything",
-        });
-      }
-    }, 3000); // 3 seconds maximum wait time
-    
-    return () => clearTimeout(maxWaitTime);
-  }, [pageReady]);
-
+  // Still show loading skeleton if not ready
   if (!pageReady) {
     return (
       <div className="min-h-screen container mx-auto px-4 py-8">

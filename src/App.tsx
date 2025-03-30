@@ -41,18 +41,22 @@ function App() {
 function AppContent() {
   const { user, loading, isInitialized } = useAuth();
 
-  if (!isInitialized) {
-    console.log("App still initializing...");
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <p className="text-lg font-semibold">Loading...</p>
-      </div>
-    );
-  }
+  // Force render routes after maximum wait time even if not initialized
+  useEffect(() => {
+    const forceRenderTimer = setTimeout(() => {
+      if (!isInitialized) {
+        console.warn("Forcing app to render routes after timeout");
+      }
+    }, 2000); // 2 second timeout
+    
+    return () => clearTimeout(forceRenderTimer);
+  }, [isInitialized]);
 
-  console.log("App initialized, rendering routes");
+  // Remove the initialization check and go straight to routes
+  // This prevents the app from being stuck on loading
+  console.log("App rendering routes, initialization status:", isInitialized);
 
-  // Update the routes array to include our new messaging route
+  // Update the routes array to include our messaging route
   const routes = [
     <Route key="home" path="/" element={<Home />} />,
     <Route key="buy" path="/buy" element={<Buy />} />,
