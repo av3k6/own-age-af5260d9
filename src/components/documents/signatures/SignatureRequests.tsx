@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { useSignatureService, SignatureStatus } from '@/services/eSignature/eSignatureService';
+import { useSignatureService, SignatureStatus, SignatureProvider } from '@/services/eSignature/eSignatureService';
 import {
   Card,
   CardContent,
@@ -51,7 +51,8 @@ const SignatureRequests: React.FC = () => {
     
     try {
       setActionInProgress(requestId);
-      await cancelSignatureRequest(requestId, provider);
+      // Convert string provider to SignatureProvider enum
+      await cancelSignatureRequest(requestId, provider as SignatureProvider);
       
       // Update local state after cancellation
       setRequests(prevRequests => 
