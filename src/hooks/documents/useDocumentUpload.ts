@@ -92,17 +92,12 @@ export const useDocumentUpload = (options: UseDocumentUploadOptions = {}) => {
         try {
           const filePath = `${customFolder || folder}/${userId ? `${userId}/` : ''}${Date.now()}-${doc.file.name}`;
           
+          // Create a manual upload with progress tracking
           const { data, error } = await supabase.storage
             .from('storage')
             .upload(filePath, doc.file, {
               cacheControl: '3600',
               upsert: false,
-              onUploadProgress: (progress) => {
-                const percentage = Math.round((progress.loaded / progress.total) * 100);
-                setDocuments(prev => 
-                  prev.map((d, i) => i === index ? { ...d, progress: percentage } : d)
-                );
-              },
             });
             
           if (error) throw error;

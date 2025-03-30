@@ -7,7 +7,7 @@ import ThemeToggle from "@/components/theme/ThemeToggle";
 import { useIsMobile } from "@/hooks/use-mobile";
 import HeaderLogo from "./header/HeaderLogo";
 import ProvinceSelector from "./header/ProvinceSelector";
-import Navigation from "./header/Navigation";
+import { Navigation } from "./header/Navigation";
 import SearchBar from "./header/SearchBar";
 import UserMenu from "./header/UserMenu";
 import MobileMenu from "./header/MobileMenu";

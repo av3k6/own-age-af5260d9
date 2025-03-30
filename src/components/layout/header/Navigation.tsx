@@ -1,5 +1,6 @@
+
 import { Link } from "react-router-dom"
-import { Icons } from "@/components/ui/icons"
+import { Icons } from "../../../components/ui/icons"
 import { useAuth } from "@/contexts/AuthContext"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -10,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useNavigate } from "react-router-dom"
+import { Button } from "@/components/ui/button"
 
 export function Navigation() {
   const { user, signOut } = useAuth();

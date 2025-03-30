@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSupabase } from '@/hooks/useSupabase';
@@ -10,18 +9,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Search, FolderOpen, Clock, Trash2, Download, Eye } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from '@/hooks/use-toast';
-
-interface DocumentMetadata {
-  id: string;
-  name: string;
-  type: string;
-  size: number;
-  createdAt: string;
-  url: string;
-  path: string;
-  category?: string;
-  description?: string;
-}
+import { DocumentMetadata } from '@/types/document';
 
 const DocumentManager = () => {
   const [documents, setDocuments] = useState<DocumentMetadata[]>([]);
@@ -33,7 +21,6 @@ const DocumentManager = () => {
   const { supabase } = useSupabase();
   const { toast } = useToast();
 
-  // Load documents from Supabase storage
   useEffect(() => {
     const loadDocuments = async () => {
       if (!user) {
@@ -45,7 +32,6 @@ const DocumentManager = () => {
 
       setIsLoading(true);
       try {
-        // List all files in the user's document folder
         const { data: files, error } = await supabase.storage
           .from('storage')
           .list(`documents/${user.id}`, {
@@ -61,7 +47,6 @@ const DocumentManager = () => {
           return;
         }
 
-        // Get public URLs and metadata for all files
         const docsWithMetadata = await Promise.all(
           files.map(async (file) => {
             const filePath = `documents/${user.id}/${file.name}`;
@@ -69,7 +54,6 @@ const DocumentManager = () => {
               .from('storage')
               .getPublicUrl(filePath);
 
-            // Check if we have metadata for this file in database
             const { data: metaData } = await supabase
               .from('document_metadata')
               .select('*')
@@ -107,7 +91,6 @@ const DocumentManager = () => {
     loadDocuments();
   }, [user, supabase, toast]);
 
-  // Filter documents based on search term and active tab
   useEffect(() => {
     if (!documents.length) {
       setFilteredDocuments([]);
@@ -116,7 +99,6 @@ const DocumentManager = () => {
 
     let filtered = documents;
 
-    // Filter by search term
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       filtered = filtered.filter(
@@ -127,7 +109,6 @@ const DocumentManager = () => {
       );
     }
 
-    // Filter by category (tab)
     if (activeTab !== 'all') {
       filtered = filtered.filter((doc) => doc.category?.toLowerCase() === activeTab.toLowerCase());
     }
@@ -135,28 +116,26 @@ const DocumentManager = () => {
     setFilteredDocuments(filtered);
   }, [searchTerm, activeTab, documents]);
 
-  const handleDownload = async (document: DocumentMetadata) => {
+  const handleDownload = async (doc: DocumentMetadata) => {
     try {
-      // Get the file from storage
       const { data, error } = await supabase.storage
         .from('storage')
-        .download(document.path);
+        .download(doc.path);
 
       if (error) throw error;
 
-      // Create a download link and trigger download
       const url = URL.createObjectURL(data);
-      const a = document.createElement('a');
+      const a = window.document.createElement('a');
       a.href = url;
-      a.download = document.name;
-      document.body.appendChild(a);
+      a.download = doc.name;
+      window.document.body.appendChild(a);
       a.click();
-      document.body.removeChild(a);
+      window.document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
       toast({
         title: 'Document downloaded',
-        description: `${document.name} has been downloaded successfully.`,
+        description: `${doc.name} has been downloaded successfully.`,
       });
     } catch (error) {
       console.error('Download error:', error);
@@ -168,30 +147,27 @@ const DocumentManager = () => {
     }
   };
 
-  const handleDelete = async (document: DocumentMetadata) => {
-    if (!confirm(`Are you sure you want to delete ${document.name}?`)) {
+  const handleDelete = async (doc: DocumentMetadata) => {
+    if (!confirm(`Are you sure you want to delete ${doc.name}?`)) {
       return;
     }
 
     try {
-      // Delete from storage
       const { error: storageError } = await supabase.storage
         .from('storage')
-        .remove([document.path]);
+        .remove([doc.path]);
 
       if (storageError) throw storageError;
 
-      // Delete metadata if exists
       await supabase
         .from('document_metadata')
         .delete()
-        .eq('path', document.path);
+        .eq('path', doc.path);
 
-      // Update state
-      setDocuments((prev) => prev.filter((doc) => doc.id !== document.id));
+      setDocuments((prev) => prev.filter((d) => d.id !== doc.id));
       toast({
         title: 'Document deleted',
-        description: `${document.name} has been deleted successfully.`,
+        description: `${doc.name} has been deleted successfully.`,
       });
     } catch (error) {
       console.error('Delete error:', error);
@@ -226,7 +202,6 @@ const DocumentManager = () => {
     }
   };
   
-  // Get unique categories for tabs
   const uniqueCategories = ['all', ...new Set(documents.map(doc => doc.category?.toLowerCase() || 'uncategorized'))];
 
   return (
