@@ -1,4 +1,3 @@
 
-// Re-export the messages hook and related utilities
+// Re-export the hook from the new modular structure
 export { useMessages } from './messages/useMessages';
-export type { MessageActions } from './messages/types';
