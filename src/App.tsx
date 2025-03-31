@@ -25,20 +25,8 @@ import NotFound from './pages/NotFound';
 import DocumentManagement from './pages/DocumentManagement';
 import Messaging from './pages/Messaging';
 
-function App() {
-  return (
-    <AuthProvider>
-      <ThemeProvider>
-        <Router>
-          <AppContent />
-        </Router>
-        <Toaster />
-      </ThemeProvider>
-    </AuthProvider>
-  );
-}
-
-function AppContent() {
+// Component that requires auth context
+function ProtectedRoutes() {
   const { user, loading, isInitialized } = useAuth();
   const [showRoutes, setShowRoutes] = useState(false);
 
@@ -165,6 +153,19 @@ function AppContent() {
       
       <Route path="*" element={<NotFound />} />
     </Routes>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <ThemeProvider>
+        <Router>
+          <ProtectedRoutes />
+        </Router>
+        <Toaster />
+      </ThemeProvider>
+    </AuthProvider>
   );
 }
 
