@@ -16,7 +16,14 @@ export function useSendMessage() {
     attachments?: File[],
     setState?: React.Dispatch<React.SetStateAction<MessagesState>>
   ) => {
-    if (!user || !content.trim()) return;
+    if (!user || !content.trim()) {
+      toast({
+        title: "Cannot send message",
+        description: "Message cannot be empty",
+        variant: "destructive",
+      });
+      return;
+    }
     
     if (setState) {
       setState(prev => ({ ...prev, loading: true }));
@@ -43,7 +50,7 @@ export function useSendMessage() {
       const receiverId = conversation.participants.find((id: string) => id !== user.id);
       if (!receiverId) throw new Error("Recipient not found");
       
-      // Create message with proper typing
+      // Create message object
       const newMessage: Partial<Message> = {
         senderId: user.id,
         receiverId,
@@ -53,21 +60,10 @@ export function useSendMessage() {
         createdAt: new Date().toISOString(),
       };
       
-      console.log("Preparing to send message:", {
-        senderId: user.id,
-        receiverId,
-        conversationId,
-        content: content.substring(0, 30) + (content.length > 30 ? '...' : '')
-      });
-      
       // Upload attachments if any
       let messageAttachments: Attachment[] = [];
       if (attachments && attachments.length > 0) {
         messageAttachments = await uploadAttachments(conversationId, attachments);
-      }
-      
-      // Add attachments to message if any
-      if (messageAttachments.length > 0) {
         newMessage.attachments = messageAttachments;
       }
       
@@ -84,43 +80,44 @@ export function useSendMessage() {
       
       console.log("Message sent successfully:", data);
       
-      // Update conversation's last message timestamp
+      // Update conversation's last message timestamp and increment unread count for recipient
       await supabase
         .from('conversations')
         .update({ 
           lastMessageAt: new Date().toISOString(),
+          // Only increment unread count for the recipient, not the sender
           unreadCount: conversation.unreadCount + 1
         })
         .eq('id', conversationId);
         
-      // Update local state
+      // Update local state if provided
       if (data && data.length > 0 && setState) {
         setState(prev => ({
           ...prev,
           messages: [...prev.messages, data[0]],
           loading: false
         }));
-        
-        toast({
-          title: "Message sent",
-          description: "Your message has been sent successfully",
-        });
       }
       
       if (setState) {
         setState(prev => ({ ...prev, loading: false }));
       }
-    } catch (error) {
+      
+      toast({
+        title: "Message sent",
+        description: "Your message has been sent successfully",
+      });
+    } catch (error: any) {
       console.error('Error sending message:', error);
       toast({
         title: "Error sending message",
-        description: "Please try again later",
+        description: error.message || "Please try again later",
         variant: "destructive",
       });
       if (setState) {
         setState(prev => ({ ...prev, loading: false }));
       }
-      throw error; // Re-throw to allow handling in the component
+      throw error;
     }
   };
 
@@ -128,25 +125,34 @@ export function useSendMessage() {
     const attachments: Attachment[] = [];
     
     for (const file of files) {
-      const filePath = `messages/${conversationId}/${Date.now()}_${file.name}`;
-      const { data, error } = await supabase.storage
-        .from('attachments')
-        .upload(filePath, file);
+      try {
+        const filePath = `messages/${conversationId}/${Date.now()}_${file.name}`;
+        const { data, error } = await supabase.storage
+          .from('attachments')
+          .upload(filePath, file);
+          
+        if (error) throw error;
         
-      if (error) throw error;
-      
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from('attachments')
-        .getPublicUrl(filePath);
-        
-      attachments.push({
-        id: crypto.randomUUID(), // Generate a unique ID for the attachment
-        name: file.name,
-        size: file.size,
-        type: file.type,
-        url: urlData.publicUrl,
-      });
+        // Get public URL
+        const { data: urlData } = supabase.storage
+          .from('attachments')
+          .getPublicUrl(filePath);
+          
+        attachments.push({
+          id: crypto.randomUUID(),
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          url: urlData.publicUrl,
+        });
+      } catch (uploadError) {
+        console.error("Error uploading attachment:", uploadError);
+        toast({
+          title: "Upload error",
+          description: `Failed to upload ${file.name}`,
+          variant: "destructive",
+        });
+      }
     }
     
     return attachments;

@@ -4,7 +4,8 @@ import { useConversations } from "./useConversations";
 import { useMessages } from "./useMessages";
 import { Conversation } from "@/types/message";
 import { useToast } from "@/components/ui/use-toast";
-import { useTableManagement } from "./conversations/useTableManagement";
+import { useSupabase } from "@/hooks/useSupabase";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function useMessaging() {
   const {
@@ -25,7 +26,8 @@ export function useMessaging() {
   } = useMessages();
   
   const { toast } = useToast();
-  const { ensureTablesExist } = useTableManagement();
+  const { supabase } = useSupabase();
+  const { user } = useAuth();
 
   // Combine loading states
   const loading = conversationsLoading || messagesLoading;
@@ -34,8 +36,7 @@ export function useMessaging() {
   useEffect(() => {
     const initializeMessages = async () => {
       try {
-        // Make sure tables exist before trying to fetch conversations
-        await ensureTablesExist();
+        // Just fetch conversations - don't try to create tables
         await fetchConversations();
       } catch (error) {
         console.error("Error initializing conversations:", error);
@@ -47,8 +48,33 @@ export function useMessaging() {
       }
     };
     
-    initializeMessages();
-  }, []);
+    if (user) {
+      initializeMessages();
+    }
+  }, [user]);
+
+  // Set up real-time subscriptions
+  useEffect(() => {
+    if (!user) return;
+    
+    // Subscribe to new conversations
+    const conversationsChannel = supabase
+      .channel('public:conversations')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'conversations',
+        filter: `participants=cs.{${user.id}}`
+      }, () => {
+        // Refresh conversations list when there are changes
+        fetchConversations();
+      })
+      .subscribe();
+      
+    return () => {
+      supabase.removeChannel(conversationsChannel);
+    };
+  }, [user, supabase]);
 
   // Fetch messages when currentConversation changes
   useEffect(() => {
@@ -75,6 +101,11 @@ export function useMessaging() {
         variant: "destructive"
       });
     });
+    
+    // Mark messages as read when selecting a conversation
+    if (conversation.unreadCount > 0) {
+      markMessagesAsRead(conversation.id);
+    }
   };
 
   // Wrapper for sending a message that also handles refreshing the conversation list
@@ -110,9 +141,6 @@ export function useMessaging() {
   ) => {
     console.log("Creating new conversation:", { receiverId, subject, initialMessage, propertyId });
     try {
-      // Ensure tables exist before creating conversation
-      await ensureTablesExist();
-      
       // First create the conversation
       const conversation = await createConversation(receiverId, subject, initialMessage, propertyId);
       

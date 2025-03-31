@@ -4,13 +4,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useSupabase } from "@/hooks/useSupabase";
 import { Conversation } from "@/types/message";
 import { ConversationsState } from "./types";
-import { useTableManagement } from "./useTableManagement";
 
 export function useCreateConversation() {
   const { supabase } = useSupabase();
   const { user } = useAuth();
   const { toast } = useToast();
-  const { ensureTablesExist } = useTableManagement();
 
   const createConversation = async (
     receiverId: string, 
@@ -32,16 +30,23 @@ export function useCreateConversation() {
       const { data: existingConversations, error: existingError } = await supabase
         .from('conversations')
         .select('*')
-        .contains('participants', [user.id, receiverId])
-        .eq('propertyId', propertyId || '');
+        .contains('participants', [user.id, receiverId]);
         
       if (existingError) {
         console.error("Error checking existing conversations:", existingError);
       }
         
-      if (existingConversations && existingConversations.length > 0) {
+      // If property ID is provided, check for a conversation with that property
+      let filteredConversations = existingConversations || [];
+      if (propertyId && existingConversations) {
+        filteredConversations = existingConversations.filter(
+          conv => conv.propertyId === propertyId
+        );
+      }
+      
+      if (filteredConversations.length > 0) {
         // Conversation exists, return it
-        const conversation = existingConversations[0];
+        const conversation = filteredConversations[0];
         console.log("Found existing conversation:", conversation.id);
         
         if (setState) {
@@ -54,9 +59,6 @@ export function useCreateConversation() {
         
         return conversation;
       }
-      
-      // Ensure tables exist
-      await ensureTablesExist();
       
       // Create new conversation
       const newConversation = {
@@ -92,12 +94,17 @@ export function useCreateConversation() {
         }));
       }
       
+      toast({
+        title: "Conversation created",
+        description: "You can now start messaging",
+      });
+      
       return conversation;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating conversation:', error);
       toast({
         title: "Error creating conversation",
-        description: "Please try again later",
+        description: error.message || "Please try again later",
         variant: "destructive",
       });
       

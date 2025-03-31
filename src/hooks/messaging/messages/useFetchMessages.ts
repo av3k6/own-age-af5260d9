@@ -1,5 +1,4 @@
 
-import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSupabase } from "@/hooks/useSupabase";
@@ -15,26 +14,11 @@ export function useFetchMessages() {
     conversationId: string,
     setState: React.Dispatch<React.SetStateAction<MessagesState>>
   ) => {
-    if (!user) return;
+    if (!user) return null;
     
     setState(prev => ({ ...prev, loading: true }));
     try {
       console.log("Fetching messages for conversation:", conversationId);
-      
-      // Check if the conversation exists
-      const { data: conversation, error: convError } = await supabase
-        .from('conversations')
-        .select('*')
-        .eq('id', conversationId)
-        .single();
-      
-      if (convError) {
-        console.error("Error fetching conversation:", convError);
-        if (!convError.message.includes('No rows found')) {
-          throw new Error("Error fetching conversation");
-        }
-        // If "No rows found", we'll create an empty messages array
-      }
       
       // Fetch messages
       const { data, error } = await supabase
@@ -45,13 +29,10 @@ export function useFetchMessages() {
         
       if (error) {
         console.error("Error in supabase query:", error);
-        if (!error.message.includes('does not exist')) {
-          throw error;
-        }
-        // If table doesn't exist, we'll use an empty array
+        throw error;
       }
       
-      console.log("Messages fetched:", data?.length || 0, data);
+      console.log("Messages fetched:", data?.length || 0);
       setState(prev => ({
         ...prev,
         messages: data || [],
@@ -59,11 +40,11 @@ export function useFetchMessages() {
       }));
       
       return data as Message[] | null;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching messages:', error);
       toast({
         title: "Could not load messages",
-        description: "Please try again later",
+        description: error.message || "Please try again later",
         variant: "destructive",
       });
       setState(prev => ({ ...prev, loading: false, messages: [] }));
