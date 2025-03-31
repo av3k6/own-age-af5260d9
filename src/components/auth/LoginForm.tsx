@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -118,12 +119,6 @@ const LoginForm = ({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col space-y-1.5 text-center">
-        <h1 className="text-2xl font-semibold">Welcome back!</h1>
-        <p className="text-zen-gray-500 text-sm">
-          Log in to your TransacZen Haven account
-        </p>
-      </div>
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
           <Input
