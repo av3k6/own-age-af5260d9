@@ -36,37 +36,22 @@ export function useTableManagement() {
         );
         
         if (createConversationsError) {
-          // If execute_sql RPC doesn't exist or fails, try direct SQL query approach
-          const { error: directSqlError } = await supabase
-            .from('_raw_sql')
-            .rpc('CREATE TABLE IF NOT EXISTS public.conversations (' +
-                'id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),' +
-                'participants TEXT[] NOT NULL,' +
-                '"lastMessageAt" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,' +
-                'subject TEXT,' +
-                '"propertyId" UUID,' +
-                '"unreadCount" INTEGER DEFAULT 0,' +
-                'created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP' +
-                ');');
-                
-          if (directSqlError) {
-            console.error("Error creating conversations table:", directSqlError);
+          console.error("Error creating conversations table:", createConversationsError);
+          
+          // As a last resort, create a minimal version of the table that will work with our app
+          const { error: fallbackError } = await supabase
+            .from('conversations')
+            .insert({
+              id: '00000000-0000-0000-0000-000000000000',
+              participants: ['system'],
+              lastMessageAt: new Date().toISOString(),
+              subject: 'System Initialization',
+              unreadCount: 0
+            })
+            .select();
             
-            // As a last resort, create a minimal version of the table that will work with our app
-            const { error: fallbackError } = await supabase
-              .from('conversations')
-              .insert({
-                id: '00000000-0000-0000-0000-000000000000',
-                participants: ['system'],
-                lastMessageAt: new Date().toISOString(),
-                subject: 'System Initialization',
-                unreadCount: 0
-              })
-              .select();
-              
-            if (fallbackError && fallbackError.code !== '23505') { // Ignore duplicate key errors
-              throw fallbackError;
-            }
+          if (fallbackError && fallbackError.code !== '23505') { // Ignore duplicate key errors
+            throw fallbackError;
           }
         }
       }
@@ -102,42 +87,24 @@ export function useTableManagement() {
         );
         
         if (createMessagesError) {
-          // If execute_sql RPC doesn't exist or fails, try direct SQL query approach
-          const { error: directSqlError } = await supabase
-            .from('_raw_sql')
-            .rpc('CREATE TABLE IF NOT EXISTS public.messages (' +
-                'id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),' +
-                '"senderId" UUID NOT NULL,' +
-                '"receiverId" UUID NOT NULL,' +
-                'content TEXT NOT NULL,' +
-                'subject TEXT,' +
-                'read BOOLEAN DEFAULT FALSE,' +
-                '"createdAt" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,' +
-                'attachments JSONB,' +
-                '"conversationId" UUID NOT NULL,' +
-                'FOREIGN KEY ("conversationId") REFERENCES conversations(id) ON DELETE CASCADE' +
-                ');');
-                
-          if (directSqlError) {
-            console.error("Error creating messages table:", directSqlError);
+          console.error("Error creating messages table:", createMessagesError);
+          
+          // As a last resort, don't enforce foreign key and create a minimal table
+          const { error: fallbackError } = await supabase
+            .from('messages')
+            .insert({
+              id: '00000000-0000-0000-0000-000000000000',
+              senderId: '00000000-0000-0000-0000-000000000000',
+              receiverId: '00000000-0000-0000-0000-000000000000',
+              content: 'System initialization message',
+              read: true,
+              createdAt: new Date().toISOString(),
+              conversationId: '00000000-0000-0000-0000-000000000000'
+            })
+            .select();
             
-            // As a last resort, don't enforce foreign key and create a minimal table
-            const { error: fallbackError } = await supabase
-              .from('messages')
-              .insert({
-                id: '00000000-0000-0000-0000-000000000000',
-                senderId: '00000000-0000-0000-0000-000000000000',
-                receiverId: '00000000-0000-0000-0000-000000000000',
-                content: 'System initialization message',
-                read: true,
-                createdAt: new Date().toISOString(),
-                conversationId: '00000000-0000-0000-0000-000000000000'
-              })
-              .select();
-              
-            if (fallbackError && fallbackError.code !== '23505') { // Ignore duplicate key errors
-              throw fallbackError;
-            }
+          if (fallbackError && fallbackError.code !== '23505') { // Ignore duplicate key errors
+            throw fallbackError;
           }
         }
       }
