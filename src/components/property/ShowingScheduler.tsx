@@ -1,5 +1,6 @@
 
 import ShowingScheduler from "./showing/ShowingScheduler";
+import { Showing } from "@/types";
 
 interface ShowingSchedulerProps {
   propertyId: string;
