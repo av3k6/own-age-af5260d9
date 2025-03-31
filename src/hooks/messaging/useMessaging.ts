@@ -4,6 +4,7 @@ import { useConversations } from "./useConversations";
 import { useMessages } from "./useMessages";
 import { Conversation } from "@/types/message";
 import { useToast } from "@/components/ui/use-toast";
+import { useTableManagement } from "./conversations/useTableManagement";
 
 export function useMessaging() {
   const {
@@ -24,15 +25,29 @@ export function useMessaging() {
   } = useMessages();
   
   const { toast } = useToast();
+  const { ensureTablesExist } = useTableManagement();
 
   // Combine loading states
   const loading = conversationsLoading || messagesLoading;
 
   // Initialize conversations list on component mount
   useEffect(() => {
-    fetchConversations().catch(error => {
-      console.error("Error initializing conversations:", error);
-    });
+    const initializeMessages = async () => {
+      try {
+        // Make sure tables exist before trying to fetch conversations
+        await ensureTablesExist();
+        await fetchConversations();
+      } catch (error) {
+        console.error("Error initializing conversations:", error);
+        toast({
+          title: "Error loading messages",
+          description: "Please try again later",
+          variant: "destructive"
+        });
+      }
+    };
+    
+    initializeMessages();
   }, []);
 
   // Fetch messages when currentConversation changes
@@ -40,6 +55,11 @@ export function useMessaging() {
     if (currentConversation) {
       fetchMessagesBase(currentConversation.id).catch(error => {
         console.error("Error fetching messages:", error);
+        toast({
+          title: "Error loading messages",
+          description: "We couldn't load your messages. Please try again later.",
+          variant: "destructive"
+        });
       });
     }
   }, [currentConversation?.id]);
@@ -49,6 +69,11 @@ export function useMessaging() {
     setCurrentConversation(conversation);
     fetchMessagesBase(conversation.id).catch(error => {
       console.error("Error fetching messages for conversation:", error);
+      toast({
+        title: "Error loading messages",
+        description: "We couldn't load your messages. Please try again later.",
+        variant: "destructive"
+      });
     });
   };
 
@@ -85,6 +110,9 @@ export function useMessaging() {
   ) => {
     console.log("Creating new conversation:", { receiverId, subject, initialMessage, propertyId });
     try {
+      // Ensure tables exist before creating conversation
+      await ensureTablesExist();
+      
       // First create the conversation
       const conversation = await createConversation(receiverId, subject, initialMessage, propertyId);
       

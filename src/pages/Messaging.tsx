@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -5,10 +6,11 @@ import { useMessaging } from "@/hooks/useMessaging";
 import ConversationList from "@/components/messaging/ConversationList";
 import MessageList from "@/components/messaging/MessageList";
 import MessageInput from "@/components/messaging/MessageInput";
-import { Plus, MessageSquare, ArrowLeft } from "lucide-react";
+import { Plus, MessageSquare, ArrowLeft, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Conversation } from "@/types/message";
+import { toast } from "sonner";
 
 const Messaging = () => {
   const { user, loading: authLoading } = useAuth();
@@ -27,6 +29,7 @@ const Messaging = () => {
   
   // State to control the mobile view
   const [showConversations, setShowConversations] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -36,7 +39,13 @@ const Messaging = () => {
 
   useEffect(() => {
     if (user) {
-      fetchConversations();
+      fetchConversations().catch(err => {
+        console.error("Error fetching conversations:", err);
+        setError("Could not load your conversations. Please try again later.");
+        toast.error("Could not load conversations", {
+          description: "Please try again later"
+        });
+      });
     }
   }, [user]);
 
@@ -47,6 +56,8 @@ const Messaging = () => {
     if (isMobile) {
       setShowConversations(false);
     }
+    // Clear any previous errors when selecting a conversation
+    setError(null);
   };
 
   const handleGoBackToConversations = () => {
@@ -60,8 +71,23 @@ const Messaging = () => {
       await sendMessage(currentConversation.id, content, attachments);
       // After sending message successfully, refresh messages
       fetchMessages(currentConversation);
+      // Clear any previous errors
+      setError(null);
     } catch (error) {
       console.error("Error sending message:", error);
+      toast.error("Failed to send message", {
+        description: "Please try again later"
+      });
+    }
+  };
+
+  const handleRetry = () => {
+    setError(null);
+    if (user) {
+      fetchConversations().catch(err => {
+        console.error("Error retrying conversation fetch:", err);
+        setError("Could not load your conversations. Please try again later.");
+      });
     }
   };
 
@@ -85,77 +111,87 @@ const Messaging = () => {
         </Button>
       </div>
 
-      <div className="border rounded-lg overflow-hidden grid grid-cols-1 md:grid-cols-3 h-[70vh] bg-background shadow-sm">
-        {/* Conversation List - Always shown on desktop, conditionally shown on mobile */}
-        {(!isMobile || (isMobile && showConversations)) && (
-          <div className={`border-r ${isMobile ? 'col-span-1' : 'col-span-1'}`}>
-            <div className="p-3 border-b bg-muted/30">
-              <h2 className="font-medium text-lg">Conversations</h2>
+      {error ? (
+        <div className="border rounded-lg p-6 bg-destructive/10 text-center">
+          <AlertCircle className="h-10 w-10 mx-auto mb-2 text-destructive" />
+          <h3 className="font-semibold mb-2">{error}</h3>
+          <Button onClick={handleRetry} variant="outline" className="mt-2">
+            Try Again
+          </Button>
+        </div>
+      ) : (
+        <div className="border rounded-lg overflow-hidden grid grid-cols-1 md:grid-cols-3 h-[70vh] bg-background shadow-sm">
+          {/* Conversation List - Always shown on desktop, conditionally shown on mobile */}
+          {(!isMobile || (isMobile && showConversations)) && (
+            <div className={`border-r ${isMobile ? 'col-span-1' : 'col-span-1'}`}>
+              <div className="p-3 border-b bg-muted/30">
+                <h2 className="font-medium text-lg">Conversations</h2>
+              </div>
+              <ConversationList 
+                conversations={conversations}
+                selectedId={currentConversation?.id}
+                onSelect={handleSelectConversation}
+                isLoading={loading}
+              />
             </div>
-            <ConversationList 
-              conversations={conversations}
-              selectedId={currentConversation?.id}
-              onSelect={handleSelectConversation}
-              isLoading={loading}
-            />
-          </div>
-        )}
+          )}
 
-        {/* Message Area - Always shown on desktop, conditionally shown on mobile */}
-        {(!isMobile || (isMobile && !showConversations)) && (
-          <div className={`${isMobile ? 'col-span-1' : 'col-span-2'} flex flex-col`}>
-            {currentConversation ? (
-              <>
-                <div className="p-3 border-b flex items-center justify-between bg-muted/30">
+          {/* Message Area - Always shown on desktop, conditionally shown on mobile */}
+          {(!isMobile || (isMobile && !showConversations)) && (
+            <div className={`${isMobile ? 'col-span-1' : 'col-span-2'} flex flex-col`}>
+              {currentConversation ? (
+                <>
+                  <div className="p-3 border-b flex items-center justify-between bg-muted/30">
+                    {isMobile && (
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={handleGoBackToConversations} 
+                        className="mr-2"
+                      >
+                        <ArrowLeft className="h-4 w-4" />
+                      </Button>
+                    )}
+                    <div className="flex-1">
+                      <h2 className="font-medium">
+                        {currentConversation.subject || "No subject"}
+                      </h2>
+                      <p className="text-xs text-muted-foreground">
+                        {currentConversation.propertyId 
+                          ? `Property ID: ${currentConversation.propertyId}` 
+                          : "Direct message"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex-1 overflow-y-auto">
+                    <MessageList messages={messages} isLoading={loading} />
+                  </div>
+                  <MessageInput onSend={handleSendMessage} isLoading={loading} />
+                </>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full text-center p-8">
                   {isMobile && (
                     <Button 
                       variant="ghost" 
                       size="sm" 
                       onClick={handleGoBackToConversations} 
-                      className="mr-2"
+                      className="mb-4 self-start"
                     >
-                      <ArrowLeft className="h-4 w-4" />
+                      <ArrowLeft className="h-4 w-4 mr-2" />
+                      Back to conversations
                     </Button>
                   )}
-                  <div className="flex-1">
-                    <h2 className="font-medium">
-                      {currentConversation.subject || "No subject"}
-                    </h2>
-                    <p className="text-xs text-muted-foreground">
-                      {currentConversation.propertyId 
-                        ? `Property ID: ${currentConversation.propertyId}` 
-                        : "Direct message"}
-                    </p>
-                  </div>
+                  <MessageSquare className="h-16 w-16 text-muted-foreground mb-4" />
+                  <h3 className="font-medium text-xl">No conversation selected</h3>
+                  <p className="text-muted-foreground mt-2 max-w-md">
+                    Select a conversation from the list or create a new message to get started
+                  </p>
                 </div>
-                <div className="flex-1 overflow-y-auto">
-                  <MessageList messages={messages} isLoading={loading} />
-                </div>
-                <MessageInput onSend={handleSendMessage} isLoading={loading} />
-              </>
-            ) : (
-              <div className="flex flex-col items-center justify-center h-full text-center p-8">
-                {isMobile && (
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={handleGoBackToConversations} 
-                    className="mb-4 self-start"
-                  >
-                    <ArrowLeft className="h-4 w-4 mr-2" />
-                    Back to conversations
-                  </Button>
-                )}
-                <MessageSquare className="h-16 w-16 text-muted-foreground mb-4" />
-                <h3 className="font-medium text-xl">No conversation selected</h3>
-                <p className="text-muted-foreground mt-2 max-w-md">
-                  Select a conversation from the list or create a new message to get started
-                </p>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

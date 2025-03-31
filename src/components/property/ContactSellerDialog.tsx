@@ -65,11 +65,26 @@ export default function ContactSellerDialog({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: user?.user_metadata?.full_name || user?.name || "",
-      email: user?.email || "",
-      phone: user?.user_metadata?.phone || user?.phone || "",
+      name: "",
+      email: "",
+      phone: "",
       message: `Hi, I'm interested in ${propertyTitle}. I would like more information.`,
     },
+  });
+  
+  // Update form values when the dialog opens or user data changes
+  useState(() => {
+    if (user) {
+      const userData = {
+        name: user?.user_metadata?.full_name || user?.name || "",
+        email: user?.email || "",
+        phone: user?.user_metadata?.phone || user?.phone || "",
+      };
+      
+      form.setValue("name", userData.name);
+      form.setValue("email", userData.email);
+      form.setValue("phone", userData.phone || "");
+    }
   });
   
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
@@ -82,7 +97,7 @@ export default function ContactSellerDialog({
     try {
       setIsSubmitting(true);
       
-      // Store the contact request in Supabase
+      // Always store the contact request in Supabase regardless of conversation creation
       try {
         const { error: contactError } = await supabase.from('contact_requests').insert({
           seller_id: sellerId,
@@ -98,6 +113,8 @@ export default function ContactSellerDialog({
         if (contactError) {
           console.error("Error saving contact request:", contactError);
           // Continue even if contact request fails - we'll still try to send the message
+        } else {
+          console.log("Contact request saved successfully");
         }
       } catch (contactSaveError) {
         console.error("Exception saving contact request:", contactSaveError);
@@ -112,6 +129,26 @@ export default function ContactSellerDialog({
         setOpen(false);
         form.reset();
         return;
+      }
+      
+      // First, update user phone number if it's not already set
+      if (values.phone && (!user.user_metadata?.phone || user.user_metadata.phone !== values.phone)) {
+        try {
+          const { error: updateError } = await supabase.auth.updateUser({
+            data: {
+              phone: values.phone,
+            },
+          });
+          
+          if (updateError) {
+            console.error("Error updating user phone:", updateError);
+          } else {
+            console.log("User phone number updated successfully");
+          }
+        } catch (updateError) {
+          console.error("Exception updating user phone:", updateError);
+          // Continue despite the error
+        }
       }
       
       // Create a conversation and send the initial message

@@ -17,11 +17,16 @@ export function useTableManagement() {
       if (checkConversationsError && checkConversationsError.code === '42P01') {
         console.log("Conversations table doesn't exist, creating it now");
         
-        // Create conversations table using raw SQL
-        const { error: createConversationsError } = await supabase.rpc(
-          'execute_sql',
-          {
-            sql: `
+        // Try to create the table with direct SQL
+        try {
+          // First try to enable the uuid-ossp extension for uuid_generate_v4()
+          await supabase.from('_raw_sql').rpc('execute_sql', {
+            query: `CREATE EXTENSION IF NOT EXISTS "uuid-ossp";`
+          });
+          
+          // Then create the conversations table
+          await supabase.from('_raw_sql').rpc('execute_sql', {
+            query: `
               CREATE TABLE IF NOT EXISTS public.conversations (
                 id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
                 participants TEXT[] NOT NULL,
@@ -32,26 +37,28 @@ export function useTableManagement() {
                 created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
               );
             `
-          }
-        );
-        
-        if (createConversationsError) {
-          console.error("Error creating conversations table:", createConversationsError);
+          });
+        } catch (sqlError) {
+          console.error("Error creating conversations table with SQL:", sqlError);
           
-          // As a last resort, create a minimal version of the table that will work with our app
-          const { error: fallbackError } = await supabase
-            .from('conversations')
-            .insert({
-              id: '00000000-0000-0000-0000-000000000000',
-              participants: ['system'],
-              lastMessageAt: new Date().toISOString(),
-              subject: 'System Initialization',
-              unreadCount: 0
-            })
-            .select();
-            
-          if (fallbackError && fallbackError.code !== '23505') { // Ignore duplicate key errors
-            throw fallbackError;
+          // As a last resort, try to create a minimal version by inserting a record
+          try {
+            const { error: fallbackError } = await supabase
+              .from('conversations')
+              .insert({
+                id: '00000000-0000-0000-0000-000000000000',
+                participants: ['system'],
+                lastMessageAt: new Date().toISOString(),
+                subject: 'System Initialization',
+                unreadCount: 0
+              })
+              .select();
+              
+            if (fallbackError && fallbackError.code !== '23505') { // Ignore duplicate key errors
+              console.error("Fallback conversation creation failed:", fallbackError);
+            }
+          } catch (insertError) {
+            console.error("Failed to create conversations table with insert:", insertError);
           }
         }
       }
@@ -65,11 +72,10 @@ export function useTableManagement() {
       if (checkMessagesError && checkMessagesError.code === '42P01') {
         console.log("Messages table doesn't exist, creating it now");
         
-        // Create messages table using raw SQL
-        const { error: createMessagesError } = await supabase.rpc(
-          'execute_sql',
-          {
-            sql: `
+        // Try to create the table with direct SQL
+        try {
+          await supabase.from('_raw_sql').rpc('execute_sql', {
+            query: `
               CREATE TABLE IF NOT EXISTS public.messages (
                 id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
                 "senderId" UUID NOT NULL,
@@ -83,28 +89,30 @@ export function useTableManagement() {
                 FOREIGN KEY ("conversationId") REFERENCES conversations(id) ON DELETE CASCADE
               );
             `
-          }
-        );
-        
-        if (createMessagesError) {
-          console.error("Error creating messages table:", createMessagesError);
+          });
+        } catch (sqlError) {
+          console.error("Error creating messages table with SQL:", sqlError);
           
-          // As a last resort, don't enforce foreign key and create a minimal table
-          const { error: fallbackError } = await supabase
-            .from('messages')
-            .insert({
-              id: '00000000-0000-0000-0000-000000000000',
-              senderId: '00000000-0000-0000-0000-000000000000',
-              receiverId: '00000000-0000-0000-0000-000000000000',
-              content: 'System initialization message',
-              read: true,
-              createdAt: new Date().toISOString(),
-              conversationId: '00000000-0000-0000-0000-000000000000'
-            })
-            .select();
-            
-          if (fallbackError && fallbackError.code !== '23505') { // Ignore duplicate key errors
-            throw fallbackError;
+          // As a last resort, try to create a minimal version by inserting a record
+          try {
+            const { error: fallbackError } = await supabase
+              .from('messages')
+              .insert({
+                id: '00000000-0000-0000-0000-000000000000',
+                senderId: '00000000-0000-0000-0000-000000000000',
+                receiverId: '00000000-0000-0000-0000-000000000000',
+                content: 'System initialization message',
+                read: true,
+                createdAt: new Date().toISOString(),
+                conversationId: '00000000-0000-0000-0000-000000000000'
+              })
+              .select();
+              
+            if (fallbackError && fallbackError.code !== '23505') { // Ignore duplicate key errors
+              console.error("Fallback message creation failed:", fallbackError);
+            }
+          } catch (insertError) {
+            console.error("Failed to create messages table with insert:", insertError);
           }
         }
       }
