@@ -66,11 +66,11 @@ const Login = () => {
       const redirectTo = location.state?.from || "/dashboard";
       console.log("Redirecting to:", redirectTo);
       
-      // Increased delay to ensure auth state is fully propagated
+      // Use shorter delay for better user experience
       setTimeout(() => {
         console.log("Executing delayed navigation to:", redirectTo);
         navigate(redirectTo, { replace: true });
-      }, 800);
+      }, 500);
     } catch (error: any) {
       console.error("Login error:", error);
       toast({

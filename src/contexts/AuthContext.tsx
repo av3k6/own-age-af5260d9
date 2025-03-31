@@ -25,26 +25,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         console.log("Getting session...");
         
-        // Increase timeout for session fetch to 15 seconds
-        const timeoutPromise = new Promise<never>((_, reject) => {
-          setTimeout(() => reject(new Error('Session fetch timed out')), 15000);
-        });
-        
         try {
           console.log("Attempting to fetch auth session");
           
-          // First try to get session without racing against timeout
+          // Reduce timeout for session fetch and handle errors better
           const { data, error } = await supabase.auth.getSession();
           
           if (error) {
             console.error("Error getting session:", error);
-          }
-          
-          if (data.session?.user) {
+            setUser(null);
+          } else if (data.session?.user) {
             console.log("Session found for user:", data.session.user.email);
             try {
               const mappedUser = await mapUserData(supabase, data.session.user);
-              console.log("User data mapped successfully");
+              console.log("User data mapped successfully:", mappedUser);
               setUser(mappedUser);
             } catch (mapErr) {
               console.error("Error mapping user data:", mapErr);
@@ -71,10 +65,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     };
 
-    // Start session fetch with a smaller delay
-    const timer = setTimeout(() => {
-      getSession();
-    }, 50);
+    // Start session fetch immediately
+    getSession();
     
     // Set a backup timeout to ensure isInitialized is set even if everything else fails
     // This is critical to prevent the app from hanging on loading state
@@ -122,7 +114,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     return () => {
-      clearTimeout(timer);
       clearTimeout(backupTimer);
       if (subscription) {
         subscription.unsubscribe();

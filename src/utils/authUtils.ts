@@ -10,6 +10,7 @@ export const mapUserData = async (
   if (!sessionUser) return null;
   
   try {
+    console.log('Mapping user data for:', sessionUser.email);
     // Try to get user profile from users table
     const { data: userData, error } = await supabase
       .from('users')
@@ -30,7 +31,11 @@ export const mapUserData = async (
         createdAt: new Date(userData.created_at),
       };
     } else {
-      console.log('User profile not found in database, using auth metadata');
+      console.log('User profile not found in database or error fetching profile, using auth metadata');
+      if (error) {
+        console.error('Error fetching user profile:', error.message);
+      }
+      
       // Fallback to basic user info if profile not found
       return {
         id: sessionUser.id,

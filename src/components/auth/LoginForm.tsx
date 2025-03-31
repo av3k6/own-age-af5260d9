@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -52,6 +51,15 @@ const LoginForm = ({
       return;
     }
 
+    if (!email || !password) {
+      toast({
+        title: "Error",
+        description: "Please fill in all fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLocalIsLoading(true);
 
     try {
@@ -74,11 +82,11 @@ const LoginForm = ({
         const redirectTo = location.state?.from || "/dashboard";
         console.log("LoginForm redirecting to:", redirectTo);
         
-        // Increased delay to ensure auth state is updated before navigation
+        // Shorter delay for better user experience
         setTimeout(() => {
           console.log("Executing delayed navigation from LoginForm to:", redirectTo);
           navigate(redirectTo, { replace: true });
-        }, 800);
+        }, 500);
       }
     } catch (error) {
       console.error("LoginForm local handler error:", error);
@@ -153,8 +161,8 @@ const LoginForm = ({
       </div>
 
       <SocialLoginButtons 
-        onGoogleSignIn={handleGoogleSignIn}
-        onFacebookSignIn={handleFacebookSignIn}
+        onGoogleSignIn={onGoogleSignIn}
+        onFacebookSignIn={onFacebookSignIn}
       />
 
       <div className="text-center text-sm text-zen-gray-500">

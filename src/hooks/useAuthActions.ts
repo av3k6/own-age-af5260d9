@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { User, UserRole } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
@@ -36,12 +37,15 @@ export const useAuthActions = (
       } 
       
       if (data.user) {
-        console.log('Sign in successful:', data.user.email);
+        console.log('Sign in successful for:', data.user.email);
         try {
           // Fetch user profile after successful login
           const mappedUser = await mapUserData(supabase, data.user);
           setUser(mappedUser);
           console.log("User mapped and set after login:", mappedUser?.email);
+          
+          // Return immediately after setting user to ensure quick UI response
+          return { error: null };
         } catch (err) {
           console.error("Error mapping user after login:", err);
           // Continue despite mapping error, auth session is still valid
