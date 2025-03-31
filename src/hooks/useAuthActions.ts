@@ -73,6 +73,7 @@ export const useAuthActions = (
           data: {
             full_name: userData.name,
             role: userData.role || UserRole.BUYER,
+            phone: userData.phone || '',
           },
         },
       });

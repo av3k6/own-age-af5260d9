@@ -4,6 +4,7 @@ import { User } from '@/types';
 import { useSupabase } from '@/hooks/useSupabase';
 import { mapUserData } from '@/utils/authUtils';
 import { useAuthActions, AuthActionsReturn } from '@/hooks/useAuthActions';
+import { useToast } from '@/components/ui/use-toast';
 
 interface AuthContextType extends AuthActionsReturn {
   user: User | null;
@@ -17,6 +18,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
   const { supabase } = useSupabase();
+  const { toast } = useToast();
   const authActions = useAuthActions(setUser);
 
   useEffect(() => {
@@ -79,7 +81,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsInitialized(true);
         setLoading(false);
       }
-    }, 3000);
+    }, 2000); // Reduced from 3000ms to 2000ms for faster loading experience
 
     // Listen for auth changes with improved error handling
     let subscription: { unsubscribe: () => void } | null = null;
@@ -94,6 +96,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               const mappedUser = await mapUserData(supabase, session.user);
               setUser(mappedUser);
               console.log("User mapped and set after auth change:", mappedUser?.email);
+              
+              if (event === 'SIGNED_IN') {
+                toast({
+                  title: "Signed in",
+                  description: `Welcome${mappedUser?.name ? `, ${mappedUser.name}` : ''}!`,
+                });
+              }
             } catch (err) {
               console.error("Error mapping user on auth change:", err);
               setUser(null);
@@ -101,6 +110,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           } else {
             console.log("No user in auth state change session");
             setUser(null);
+            
+            if (event === 'SIGNED_OUT') {
+              toast({
+                title: "Signed out",
+                description: "You have been signed out successfully.",
+              });
+            }
           }
           
           // Always ensure these states are updated
@@ -122,7 +138,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         subscription.unsubscribe();
       }
     };
-  }, [supabase]);
+  }, [supabase, toast]);
 
   const value = {
     user,

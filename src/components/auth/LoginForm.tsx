@@ -99,7 +99,7 @@ const LoginForm = ({
         setTimeout(() => {
           console.log("Executing navigation to:", redirectTo);
           navigate(redirectTo, { replace: true });
-        }, 500);
+        }, 100); // Reduced from 500ms to 100ms for better UX
       }
     } catch (error) {
       console.error("LoginForm local handler error:", error);
@@ -139,6 +139,7 @@ const LoginForm = ({
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-zen-blue-500 focus:border-zen-blue-500 sm:text-sm"
+            autoComplete="email"
           />
         </div>
         <div>
@@ -148,6 +149,7 @@ const LoginForm = ({
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-zen-blue-500 focus:border-zen-blue-500 sm:text-sm"
+            autoComplete="current-password"
           />
         </div>
         <Button
@@ -168,8 +170,8 @@ const LoginForm = ({
       </div>
 
       <SocialLoginButtons 
-        onGoogleSignIn={onGoogleSignIn}
-        onFacebookSignIn={onFacebookSignIn}
+        onGoogleSignIn={handleGoogleSignIn}
+        onFacebookSignIn={handleFacebookSignIn}
       />
 
       <div className="text-center text-sm text-zen-gray-500">

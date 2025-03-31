@@ -3,9 +3,11 @@ import { useState, useEffect } from "react";
 import { User } from "@supabase/supabase-js";
 import { UserProfileData } from "@/types/profile";
 import { useSupabase } from "@/hooks/useSupabase";
+import { useToast } from "@/components/ui/use-toast";
 
 export const useProfileData = (user: User | null) => {
   const { supabase } = useSupabase();
+  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [profileData, setProfileData] = useState<UserProfileData>({
     fullName: "",
@@ -46,6 +48,11 @@ export const useProfileData = (user: User | null) => {
         
         if (userError) {
           console.error("Error fetching user data:", userError);
+          toast({
+            title: "Error",
+            description: "Failed to load your profile data",
+            variant: "destructive",
+          });
           setIsLoading(false);
           return;
         }
@@ -76,13 +83,18 @@ export const useProfileData = (user: User | null) => {
         });
       } catch (error) {
         console.error("Error in loading user profile:", error);
+        toast({
+          title: "Error",
+          description: "Something went wrong loading your profile",
+          variant: "destructive",
+        });
       } finally {
         setIsLoading(false);
       }
     };
 
     loadUserProfile();
-  }, [user, supabase]);
+  }, [user, supabase, toast]);
 
   const [isEditing, setIsEditing] = useState(false);
 

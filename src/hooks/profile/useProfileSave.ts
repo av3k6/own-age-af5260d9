@@ -31,28 +31,27 @@ export const useProfileSave = (
     try {
       // Create the metadata object from profileData
       const metadataUpdate = { 
-        full_name: profileData.fullName,
-        phone: profileData.phone,
-        bio: profileData.bio,
-        role: profileData.role,
-        address: profileData.address,
-        preferredLocations: profileData.preferredLocations,
-        budgetRange: {
-          min: profileData.budgetMin,
-          max: profileData.budgetMax
-        },
-        propertyTypePreferences: profileData.propertyTypePreferences,
-        serviceType: profileData.serviceType,
-        companyName: profileData.companyName,
-        licenseNumber: profileData.licenseNumber
+        data: { 
+          full_name: profileData.fullName,
+          phone: profileData.phone,
+          bio: profileData.bio,
+          role: profileData.role,
+          address: profileData.address,
+          preferredLocations: profileData.preferredLocations,
+          budgetRange: {
+            min: profileData.budgetMin,
+            max: profileData.budgetMax
+          },
+          propertyTypePreferences: profileData.propertyTypePreferences,
+          serviceType: profileData.serviceType,
+          companyName: profileData.companyName,
+          licenseNumber: profileData.licenseNumber
+        }
       };
       
       console.log("Updating user with metadata:", metadataUpdate);
       
-      // The key fix: Explicitly pass the data as a direct property of the options object
-      const { error, data } = await supabase.auth.updateUser({
-        data: metadataUpdate
-      });
+      const { error, data } = await supabase.auth.updateUser(metadataUpdate);
 
       if (error) {
         console.error("Error updating profile:", error);

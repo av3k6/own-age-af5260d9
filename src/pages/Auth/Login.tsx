@@ -19,10 +19,12 @@ const Login = () => {
   
   // Check environment for debugging
   useEffect(() => {
+    console.log("Login component mounted");
     console.log("Environment info:", {
       isDevelopment: import.meta.env.DEV, 
       mode: import.meta.env.MODE,
-      base: import.meta.env.BASE_URL
+      base: import.meta.env.BASE_URL,
+      origin: window.location.origin
     });
   }, []);
   
@@ -80,7 +82,7 @@ const Login = () => {
       setTimeout(() => {
         console.log("Executing delayed navigation to:", redirectTo);
         navigate(redirectTo, { replace: true });
-      }, 500);
+      }, 100); // Reduced from 500ms to 100ms for better UX
     } catch (error: any) {
       console.error("Login error:", error);
       toast({

@@ -45,7 +45,7 @@ function ProtectedRoutes() {
         console.warn("Forcing app to render routes after timeout");
         setShowRoutes(true);
       }
-    }, 2000);
+    }, 1500); // Reduced from 2000ms to 1500ms for better UX
     
     return () => clearTimeout(forceRenderTimer);
   }, [isInitialized, showRoutes]);
