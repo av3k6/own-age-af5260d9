@@ -20,12 +20,12 @@ export function useTableManagement() {
         // Try to create the table with direct SQL
         try {
           // First try to enable the uuid-ossp extension for uuid_generate_v4()
-          await supabase.from('_raw_sql').rpc('execute_sql', {
+          await supabase.rpc('execute_sql', {
             query: `CREATE EXTENSION IF NOT EXISTS "uuid-ossp";`
           });
           
           // Then create the conversations table
-          await supabase.from('_raw_sql').rpc('execute_sql', {
+          await supabase.rpc('execute_sql', {
             query: `
               CREATE TABLE IF NOT EXISTS public.conversations (
                 id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -74,7 +74,7 @@ export function useTableManagement() {
         
         // Try to create the table with direct SQL
         try {
-          await supabase.from('_raw_sql').rpc('execute_sql', {
+          await supabase.rpc('execute_sql', {
             query: `
               CREATE TABLE IF NOT EXISTS public.messages (
                 id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
