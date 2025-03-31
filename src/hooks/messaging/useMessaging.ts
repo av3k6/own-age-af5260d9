@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useConversations } from "./useConversations";
 import { useMessages } from "./useMessages";
 import { Conversation } from "@/types/message";
+import { useToast } from "@/components/ui/use-toast";
 
 export function useMessaging() {
   const {
@@ -21,26 +22,34 @@ export function useMessaging() {
     sendMessage: sendMessageBase,
     markMessagesAsRead
   } = useMessages();
+  
+  const { toast } = useToast();
 
   // Combine loading states
   const loading = conversationsLoading || messagesLoading;
 
   // Initialize conversations list on component mount
   useEffect(() => {
-    fetchConversations();
+    fetchConversations().catch(error => {
+      console.error("Error initializing conversations:", error);
+    });
   }, []);
 
   // Fetch messages when currentConversation changes
   useEffect(() => {
     if (currentConversation) {
-      fetchMessagesBase(currentConversation.id);
+      fetchMessagesBase(currentConversation.id).catch(error => {
+        console.error("Error fetching messages:", error);
+      });
     }
   }, [currentConversation?.id]);
 
   // Handle conversation selection with messages fetching
   const handleSelectConversation = (conversation: Conversation) => {
     setCurrentConversation(conversation);
-    fetchMessagesBase(conversation.id);
+    fetchMessagesBase(conversation.id).catch(error => {
+      console.error("Error fetching messages for conversation:", error);
+    });
   };
 
   // Wrapper for sending a message that also handles refreshing the conversation list
@@ -58,6 +67,11 @@ export function useMessaging() {
       return true;
     } catch (error) {
       console.error("Error in handleSendMessage:", error);
+      toast({
+        title: "Error sending message",
+        description: "Please try again later.",
+        variant: "destructive"
+      });
       throw error;
     }
   };
@@ -76,6 +90,11 @@ export function useMessaging() {
       
       if (!conversation) {
         console.error("Failed to create conversation");
+        toast({
+          title: "Error creating conversation",
+          description: "Please try again later.",
+          variant: "destructive"
+        });
         return null;
       }
       
@@ -84,15 +103,25 @@ export function useMessaging() {
       // If there's an initial message, send it
       if (conversation && initialMessage) {
         console.log("Sending initial message:", initialMessage);
-        await sendMessageBase(conversation.id, initialMessage);
-        
-        // Refresh conversations after sending the message
-        await fetchConversations();
+        try {
+          await sendMessageBase(conversation.id, initialMessage);
+          
+          // Refresh conversations after sending the message
+          await fetchConversations();
+        } catch (messageError) {
+          console.error("Error sending initial message:", messageError);
+          // Continue even if message fails - at least the conversation was created
+        }
       }
       
       return conversation;
     } catch (error) {
       console.error("Error creating conversation:", error);
+      toast({
+        title: "Error creating conversation",
+        description: "Please try again later.",
+        variant: "destructive"
+      });
       return null;
     }
   };
