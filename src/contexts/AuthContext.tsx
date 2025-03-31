@@ -24,6 +24,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const getSession = async () => {
       try {
         console.log("Getting session...");
+        console.log("Current environment:", import.meta.env.MODE);
+        console.log("App URL:", window.location.origin);
         
         try {
           console.log("Attempting to fetch auth session");
@@ -36,6 +38,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setUser(null);
           } else if (data.session?.user) {
             console.log("Session found for user:", data.session.user.email);
+            console.log("Session user data:", data.session.user);
             try {
               const mappedUser = await mapUserData(supabase, data.session.user);
               console.log("User data mapped successfully:", mappedUser);

@@ -48,7 +48,17 @@ const LoginForm = ({
     e.preventDefault();
     
     if (onSubmit) {
-      await onSubmit(e);
+      // If external submit handler is provided, use that
+      try {
+        await onSubmit(e);
+      } catch (error) {
+        console.error("External submit handler failed:", error);
+        toast({
+          title: "Error",
+          description: "Login process failed. Please try again later.",
+          variant: "destructive",
+        });
+      }
       return;
     }
 
@@ -68,12 +78,14 @@ const LoginForm = ({
       const { error } = await signIn(email, password);
 
       if (error) {
+        console.error("SignIn error:", error);
         toast({
-          title: "Error",
-          description: error.message || "Invalid credentials",
+          title: "Login Failed",
+          description: error.message || "Invalid credentials. Please check your email and password.",
           variant: "destructive",
         });
       } else {
+        console.log("SignIn successful, preparing to navigate...");
         toast({
           title: "Success",
           description: "Logged in successfully!",
@@ -83,9 +95,9 @@ const LoginForm = ({
         const redirectTo = location.state?.from || "/dashboard";
         console.log("LoginForm redirecting to:", redirectTo);
         
-        // Shorter delay for better user experience
+        // Use shorter delay for navigation
         setTimeout(() => {
-          console.log("Executing delayed navigation from LoginForm to:", redirectTo);
+          console.log("Executing navigation to:", redirectTo);
           navigate(redirectTo, { replace: true });
         }, 500);
       }

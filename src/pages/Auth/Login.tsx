@@ -17,6 +17,15 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
+  // Check environment for debugging
+  useEffect(() => {
+    console.log("Environment info:", {
+      isDevelopment: import.meta.env.DEV, 
+      mode: import.meta.env.MODE,
+      base: import.meta.env.BASE_URL
+    });
+  }, []);
+  
   // Improved redirect if already logged in
   useEffect(() => {
     if (!isInitialized) {
@@ -53,6 +62,7 @@ const Login = () => {
       const { error } = await signIn(email, password);
       
       if (error) {
+        console.error("Login error details:", error);
         throw error;
       }
       
@@ -86,6 +96,7 @@ const Login = () => {
   const handleGoogleSignIn = async () => {
     try {
       setIsLoading(true);
+      console.log("Initiating Google sign in");
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
@@ -94,7 +105,9 @@ const Login = () => {
       });
       
       if (error) throw error;
+      console.log("Google sign in initiated:", data);
     } catch (error: any) {
+      console.error("Google sign in error:", error);
       toast({
         title: "Error",
         description: error?.message || "Failed to sign in with Google",
@@ -108,6 +121,7 @@ const Login = () => {
   const handleFacebookSignIn = async () => {
     try {
       setIsLoading(true);
+      console.log("Initiating Facebook sign in");
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "facebook",
         options: {
@@ -116,7 +130,9 @@ const Login = () => {
       });
       
       if (error) throw error;
+      console.log("Facebook sign in initiated:", data);
     } catch (error: any) {
+      console.error("Facebook sign in error:", error);
       toast({
         title: "Error",
         description: error?.message || "Failed to sign in with Facebook",
