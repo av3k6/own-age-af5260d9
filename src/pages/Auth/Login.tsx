@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
@@ -16,17 +15,6 @@ const Login = () => {
   const { supabase } = useSupabase();
   const navigate = useNavigate();
   const location = useLocation();
-  
-  // Check environment for debugging
-  useEffect(() => {
-    console.log("Login component mounted");
-    console.log("Environment info:", {
-      isDevelopment: import.meta.env.DEV, 
-      mode: import.meta.env.MODE,
-      base: import.meta.env.BASE_URL,
-      origin: window.location.origin
-    });
-  }, []);
   
   // Improved redirect if already logged in
   useEffect(() => {
@@ -68,7 +56,6 @@ const Login = () => {
         throw error;
       }
       
-      console.log("Sign in successful, navigating to dashboard");
       toast({
         title: "Success",
         description: "Logged in successfully!",
@@ -78,11 +65,8 @@ const Login = () => {
       const redirectTo = location.state?.from || "/dashboard";
       console.log("Redirecting to:", redirectTo);
       
-      // Use shorter delay for better user experience
-      setTimeout(() => {
-        console.log("Executing delayed navigation to:", redirectTo);
-        navigate(redirectTo, { replace: true });
-      }, 100); // Reduced from 500ms to 100ms for better UX
+      // Let the auth context handle the navigation through its useEffect
+      // This solves the race condition problem
     } catch (error: any) {
       console.error("Login error:", error);
       toast({

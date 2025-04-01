@@ -5,6 +5,7 @@ import { useSupabase } from '@/hooks/useSupabase';
 import { mapUserData } from '@/utils/authUtils';
 import { useAuthActions, AuthActionsReturn } from '@/hooks/useAuthActions';
 import { useToast } from '@/components/ui/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 interface AuthContextType extends AuthActionsReturn {
   user: User | null;
@@ -20,19 +21,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { supabase } = useSupabase();
   const { toast } = useToast();
   const authActions = useAuthActions(setUser);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Check active sessions and sets the user
     const getSession = async () => {
       try {
         console.log("Getting session...");
-        console.log("Current environment:", import.meta.env.MODE);
-        console.log("App URL:", window.location.origin);
         
         try {
           console.log("Attempting to fetch auth session");
           
-          // Reduce timeout for session fetch and handle errors better
+          // Get the current session immediately
           const { data, error } = await supabase.auth.getSession();
           
           if (error) {
@@ -40,11 +39,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setUser(null);
           } else if (data.session?.user) {
             console.log("Session found for user:", data.session.user.email);
-            console.log("Session user data:", data.session.user);
             try {
               const mappedUser = await mapUserData(supabase, data.session.user);
               console.log("User data mapped successfully:", mappedUser);
               setUser(mappedUser);
+              
+              // Navigate to dashboard if on login page
+              const path = window.location.pathname;
+              if (path === '/login' || path === '/signup') {
+                navigate('/dashboard', { replace: true });
+              }
             } catch (mapErr) {
               console.error("Error mapping user data:", mapErr);
               setUser(null);
@@ -73,17 +77,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Start session fetch immediately
     getSession();
     
-    // Set a backup timeout to ensure isInitialized is set even if everything else fails
-    // This is critical to prevent the app from hanging on loading state
+    // Set a backup timeout to ensure isInitialized is set
     const backupTimer = setTimeout(() => {
       if (!isInitialized) {
         console.warn("Forcing auth initialization after timeout");
         setIsInitialized(true);
         setLoading(false);
       }
-    }, 2000); // Reduced from 3000ms to 2000ms for faster loading experience
+    }, 1500); // Reduced for faster loading experience
 
-    // Listen for auth changes with improved error handling
+    // Listen for auth changes
     let subscription: { unsubscribe: () => void } | null = null;
     
     try {
@@ -102,6 +105,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                   title: "Signed in",
                   description: `Welcome${mappedUser?.name ? `, ${mappedUser.name}` : ''}!`,
                 });
+                
+                // Navigate to dashboard if on login page
+                const path = window.location.pathname;
+                if (path === '/login' || path === '/signup') {
+                  navigate('/dashboard', { replace: true });
+                }
               }
             } catch (err) {
               console.error("Error mapping user on auth change:", err);
@@ -138,7 +147,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         subscription.unsubscribe();
       }
     };
-  }, [supabase, toast]);
+  }, [supabase, toast, navigate]);
 
   const value = {
     user,

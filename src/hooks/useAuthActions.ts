@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { User, UserRole } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
@@ -24,7 +23,6 @@ export const useAuthActions = (
   const signIn = async (email: string, password: string) => {
     try {
       console.log('Attempting to sign in:', email);
-      console.log('Current environment:', import.meta.env.MODE);
       setLoading(true);
       
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -44,9 +42,7 @@ export const useAuthActions = (
           const mappedUser = await mapUserData(supabase, data.user);
           console.log("User mapped after login:", mappedUser);
           setUser(mappedUser);
-          console.log("User set after login:", mappedUser?.email);
           
-          // Return immediately after setting user to ensure quick UI response
           return { error: null };
         } catch (err) {
           console.error("Error mapping user after login:", err);
