@@ -19,11 +19,12 @@ export function useMarkMessagesAsRead() {
       console.log(`Marking messages as read for conversation: ${conversationId}`);
       
       // Update messages in the database
+      // Fix: Use conversation_id (snake_case) instead of conversationId (camelCase)
       const { error } = await supabase
         .from('messages')
         .update({ read: true })
-        .eq('conversationId', conversationId)
-        .eq('receiverId', user.id)
+        .eq('conversation_id', conversationId)
+        .eq('receiver_id', user.id)
         .eq('read', false);
       
       if (error) {
@@ -34,7 +35,7 @@ export function useMarkMessagesAsRead() {
       // Reset unread count for this conversation
       const { error: updateError } = await supabase
         .from('conversations')
-        .update({ unreadCount: 0 })
+        .update({ unread_count: 0 })
         .eq('id', conversationId);
         
       if (updateError) {
