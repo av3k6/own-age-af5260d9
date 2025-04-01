@@ -2,15 +2,16 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Paperclip, SendHorizonal } from "lucide-react";
+import { SendHorizonal } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface MessageInputProps {
   onSend: (content: string, attachments?: File[]) => Promise<void>;
   isLoading?: boolean;
+  extraButton?: React.ReactNode;
 }
 
-const MessageInput = ({ onSend, isLoading = false }: MessageInputProps) => {
+const MessageInput = ({ onSend, isLoading = false, extraButton }: MessageInputProps) => {
   const [message, setMessage] = useState("");
   const [attachments, setAttachments] = useState<File[]>([]);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -60,22 +61,7 @@ const MessageInput = ({ onSend, isLoading = false }: MessageInputProps) => {
         </div>
       )}
       <div className="flex space-x-2">
-        <Button
-          type="button"
-          size="icon"
-          variant="ghost"
-          className="shrink-0"
-          onClick={() => fileInputRef.current?.click()}
-        >
-          <Paperclip className="h-5 w-5" />
-          <input
-            type="file"
-            ref={fileInputRef}
-            className="hidden"
-            multiple
-            onChange={handleFileChange}
-          />
-        </Button>
+        {extraButton}
         <Textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}
