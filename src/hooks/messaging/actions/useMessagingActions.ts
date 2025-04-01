@@ -1,6 +1,6 @@
 
 import { Conversation } from "@/types/message";
-import { toast, type Toast } from "@/hooks/use-toast";
+import { toast } from "@/hooks/use-toast";
 
 export function useMessagingActions({
   fetchMessagesBase,
