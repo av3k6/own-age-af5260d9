@@ -1,5 +1,6 @@
 
 -- Run these SQL commands in the Supabase SQL Editor to create proper tables
+-- Make sure to run the entire script at once
 
 -- Conversations table
 CREATE TABLE IF NOT EXISTS public.conversations (
@@ -8,10 +9,9 @@ CREATE TABLE IF NOT EXISTS public.conversations (
   participants TEXT[] NOT NULL,
   last_message_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   subject TEXT,
-  property_id TEXT,  -- Changed from UUID with foreign key to simple TEXT
+  property_id TEXT,  -- Simple TEXT field without foreign key
   unread_count INTEGER DEFAULT 0,
   
-  -- Add proper RLS policies
   CONSTRAINT participants_not_empty CHECK (array_length(participants, 1) > 0)
 );
 

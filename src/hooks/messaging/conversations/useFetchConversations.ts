@@ -24,7 +24,7 @@ export function useFetchConversations() {
         .from('conversations')
         .select('*')
         .contains('participants', [user.id])
-        .order('lastMessageAt', { ascending: false });
+        .order('last_message_at', { ascending: false });
         
       if (error) {
         console.error("Error fetching conversations:", error);
@@ -32,13 +32,24 @@ export function useFetchConversations() {
       }
       
       console.log("Conversations fetched:", data?.length || 0);
+      
+      // Map database column names to our client-side property names
+      const mappedConversations = data?.map(conv => ({
+        id: conv.id,
+        participants: conv.participants,
+        lastMessageAt: conv.last_message_at,
+        subject: conv.subject || undefined,
+        propertyId: conv.property_id || undefined,
+        unreadCount: conv.unread_count || 0
+      })) || [];
+      
       setState(prev => ({ 
         ...prev, 
-        conversations: data || [],
+        conversations: mappedConversations,
         loading: false
       }));
       
-      return data as Conversation[] | null;
+      return mappedConversations as Conversation[] | null;
     } catch (error: any) {
       console.error('Error fetching conversations:', error);
       toast({

@@ -24,8 +24,8 @@ export function useFetchMessages() {
       const { data, error } = await supabase
         .from('messages')
         .select('*')
-        .eq('conversationId', conversationId)
-        .order('createdAt', { ascending: true });
+        .eq('conversation_id', conversationId)
+        .order('created_at', { ascending: true });
         
       if (error) {
         console.error("Error in supabase query:", error);
@@ -33,13 +33,26 @@ export function useFetchMessages() {
       }
       
       console.log("Messages fetched:", data?.length || 0);
+      
+      // Map database column names to our client-side property names
+      const mappedMessages = data?.map(msg => ({
+        id: msg.id,
+        conversationId: msg.conversation_id,
+        senderId: msg.sender_id,
+        receiverId: msg.receiver_id,
+        content: msg.content,
+        read: msg.read,
+        createdAt: msg.created_at,
+        attachments: msg.attachments || []
+      })) || [];
+      
       setState(prev => ({
         ...prev,
-        messages: data || [],
+        messages: mappedMessages,
         loading: false
       }));
       
-      return data as Message[] | null;
+      return mappedMessages as Message[] | null;
     } catch (error: any) {
       console.error('Error fetching messages:', error);
       toast({
