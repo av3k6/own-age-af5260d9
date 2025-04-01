@@ -40,7 +40,7 @@ export function useCreateConversation() {
       let filteredConversations = existingConversations || [];
       if (propertyId && existingConversations) {
         filteredConversations = existingConversations.filter(
-          conv => conv.propertyId === propertyId
+          conv => conv.property_id === propertyId
         );
       }
       
@@ -49,24 +49,34 @@ export function useCreateConversation() {
         const conversation = filteredConversations[0];
         console.log("Found existing conversation:", conversation.id);
         
+        // Convert from snake_case to camelCase for frontend use
+        const camelCaseConversation: Conversation = {
+          id: conversation.id,
+          participants: conversation.participants,
+          lastMessageAt: conversation.last_message_at,
+          subject: conversation.subject || '',
+          propertyId: conversation.property_id || null,
+          unreadCount: conversation.unread_count || 0
+        };
+        
         if (setState) {
           setState(prev => ({ 
             ...prev, 
-            currentConversation: conversation,
+            currentConversation: camelCaseConversation,
             loading: false 
           }));
         }
         
-        return conversation;
+        return camelCaseConversation;
       }
       
       // Create new conversation
       const newConversation = {
         participants: [user.id, receiverId],
-        lastMessageAt: new Date().toISOString(),
+        last_message_at: new Date().toISOString(),
         subject: subject || '',
-        propertyId: propertyId || null,
-        unreadCount: 0,
+        property_id: propertyId || null,
+        unread_count: 0,
       };
       
       console.log("Creating new conversation:", newConversation);
@@ -82,14 +92,23 @@ export function useCreateConversation() {
       }
       
       console.log("Created new conversation:", data[0]);
-      const conversation = data[0] as Conversation;
+      
+      // Convert from snake_case to camelCase for frontend use
+      const camelCaseConversation: Conversation = {
+        id: data[0].id,
+        participants: data[0].participants,
+        lastMessageAt: data[0].last_message_at,
+        subject: data[0].subject || '',
+        propertyId: data[0].property_id || null,
+        unreadCount: data[0].unread_count || 0
+      };
       
       // Update local state if setState provided
       if (setState) {
         setState(prev => ({
           ...prev,
-          conversations: [conversation, ...prev.conversations],
-          currentConversation: conversation,
+          conversations: [camelCaseConversation, ...prev.conversations],
+          currentConversation: camelCaseConversation,
           loading: false
         }));
       }
@@ -99,7 +118,7 @@ export function useCreateConversation() {
         description: "You can now start messaging",
       });
       
-      return conversation;
+      return camelCaseConversation;
     } catch (error: any) {
       console.error('Error creating conversation:', error);
       toast({

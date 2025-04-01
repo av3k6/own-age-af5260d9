@@ -2,8 +2,8 @@
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSupabase } from "@/hooks/useSupabase";
-import { ConversationsState } from "./types";
 import { Conversation } from "@/types/message";
+import { ConversationsState } from "./types";
 
 export function useFetchConversations() {
   const { supabase } = useSupabase();
@@ -11,15 +11,17 @@ export function useFetchConversations() {
   const { toast } = useToast();
 
   const fetchConversations = async (
-    setState: React.Dispatch<React.SetStateAction<ConversationsState>>
+    setState?: React.Dispatch<React.SetStateAction<ConversationsState>>
   ) => {
-    if (!user) return null;
+    if (!user) return;
     
-    setState(prev => ({ ...prev, loading: true }));
+    if (setState) {
+      setState(prev => ({ ...prev, loading: true }));
+    }
+    
     try {
       console.log("Fetching conversations for user:", user.id);
       
-      // Fetch conversations
       const { data, error } = await supabase
         .from('conversations')
         .select('*')
@@ -31,34 +33,40 @@ export function useFetchConversations() {
         throw error;
       }
       
-      console.log("Conversations fetched:", data?.length || 0);
+      console.log("Conversations fetched:", data.length);
       
-      // Map database column names to our client-side property names
-      const mappedConversations = data?.map(conv => ({
+      // Convert from snake_case to camelCase for frontend use
+      const conversations: Conversation[] = data.map(conv => ({
         id: conv.id,
         participants: conv.participants,
         lastMessageAt: conv.last_message_at,
-        subject: conv.subject || undefined,
-        propertyId: conv.property_id || undefined,
+        subject: conv.subject || '',
+        propertyId: conv.property_id || null,
         unreadCount: conv.unread_count || 0
-      })) || [];
-      
-      setState(prev => ({ 
-        ...prev, 
-        conversations: mappedConversations,
-        loading: false
       }));
       
-      return mappedConversations as Conversation[] | null;
+      if (setState) {
+        setState(prev => ({
+          ...prev,
+          conversations,
+          loading: false
+        }));
+      }
+      
+      return conversations;
     } catch (error: any) {
       console.error('Error fetching conversations:', error);
       toast({
-        title: "Could not load conversations",
+        title: "Error loading conversations",
         description: error.message || "Please try again later",
         variant: "destructive",
       });
-      setState(prev => ({ ...prev, loading: false, conversations: [] }));
-      return null;
+      
+      if (setState) {
+        setState(prev => ({ ...prev, loading: false }));
+      }
+      
+      return [];
     }
   };
 

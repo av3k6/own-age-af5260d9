@@ -84,9 +84,9 @@ export function useSendMessage() {
       await supabase
         .from('conversations')
         .update({ 
-          lastMessageAt: new Date().toISOString(),
+          last_message_at: new Date().toISOString(),
           // Only increment unread count for the recipient, not the sender
-          unreadCount: conversation.unreadCount + 1
+          unread_count: conversation.unread_count + 1
         })
         .eq('id', conversationId);
         
