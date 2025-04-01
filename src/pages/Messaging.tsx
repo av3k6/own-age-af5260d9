@@ -3,37 +3,19 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMessaging } from "@/hooks/useMessaging";
-import ConversationList from "@/components/messaging/ConversationList";
-import MessageList from "@/components/messaging/MessageList";
-import MessageInput from "@/components/messaging/MessageInput";
-import { Plus, MessageSquare, ArrowLeft, AlertCircle, Users, Filter } from "lucide-react";
+import { useMessageSearch } from "@/hooks/messaging/useMessageSearch";
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Conversation } from "@/types/message";
 import { toast } from "sonner";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import ConversationSearch from "@/components/messaging/ConversationSearch";
 import { ConversationCategory } from "@/types/encryption";
-import { useMessageSearch } from "@/hooks/messaging/useMessageSearch";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
+
+// Import our new components
+import MessageArea from "@/components/messaging/MessageArea";
+import ConversationListSection from "@/components/messaging/ConversationListSection";
+import NewConversationDialog from "@/components/messaging/NewConversationDialog";
+import ErrorState from "@/components/messaging/ErrorState";
 
 const Messaging = () => {
   const { user, loading: authLoading } = useAuth();
@@ -55,11 +37,6 @@ const Messaging = () => {
   const [showConversations, setShowConversations] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [newConversationOpen, setNewConversationOpen] = useState(false);
-  const [receiverId, setReceiverId] = useState("");
-  const [subject, setSubject] = useState("");
-  const [initialMessage, setInitialMessage] = useState("");
-  const [propertyId, setPropertyId] = useState("");
-  const [category, setCategory] = useState<ConversationCategory>(ConversationCategory.GENERAL);
   
   // Use the message search hook
   const {
@@ -120,7 +97,13 @@ const Messaging = () => {
     }
   };
 
-  const handleCreateNewConversation = async () => {
+  const handleCreateNewConversation = async (
+    receiverId: string,
+    subject: string,
+    initialMessage: string,
+    propertyId: string,
+    category: ConversationCategory
+  ) => {
     if (!receiverId.trim()) {
       toast.error("Recipient ID is required");
       return;
@@ -129,7 +112,7 @@ const Messaging = () => {
     try {
       const newConversation = await createConversation(
         receiverId,
-        subject || "New conversation",
+        subject,
         initialMessage,
         propertyId || undefined,
         category
@@ -138,13 +121,6 @@ const Messaging = () => {
       if (newConversation) {
         // Close dialog
         setNewConversationOpen(false);
-        
-        // Reset form
-        setReceiverId("");
-        setSubject("");
-        setInitialMessage("");
-        setPropertyId("");
-        setCategory(ConversationCategory.GENERAL);
         
         // Select the new conversation
         handleSelectConversation(newConversation);
@@ -177,228 +153,66 @@ const Messaging = () => {
     );
   }
 
-  const getConversationStats = () => {
-    const total = conversations.length;
-    const unread = conversations.filter(c => c.unreadCount > 0).length;
-    
-    return { total, unread };
-  };
-
-  const { total, unread } = getConversationStats();
-
   return (
     <div className="container py-6 max-w-6xl">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-3xl font-bold">Messages</h1>
-          <div className="flex items-center space-x-2 mt-1">
-            <Badge variant="outline" className="text-xs">
-              {total} conversation{total !== 1 ? 's' : ''}
-            </Badge>
-            {unread > 0 && (
-              <Badge variant="default" className="text-xs bg-primary">
-                {unread} unread
-              </Badge>
-            )}
-          </div>
         </div>
-        <Dialog open={newConversationOpen} onOpenChange={setNewConversationOpen}>
-          <DialogTrigger asChild>
-            <Button className="flex items-center gap-2">
-              <Plus className="h-4 w-4" /> 
-              New Message
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Start a new conversation</DialogTitle>
-              <DialogDescription>
-                Enter the recipient's user ID and an optional subject and initial message.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="receiverId" className="text-right">
-                  Recipient ID
-                </Label>
-                <Input
-                  id="receiverId"
-                  value={receiverId}
-                  onChange={(e) => setReceiverId(e.target.value)}
-                  className="col-span-3"
-                  placeholder="Enter recipient's user ID"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="subject" className="text-right">
-                  Subject
-                </Label>
-                <Input
-                  id="subject"
-                  value={subject}
-                  onChange={(e) => setSubject(e.target.value)}
-                  className="col-span-3"
-                  placeholder="Optional subject"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="propertyId" className="text-right">
-                  Property ID
-                </Label>
-                <Input
-                  id="propertyId"
-                  value={propertyId}
-                  onChange={(e) => setPropertyId(e.target.value)}
-                  className="col-span-3"
-                  placeholder="Optional property ID"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="category" className="text-right">
-                  Category
-                </Label>
-                <Select
-                  value={category}
-                  onValueChange={(value) => setCategory(value as ConversationCategory)}
-                >
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={ConversationCategory.GENERAL}>General</SelectItem>
-                    <SelectItem value={ConversationCategory.PROPERTY}>Property</SelectItem>
-                    <SelectItem value={ConversationCategory.OFFER}>Offer</SelectItem>
-                    <SelectItem value={ConversationCategory.DOCUMENT}>Document</SelectItem>
-                    <SelectItem value={ConversationCategory.SUPPORT}>Support</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="message" className="text-right">
-                  Message
-                </Label>
-                <Textarea
-                  id="message"
-                  value={initialMessage}
-                  onChange={(e) => setInitialMessage(e.target.value)}
-                  className="col-span-3"
-                  placeholder="Type your first message"
-                  rows={4}
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button onClick={handleCreateNewConversation}>
-                Start Conversation
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <Button 
+          className="flex items-center gap-2"
+          onClick={() => setNewConversationOpen(true)}
+        >
+          <Plus className="h-4 w-4" /> 
+          New Message
+        </Button>
       </div>
 
       {error ? (
-        <div className="border rounded-lg p-6 bg-destructive/10 text-center">
-          <AlertCircle className="h-10 w-10 mx-auto mb-2 text-destructive" />
-          <h3 className="font-semibold mb-2">{error}</h3>
-          <Button onClick={handleRetry} variant="outline" className="mt-2">
-            Try Again
-          </Button>
-        </div>
+        <ErrorState message={error} onRetry={handleRetry} />
       ) : (
         <div className="border rounded-lg overflow-hidden grid grid-cols-1 md:grid-cols-3 h-[70vh] bg-background shadow-sm">
           {/* Conversation List - Always shown on desktop, conditionally shown on mobile */}
           {(!isMobile || (isMobile && showConversations)) && (
             <div className={`border-r ${isMobile ? 'col-span-1' : 'col-span-1'}`}>
-              <div className="flex flex-col h-full">
-                <ConversationSearch 
-                  searchTerm={searchTerm}
-                  onSearchChange={setSearchTerm}
-                  selectedCategory={filters.category}
-                  onCategoryChange={setSearchCategory}
-                  hasUnread={filters.hasUnread}
-                  onUnreadChange={setHasUnread}
-                  onClearFilters={clearFilters}
-                />
-                <div className="flex-1 overflow-y-auto">
-                  <ConversationList 
-                    conversations={filteredConversations}
-                    selectedId={currentConversation?.id}
-                    onSelect={handleSelectConversation}
-                    isLoading={loading}
-                  />
-                </div>
-              </div>
+              <ConversationListSection 
+                conversations={filteredConversations}
+                currentConversation={currentConversation}
+                loading={loading}
+                searchTerm={searchTerm}
+                selectedCategory={filters.category}
+                hasUnread={filters.hasUnread}
+                onSearchChange={setSearchTerm}
+                onCategoryChange={setSearchCategory}
+                onUnreadChange={setHasUnread}
+                onClearFilters={clearFilters}
+                onSelectConversation={handleSelectConversation}
+              />
             </div>
           )}
 
           {/* Message Area - Always shown on desktop, conditionally shown on mobile */}
           {(!isMobile || (isMobile && !showConversations)) && (
             <div className={`${isMobile ? 'col-span-1' : 'col-span-2'} flex flex-col`}>
-              {currentConversation ? (
-                <>
-                  <div className="p-3 border-b flex items-center justify-between bg-muted/30">
-                    {isMobile && (
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={handleGoBackToConversations} 
-                        className="mr-2"
-                      >
-                        <ArrowLeft className="h-4 w-4" />
-                      </Button>
-                    )}
-                    <div className="flex-1">
-                      <h2 className="font-medium">
-                        {currentConversation.subject || "No subject"}
-                      </h2>
-                      <div className="flex items-center text-xs text-muted-foreground">
-                        {currentConversation.propertyId && (
-                          <span className="mr-2">Property ID: {currentConversation.propertyId}</span>
-                        )}
-                        {currentConversation.category && (
-                          <Badge variant="outline" className="text-xs">
-                            {currentConversation.category}
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex-1 overflow-y-auto">
-                    <MessageList messages={messages} isLoading={loading} />
-                  </div>
-                  <MessageInput onSend={handleSendMessage} isLoading={loading} />
-                </>
-              ) : (
-                <div className="flex flex-col items-center justify-center h-full text-center p-8">
-                  {isMobile && (
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={handleGoBackToConversations} 
-                      className="mb-4 self-start"
-                    >
-                      <ArrowLeft className="h-4 w-4 mr-2" />
-                      Back to conversations
-                    </Button>
-                  )}
-                  <MessageSquare className="h-16 w-16 text-muted-foreground mb-4" />
-                  <h3 className="font-medium text-xl">No conversation selected</h3>
-                  <p className="text-muted-foreground mt-2 max-w-md">
-                    Select a conversation from the list or create a new message to get started
-                  </p>
-                  <Button 
-                    className="mt-4 flex items-center gap-2"
-                    onClick={() => setNewConversationOpen(true)}
-                  >
-                    <Users className="h-4 w-4" />
-                    Start New Conversation
-                  </Button>
-                </div>
-              )}
+              <MessageArea 
+                currentConversation={currentConversation}
+                messages={messages}
+                loading={loading}
+                isMobile={isMobile}
+                onGoBack={handleGoBackToConversations}
+                onSend={handleSendMessage}
+                onNewConversation={() => setNewConversationOpen(true)}
+              />
             </div>
           )}
         </div>
       )}
+      
+      <NewConversationDialog 
+        open={newConversationOpen}
+        onOpenChange={setNewConversationOpen}
+        onCreateConversation={handleCreateNewConversation}
+      />
     </div>
   );
 };
