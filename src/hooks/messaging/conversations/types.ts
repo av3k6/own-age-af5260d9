@@ -1,6 +1,7 @@
 
 import { Conversation } from "@/types/message";
-import { ConversationCategory, ConversationFilterParams } from "@/types/encryption";
+import { ConversationCategory } from "@/types/encryption";
+import { ConversationFilterParams } from "@/types/message";
 
 export interface ConversationsState {
   loading: boolean;
@@ -29,3 +30,5 @@ export interface ConversationActions {
 export interface UseConversationsReturn extends Omit<ConversationsState, 'filteredConversations'>, ConversationActions {
   filteredConversations: Conversation[];
 }
+
+export { ConversationFilterParams };

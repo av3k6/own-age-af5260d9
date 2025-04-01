@@ -33,3 +33,7 @@ export enum ConversationCategory {
   GENERAL = 'general',
   SUPPORT = 'support'
 }
+
+// Make sure we re-export ConversationFilterParams from message.ts
+// This is required for backwards compatibility
+export { ConversationFilterParams } from '@/types/message';
