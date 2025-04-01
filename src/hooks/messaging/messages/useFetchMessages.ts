@@ -20,8 +20,7 @@ export function useFetchMessages() {
     try {
       console.log("Fetching messages for conversation:", conversationId);
       
-      // Fetch all messages for the conversation without filtering by deleted status
-      // since we don't have those columns in the database yet
+      // Fetch messages
       const { data, error } = await supabase
         .from('messages')
         .select('*')
@@ -34,9 +33,6 @@ export function useFetchMessages() {
       }
       
       console.log("Messages fetched:", data?.length || 0);
-      
-      // Since we don't have deleted_by_sender and deleted_by_receiver columns yet,
-      // we include all messages
       
       // Map database column names to our client-side property names
       const mappedMessages = data?.map(msg => ({

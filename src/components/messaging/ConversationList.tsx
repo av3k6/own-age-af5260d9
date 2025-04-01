@@ -1,37 +1,23 @@
 
 import React from "react";
 import { formatDistanceToNow } from "date-fns";
-import { User, MoreHorizontal } from "lucide-react";
+import { User } from "lucide-react";
 import { Conversation } from "@/types/message";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 interface ConversationListProps {
   conversations: Conversation[];
   selectedId?: string;
   onSelect: (conversation: Conversation) => void;
-  onDelete: (conversationId: string) => void;
   isLoading?: boolean;
-  isDeleting?: boolean;
-  onArchive?: (conversationId: string) => void;
 }
 
 const ConversationList = ({ 
   conversations, 
   selectedId, 
   onSelect, 
-  onDelete,
-  onArchive,
-  isLoading = false,
-  isDeleting = false
+  isLoading = false 
 }: ConversationListProps) => {
   if (isLoading) {
     return (
@@ -54,35 +40,12 @@ const ConversationList = ({
       <div className="flex flex-col items-center justify-center p-8 text-center h-full">
         <User className="h-10 w-10 text-muted-foreground mb-2" />
         <h3 className="font-medium text-lg">No conversations yet</h3>
-        <p className="text-sm text-muted-foreground mt-1">
+        <p className="text-muted-foreground text-sm mt-1">
           When you start or receive messages, they'll appear here
         </p>
       </div>
     );
   }
-
-  // Helper function to format user ID into a readable name
-  const formatUserName = (userId: string) => {
-    if (!userId) return "Unknown";
-    
-    // If it's an email, get the part before @
-    if (userId.includes('@')) {
-      return userId.split('@')[0];
-    }
-    
-    // If it's a UUID format with dashes
-    if (userId.includes('-')) {
-      // Try to extract a name-like portion if possible
-      const parts = userId.split('-');
-      if (parts.length > 0) {
-        // Use just the first part to make it look like a name
-        return parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
-      }
-    }
-    
-    // For other formats, limit to 8 chars
-    return userId.length > 8 ? `${userId.substring(0, 8)}...` : userId;
-  };
 
   return (
     <div className="flex flex-col divide-y divide-border">
@@ -90,101 +53,45 @@ const ConversationList = ({
         const isSelected = selectedId === conversation.id;
         const hasUnread = conversation.unreadCount > 0;
         
-        // Format participant information in a cleaner way
-        const otherParticipants = conversation.participants.filter(p => p !== conversation.participants[0]);
-        const buyerId = otherParticipants[0] || "";
-        const sellerId = conversation.participants[0] || "";
-        
-        // Format the IDs for display
-        const buyerName = formatUserName(buyerId);
-        const sellerName = formatUserName(sellerId);
-        
         return (
           <div
             key={conversation.id}
             className={cn(
-              "group flex items-start p-3 hover:bg-muted/50 transition-colors",
-              hasUnread ? "bg-primary/5" : "",
+              "flex items-start p-3 cursor-pointer transition-colors",
+              hasUnread ? "bg-primary/5 hover:bg-primary/10" : "hover:bg-muted/50",
               isSelected && "bg-muted/70"
             )}
+            onClick={() => onSelect(conversation)}
           >
-            <div 
-              className={cn(
-                "flex-1 cursor-pointer",
-                isDeleting && "pointer-events-none opacity-50"
-              )}
-              onClick={() => onSelect(conversation)}
-            >
-              <div className="flex items-start">
-                <div className={cn(
-                  "rounded-full p-2 mr-3 mt-1",
-                  hasUnread ? "bg-primary/20" : "bg-primary/10"
-                )}>
-                  <User className={cn(
-                    "h-5 w-5",
-                    hasUnread ? "text-primary" : "text-muted-foreground"
-                  )} />
-                </div>
-                <div className="flex-1 min-w-0 mr-4">
-                  <div className="flex justify-between items-start">
-                    <h4 className={cn(
-                      "truncate max-w-[70%]",
-                      hasUnread ? "font-semibold" : "font-medium"
-                    )}>
-                      {conversation.subject || "No subject"}
-                    </h4>
-                    <span className="text-xs text-muted-foreground whitespace-nowrap ml-2">
-                      {formatDistanceToNow(new Date(conversation.lastMessageAt), { addSuffix: true })}
-                    </span>
-                  </div>
-                  <p className="text-sm text-muted-foreground truncate mt-0.5">
-                    From: {buyerName}
-                  </p>
-                  {hasUnread && (
-                    <Badge variant="default" className="mt-1 bg-primary">
-                      {conversation.unreadCount} {conversation.unreadCount === 1 ? "new message" : "new messages"}
-                    </Badge>
-                  )}
-                </div>
-              </div>
+            <div className={cn(
+              "rounded-full p-2 mr-3 mt-1",
+              hasUnread ? "bg-primary/20" : "bg-primary/10"
+            )}>
+              <User className={cn(
+                "h-5 w-5",
+                hasUnread ? "text-primary" : "text-muted-foreground"
+              )} />
             </div>
-            
-            <div className="self-start mt-1">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8"
-                    disabled={isDeleting}
-                  >
-                    <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
-                    <span className="sr-only">More options</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-[180px]">
-                  {onArchive && (
-                    <DropdownMenuItem 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onArchive(conversation.id);
-                      }}
-                    >
-                      Archive
-                    </DropdownMenuItem>
-                  )}
-                  <DropdownMenuItem 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDelete(conversation.id);
-                    }}
-                    className="text-destructive focus:text-destructive"
-                  >
-                    Delete
-                  </DropdownMenuItem>
-                  {onArchive && <DropdownMenuSeparator />}
-                </DropdownMenuContent>
-              </DropdownMenu>
+            <div className="flex-1 min-w-0">
+              <div className="flex justify-between items-start">
+                <h4 className={cn(
+                  "truncate",
+                  hasUnread ? "font-semibold" : "font-medium"
+                )}>
+                  {conversation.subject || "No subject"}
+                </h4>
+                <span className="text-xs text-muted-foreground whitespace-nowrap ml-2">
+                  {formatDistanceToNow(new Date(conversation.lastMessageAt), { addSuffix: true })}
+                </span>
+              </div>
+              <p className="text-sm text-muted-foreground truncate">
+                Property ID: {conversation.propertyId || "N/A"}
+              </p>
+              {hasUnread && (
+                <Badge variant="default" className="mt-1 bg-primary">
+                  {conversation.unreadCount} {conversation.unreadCount === 1 ? "new message" : "new messages"}
+                </Badge>
+              )}
             </div>
           </div>
         );

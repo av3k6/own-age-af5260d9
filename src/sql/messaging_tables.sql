@@ -51,11 +51,6 @@ CREATE POLICY "Users can update their own conversations"
   FOR UPDATE
   USING (auth.uid()::text = ANY(participants));
 
-CREATE POLICY "Users can delete their own conversations"
-  ON public.conversations
-  FOR DELETE
-  USING (auth.uid()::text = ANY(participants));
-
 -- Messages policies
 CREATE POLICY "Users can view messages in their conversations"
   ON public.messages
@@ -97,4 +92,3 @@ CREATE TRIGGER update_unread_count_on_new_message
 AFTER INSERT ON messages
 FOR EACH ROW
 EXECUTE FUNCTION update_conversation_unread_count();
-
