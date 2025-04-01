@@ -4,11 +4,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import { Message, Attachment } from "@/types/message";
 import { MessagesState } from "./types";
+import { useEncryptedMessaging } from "@/hooks/useEncryptedMessaging";
+import { EncryptedContent, MessageDeliveryStatus } from "@/types/encryption";
 
 export function useSendMessage() {
   const { supabase } = useSupabase();
   const { user } = useAuth();
   const { toast } = useToast();
+  const { isEncryptionReady, encryptMessage } = useEncryptedMessaging();
 
   const sendMessage = async (
     conversationId: string, 
@@ -50,6 +53,20 @@ export function useSendMessage() {
       const receiverId = conversation.participants.find((id: string) => id !== user.id);
       if (!receiverId) throw new Error("Recipient not found");
       
+      let encryptedContent: EncryptedContent | undefined;
+      
+      // Encrypt the message if encryption is ready and conversation is encrypted
+      if (isEncryptionReady && conversation.is_encrypted) {
+        try {
+          const encryptedContentStr = await encryptMessage(content, receiverId);
+          encryptedContent = JSON.parse(encryptedContentStr);
+          console.log("Message encrypted successfully");
+        } catch (encryptError) {
+          console.error("Failed to encrypt message:", encryptError);
+          // Continue with unencrypted message if encryption fails
+        }
+      }
+      
       // Create message object with snake_case keys for the database
       const newMessage: {
         sender_id: string;
@@ -59,14 +76,22 @@ export function useSendMessage() {
         conversation_id: string;
         created_at: string;
         attachments?: Attachment[];
+        encrypted_content?: EncryptedContent;
+        delivery_status: string;
       } = {
         sender_id: user.id,
         receiver_id: receiverId,
-        content,
+        content: encryptedContent ? "[Encrypted message]" : content,
         read: false,
         conversation_id: conversationId,
         created_at: new Date().toISOString(),
+        delivery_status: MessageDeliveryStatus.SENT
       };
+      
+      // Add encrypted content if available
+      if (encryptedContent) {
+        newMessage.encrypted_content = encryptedContent;
+      }
       
       // Upload attachments if any
       let messageAttachments: Attachment[] = [];
@@ -105,21 +130,27 @@ export function useSendMessage() {
           id: data[0].id,
           senderId: data[0].sender_id,
           receiverId: data[0].receiver_id,
-          content: data[0].content,
+          content: encryptedContent ? content : data[0].content,  // Use the original content if encrypted
           read: data[0].read,
           conversationId: data[0].conversation_id,
           createdAt: data[0].created_at,
-          attachments: data[0].attachments || []
+          attachments: data[0].attachments || [],
+          encryptedContent: data[0].encrypted_content,
+          deliveryStatus: data[0].delivery_status || MessageDeliveryStatus.SENT
         };
         
-        setState(prev => ({
-          ...prev,
-          messages: [...prev.messages, mappedMessage],
-          loading: false
-        }));
-      }
-      
-      if (setState) {
+        setState(prev => {
+          // Remove the temporary message (if any) and add the real one
+          const filteredMessages = prev.messages.filter(
+            msg => !msg.id.startsWith('temp-')
+          );
+          return {
+            ...prev,
+            messages: [...filteredMessages, mappedMessage],
+            loading: false
+          };
+        });
+      } else if (setState) {
         setState(prev => ({ ...prev, loading: false }));
       }
       

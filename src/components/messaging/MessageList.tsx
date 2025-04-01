@@ -1,11 +1,13 @@
 
 import React, { useEffect, useRef } from "react";
 import { formatRelative } from "date-fns";
-import { Paperclip, User } from "lucide-react";
+import { Check, Clock, Lock, Paperclip, Shield, User, X } from "lucide-react";
 import { Message } from "@/types/message";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { MessageDeliveryStatus } from "@/types/encryption";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface MessageListProps {
   messages: Message[];
@@ -22,6 +24,23 @@ const MessageList = ({ messages, isLoading }: MessageListProps) => {
   
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const getStatusIcon = (status?: MessageDeliveryStatus, isEncrypted?: boolean) => {
+    switch (status) {
+      case MessageDeliveryStatus.SENDING:
+        return <Clock className="h-3 w-3 ml-1" />;
+      case MessageDeliveryStatus.SENT:
+        return <Check className="h-3 w-3 ml-1" />;
+      case MessageDeliveryStatus.DELIVERED:
+        return <Check className="h-3 w-3 ml-1" />;
+      case MessageDeliveryStatus.READ:
+        return <Check className="h-3 w-3 ml-1 text-blue-500" />;
+      case MessageDeliveryStatus.FAILED:
+        return <X className="h-3 w-3 ml-1 text-destructive" />;
+      default:
+        return null;
+    }
   };
   
   if (isLoading) {
@@ -56,6 +75,7 @@ const MessageList = ({ messages, isLoading }: MessageListProps) => {
     <div className="flex flex-col space-y-4 p-4">
       {messages.map(message => {
         const isCurrentUser = user?.id === message.senderId;
+        const isEncrypted = !!message.encryptedContent;
         
         return (
           <div 
@@ -99,14 +119,48 @@ const MessageList = ({ messages, isLoading }: MessageListProps) => {
               )}
               
               <div className={cn(
-                "text-xs mt-1",
+                "text-xs mt-1 flex items-center",
                 isCurrentUser 
                   ? "text-primary-foreground/80" 
                   : "text-muted-foreground"
               )}>
-                {formatRelative(new Date(message.createdAt), new Date())}
+                <span className="flex-grow">
+                  {formatRelative(new Date(message.createdAt), new Date())}
+                </span>
+                
+                {isEncrypted && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <Lock className="h-3 w-3 ml-1" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>End-to-end encrypted</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
+                
+                {isCurrentUser && (
+                  <span className="ml-1">{getStatusIcon(message.deliveryStatus, isEncrypted)}</span>
+                )}
               </div>
             </div>
+            
+            {isCurrentUser && message.deliveryStatus === MessageDeliveryStatus.FAILED && (
+              <div className="flex items-center">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <X className="h-4 w-4 text-destructive" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Failed to send message</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            )}
           </div>
         );
       })}

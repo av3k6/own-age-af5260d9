@@ -1,7 +1,7 @@
 
-import { useState, useEffect } from "react";
-import { useConversations } from "./useConversations";
-import { useMessages } from "./useMessages";
+import { useState, useEffect, useCallback } from "react";
+import { useConversations } from "./conversations/useConversations";
+import { useMessages } from "./messages/useMessages";
 import { Conversation } from "@/types/message";
 import { useToast } from "@/components/ui/use-toast";
 import { useSupabase } from "@/hooks/useSupabase";
@@ -28,120 +28,157 @@ export function useMessaging() {
   const { toast } = useToast();
   const { supabase } = useSupabase();
   const { user } = useAuth();
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // Combine loading states
-  const loading = conversationsLoading || messagesLoading;
+  const loading = conversationsLoading || messagesLoading || !isInitialized;
 
-  // Initialize conversations list on component mount
+  // Initialize conversations list on component mount - with improved error handling
   useEffect(() => {
     const initializeMessages = async () => {
+      if (!user) {
+        console.log("User not available for message initialization");
+        return;
+      }
+      
       try {
-        // Just fetch conversations - don't try to create tables
+        console.log("Initializing messages system for user:", user.id);
         await fetchConversations();
+        setIsInitialized(true);
       } catch (error) {
         console.error("Error initializing conversations:", error);
         toast({
           title: "Error loading messages",
-          description: "Please try again later",
+          description: "Please try refreshing the page",
           variant: "destructive"
         });
+        // Still mark as initialized to prevent infinite loading state
+        setIsInitialized(true);
       }
     };
     
     if (user) {
       initializeMessages();
     }
-  }, [user]);
+  }, [user?.id]); // Depend on user.id instead of user object to prevent unnecessary reruns
 
-  // Set up real-time subscriptions
+  // Set up real-time subscriptions with improved cleanup
   useEffect(() => {
     if (!user) return;
     
+    console.log("Setting up conversation subscription for user:", user.id);
+    
     // Subscribe to new conversations
     const conversationsChannel = supabase
-      .channel('public:conversations')
+      .channel(`user-conversations-${user.id}`) // Use a unique channel name
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
         table: 'conversations',
         filter: `participants=cs.{${user.id}}`
-      }, () => {
+      }, (payload) => {
+        console.log("Conversation change detected:", payload.eventType);
         // Refresh conversations list when there are changes
-        fetchConversations();
+        fetchConversations().catch(error => {
+          console.error("Error refreshing conversations after update:", error);
+        });
       })
-      .subscribe();
+      .subscribe((status) => {
+        console.log(`Conversation subscription status: ${status}`);
+      });
       
     return () => {
+      console.log("Cleaning up conversation subscription");
       supabase.removeChannel(conversationsChannel);
     };
-  }, [user, supabase]);
+  }, [user?.id, supabase]); // Include supabase in dependencies
 
-  // Fetch messages when currentConversation changes
-  useEffect(() => {
-    if (currentConversation) {
-      fetchMessagesBase(currentConversation.id).catch(error => {
-        console.error("Error fetching messages:", error);
-        toast({
-          title: "Error loading messages",
-          description: "We couldn't load your messages. Please try again later.",
-          variant: "destructive"
-        });
-      });
-    }
-  }, [currentConversation?.id]);
-
-  // Handle conversation selection with messages fetching
-  const handleSelectConversation = (conversation: Conversation) => {
+  // Fetch messages when currentConversation changes - now with retry mechanism
+  const fetchMessages = useCallback(async (conversation: Conversation) => {
     setCurrentConversation(conversation);
-    fetchMessagesBase(conversation.id).catch(error => {
-      console.error("Error fetching messages for conversation:", error);
-      toast({
-        title: "Error loading messages",
-        description: "We couldn't load your messages. Please try again later.",
-        variant: "destructive"
-      });
-    });
     
-    // Mark messages as read when selecting a conversation
-    if (conversation.unreadCount > 0) {
-      markMessagesAsRead(conversation.id);
-    }
-  };
+    const attemptFetch = async (retries = 2) => {
+      try {
+        console.log(`Fetching messages for conversation: ${conversation.id}`);
+        await fetchMessagesBase(conversation.id);
+        
+        // Mark messages as read when selecting a conversation
+        if (conversation.unreadCount > 0) {
+          await markMessagesAsRead(conversation.id);
+        }
+      } catch (error) {
+        console.error("Error fetching messages:", error);
+        
+        if (retries > 0) {
+          console.log(`Retrying fetch (${retries} attempts left)...`);
+          setTimeout(() => attemptFetch(retries - 1), 1000);
+        } else {
+          toast({
+            title: "Error loading messages",
+            description: "We couldn't load your messages. Please try again later.",
+            variant: "destructive"
+          });
+        }
+      }
+    };
+    
+    await attemptFetch();
+  }, [fetchMessagesBase, markMessagesAsRead, setCurrentConversation]);
 
-  // Wrapper for sending a message that also handles refreshing the conversation list
-  const handleSendMessage = async (conversationId: string, content: string, attachments?: File[]) => {
-    console.log(`Sending message to conversation ${conversationId}: ${content}`);
-    try {
-      await sendMessageBase(conversationId, content, attachments);
-      
-      // Refresh the messages for this conversation
-      await fetchMessagesBase(conversationId);
-      
-      // Refresh the conversation list to show the updated last message
-      await fetchConversations();
-      
-      return true;
-    } catch (error) {
-      console.error("Error in handleSendMessage:", error);
-      toast({
-        title: "Error sending message",
-        description: "Please try again later.",
-        variant: "destructive"
-      });
-      throw error;
-    }
-  };
+  // Wrapper for sending a message with improved error handling and retries
+  const sendMessage = useCallback(async (conversationId: string, content: string, attachments?: File[]) => {
+    console.log(`Sending message to conversation ${conversationId}: ${content.substring(0, 20)}...`);
+    
+    const attemptSend = async (retries = 2) => {
+      try {
+        await sendMessageBase(conversationId, content, attachments);
+        
+        // Refresh the messages for this conversation
+        await fetchMessagesBase(conversationId);
+        
+        // Refresh the conversation list to show the updated last message
+        await fetchConversations();
+        
+        toast({
+          title: "Message sent",
+          description: "Your message has been sent successfully"
+        });
+        
+        return true;
+      } catch (error) {
+        console.error("Error sending message:", error);
+        
+        if (retries > 0) {
+          console.log(`Retrying send (${retries} attempts left)...`);
+          // Wait a second before retrying
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          return attemptSend(retries - 1);
+        } else {
+          toast({
+            title: "Error sending message",
+            description: "Please try again later.",
+            variant: "destructive"
+          });
+          throw error;
+        }
+      }
+    };
+    
+    return attemptSend();
+  }, [fetchConversations, fetchMessagesBase, sendMessageBase]);
 
-  // Wrapper for creating a conversation with an optional initial message
-  const handleCreateConversation = async (
+  // Wrapper for creating a conversation with improved error handling
+  const createNewConversation = useCallback(async (
     receiverId: string, 
     subject?: string, 
     initialMessage?: string, 
-    propertyId?: string
+    propertyId?: string,
+    category: string = 'general'  // Default category
   ) => {
-    console.log("Creating new conversation:", { receiverId, subject, initialMessage, propertyId });
+    console.log("Creating new conversation:", { receiverId, subject, initialMessage, propertyId, category });
+    
     try {
-      // First create the conversation
+      // Create conversation with category information
       const conversation = await createConversation(receiverId, subject, initialMessage, propertyId);
       
       if (!conversation) {
@@ -156,19 +193,13 @@ export function useMessaging() {
       
       console.log("Conversation created:", conversation);
       
-      // If there's an initial message, send it
-      if (conversation && initialMessage) {
-        console.log("Sending initial message:", initialMessage);
-        try {
-          await sendMessageBase(conversation.id, initialMessage);
-          
-          // Refresh conversations after sending the message
-          await fetchConversations();
-        } catch (messageError) {
-          console.error("Error sending initial message:", messageError);
-          // Continue even if message fails - at least the conversation was created
-        }
-      }
+      // Refresh conversations after creating a new one
+      await fetchConversations();
+      
+      toast({
+        title: "Conversation created",
+        description: "New conversation started successfully"
+      });
       
       return conversation;
     } catch (error) {
@@ -180,7 +211,7 @@ export function useMessaging() {
       });
       return null;
     }
-  };
+  }, [createConversation, fetchConversations]);
 
   return {
     loading,
@@ -188,9 +219,9 @@ export function useMessaging() {
     messages,
     currentConversation,
     fetchConversations,
-    fetchMessages: handleSelectConversation,
-    sendMessage: handleSendMessage,
-    createConversation: handleCreateConversation,
+    fetchMessages,
+    sendMessage,
+    createConversation: createNewConversation,
     setCurrentConversation,
   };
 }

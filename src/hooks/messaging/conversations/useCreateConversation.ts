@@ -3,6 +3,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSupabase } from "@/hooks/useSupabase";
 import { Conversation } from "@/types/message";
+import { ConversationCategory } from "@/types/encryption";
 import { ConversationsState } from "./types";
 
 export function useCreateConversation() {
@@ -15,6 +16,8 @@ export function useCreateConversation() {
     subject?: string, 
     initialMessage?: string, 
     propertyId?: string,
+    category: string = ConversationCategory.GENERAL,
+    isEncrypted: boolean = true,
     setState?: React.Dispatch<React.SetStateAction<ConversationsState>>
   ): Promise<Conversation | null> => {
     if (!user) return null;
@@ -56,7 +59,9 @@ export function useCreateConversation() {
           lastMessageAt: conversation.last_message_at,
           subject: conversation.subject || '',
           propertyId: conversation.property_id || null,
-          unreadCount: conversation.unread_count || 0
+          unreadCount: conversation.unread_count || 0,
+          category: conversation.category || ConversationCategory.GENERAL,
+          isEncrypted: conversation.is_encrypted || false
         };
         
         if (setState) {
@@ -77,6 +82,8 @@ export function useCreateConversation() {
         subject: subject || '',
         property_id: propertyId || null,
         unread_count: 0,
+        category: category || ConversationCategory.GENERAL,
+        is_encrypted: isEncrypted
       };
       
       console.log("Creating new conversation:", newConversation);
@@ -100,7 +107,9 @@ export function useCreateConversation() {
         lastMessageAt: data[0].last_message_at,
         subject: data[0].subject || '',
         propertyId: data[0].property_id || null,
-        unreadCount: data[0].unread_count || 0
+        unreadCount: data[0].unread_count || 0,
+        category: data[0].category || ConversationCategory.GENERAL,
+        isEncrypted: data[0].is_encrypted || false
       };
       
       // Update local state if setState provided
