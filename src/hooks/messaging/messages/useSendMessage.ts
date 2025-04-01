@@ -50,14 +50,14 @@ export function useSendMessage() {
       const receiverId = conversation.participants.find((id: string) => id !== user.id);
       if (!receiverId) throw new Error("Recipient not found");
       
-      // Create message object
-      const newMessage: Partial<Message> = {
-        senderId: user.id,
-        receiverId,
+      // Create message object with snake_case keys for the database
+      const newMessage = {
+        sender_id: user.id,
+        receiver_id: receiverId,
         content,
         read: false,
-        conversationId,
-        createdAt: new Date().toISOString(),
+        conversation_id: conversationId,
+        created_at: new Date().toISOString(),
       };
       
       // Upload attachments if any
@@ -92,9 +92,21 @@ export function useSendMessage() {
         
       // Update local state if provided
       if (data && data.length > 0 && setState) {
+        // Convert from snake_case to camelCase for frontend use
+        const mappedMessage = {
+          id: data[0].id,
+          senderId: data[0].sender_id,
+          receiverId: data[0].receiver_id,
+          content: data[0].content,
+          read: data[0].read,
+          conversationId: data[0].conversation_id,
+          createdAt: data[0].created_at,
+          attachments: data[0].attachments || []
+        };
+        
         setState(prev => ({
           ...prev,
-          messages: [...prev.messages, data[0]],
+          messages: [...prev.messages, mappedMessage],
           loading: false
         }));
       }
