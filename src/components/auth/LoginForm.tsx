@@ -1,12 +1,13 @@
 
 import { useState } from "react";
-import { useNavigate, Link, useLocation } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import SocialLoginButtons from "./SocialLoginButtons";
 import { Icons } from "@/components/Icons";
+import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 
 interface LoginFormProps {
   onSubmit?: (e: React.FormEvent) => Promise<void>;
@@ -32,10 +33,10 @@ const LoginForm = ({
   const [localIsLoading, setLocalIsLoading] = useState(false);
   const [localEmail, setLocalEmail] = useState("");
   const [localPassword, setLocalPassword] = useState("");
-  const { signIn, user } = useAuth();
+  const [showPassword, setShowPassword] = useState(false);
+  const { signIn } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const location = useLocation();
 
   // Use external state if provided, otherwise use local state
   const isLoading = externalIsLoading !== undefined ? externalIsLoading : localIsLoading;
@@ -82,7 +83,7 @@ const LoginForm = ({
           description: "Logged in successfully!",
         });
         
-        // Auth state listener will handle redirect
+        navigate("/dashboard");
       }
     } catch (error: any) {
       console.error("LoginForm local handler error:", error);
@@ -96,50 +97,53 @@ const LoginForm = ({
     }
   };
 
-  const handleGoogleSignIn = async () => {
-    if (onGoogleSignIn) {
-      await onGoogleSignIn();
-      return;
-    }
-    // Default implementation if not provided
-  };
-
-  const handleFacebookSignIn = async () => {
-    if (onFacebookSignIn) {
-      await onFacebookSignIn();
-      return;
-    }
-    // Default implementation if not provided
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
 
   return (
     <div className="space-y-6">
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
+            <Mail size={18} />
+          </div>
           <Input
             type="email"
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-zen-blue-500 focus:border-zen-blue-500 sm:text-sm"
+            className="pl-10 appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
             autoComplete="email"
             disabled={isLoading}
           />
         </div>
-        <div>
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
+            <Lock size={18} />
+          </div>
           <Input
-            type="password"
+            type={showPassword ? "text" : "password"}
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-zen-blue-500 focus:border-zen-blue-500 sm:text-sm"
+            className="pl-10 appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
             autoComplete="current-password"
             disabled={isLoading}
           />
+          <div 
+            className="absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer" 
+            onClick={togglePasswordVisibility}
+          >
+            {showPassword ? 
+              <EyeOff size={18} className="text-gray-400 hover:text-gray-500" /> : 
+              <Eye size={18} className="text-gray-400 hover:text-gray-500" />
+            }
+          </div>
         </div>
         <Button
           type="submit"
-          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-zen-blue-500 hover:bg-zen-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zen-blue-500"
+          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
           disabled={isLoading}
         >
           {isLoading && (
@@ -148,21 +152,32 @@ const LoginForm = ({
           Sign In
         </Button>
       </form>
-      <div className="text-sm text-zen-gray-500">
-        <Link to="/forgot-password" className="hover:underline">
-          Forgot password?
-        </Link>
+      <div className="flex justify-between">
+        <div className="text-sm text-gray-500">
+          <Link to="/forgot-password" className="hover:underline text-primary">
+            Forgot password?
+          </Link>
+        </div>
+      </div>
+
+      <div className="relative mt-6">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-gray-300"></div>
+        </div>
+        <div className="relative flex justify-center text-sm">
+          <span className="px-2 bg-white text-gray-500">Or continue with</span>
+        </div>
       </div>
 
       <SocialLoginButtons 
-        onGoogleSignIn={handleGoogleSignIn}
-        onFacebookSignIn={handleFacebookSignIn}
+        onGoogleSignIn={onGoogleSignIn}
+        onFacebookSignIn={onFacebookSignIn}
         isLoading={isLoading}
       />
 
-      <div className="text-center text-sm text-zen-gray-500">
+      <div className="text-center text-sm text-gray-500">
         Don't have an account?{" "}
-        <Link to="/signup" className="hover:underline">
+        <Link to="/signup" className="text-primary hover:underline">
           Sign up
         </Link>
       </div>

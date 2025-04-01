@@ -19,12 +19,9 @@ const Login = () => {
   
   // Handle redirect if user is already logged in
   useEffect(() => {
-    // Only attempt navigation if auth is initialized and we have a user
     if (isInitialized && user) {
       const from = location.state?.from?.pathname || "/dashboard";
       console.log("User already logged in, redirecting to:", from);
-      
-      // Redirect to intended destination
       navigate(from, { replace: true });
     }
   }, [user, isInitialized, navigate, location.state]);
@@ -61,8 +58,6 @@ const Login = () => {
         title: "Success",
         description: "Logged in successfully!",
       });
-      
-      // The auth state change will trigger navigation in useEffect
     } catch (error: any) {
       console.error("Login error:", error);
       toast({
