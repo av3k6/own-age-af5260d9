@@ -29,7 +29,7 @@ const MessageInput = ({ onSend, isLoading = false }: MessageInputProps) => {
   };
 
   return (
-    <div className="flex flex-1 space-x-2 items-end">
+    <div className="flex items-end w-full space-x-2">
       <Textarea
         value={message}
         onChange={(e) => setMessage(e.target.value)}

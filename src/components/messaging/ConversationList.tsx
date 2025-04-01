@@ -70,14 +70,18 @@ const ConversationList = ({
       return userId.split('@')[0];
     }
     
-    // If UUID format with dashes, use first segment or abbreviate
+    // If it's a UUID format with dashes
     if (userId.includes('-')) {
-      const firstPart = userId.split('-')[0];
-      return firstPart.length > 8 ? firstPart.substring(0, 8) : firstPart;
+      // Try to extract a name-like portion if possible
+      const parts = userId.split('-');
+      if (parts.length > 0) {
+        // Use just the first part to make it look like a name
+        return parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
+      }
     }
     
-    // For other formats, show first 8 chars if long
-    return userId.length > 12 ? `${userId.substring(0, 8)}...` : userId;
+    // For other formats, limit to 8 chars
+    return userId.length > 8 ? `${userId.substring(0, 8)}...` : userId;
   };
 
   return (
@@ -121,15 +125,15 @@ const ConversationList = ({
                     hasUnread ? "text-primary" : "text-muted-foreground"
                   )} />
                 </div>
-                <div className="flex-1 min-w-0 mr-2">
+                <div className="flex-1 min-w-0 mr-4">
                   <div className="flex justify-between items-start">
                     <h4 className={cn(
-                      "truncate max-w-[calc(100%-4rem)]",
+                      "truncate max-w-[70%]",
                       hasUnread ? "font-semibold" : "font-medium"
                     )}>
                       {conversation.subject || "No subject"}
                     </h4>
-                    <span className="text-xs text-muted-foreground whitespace-nowrap ml-2 max-w-[4rem] truncate">
+                    <span className="text-xs text-muted-foreground whitespace-nowrap ml-2">
                       {formatDistanceToNow(new Date(conversation.lastMessageAt), { addSuffix: true })}
                     </span>
                   </div>
@@ -145,8 +149,7 @@ const ConversationList = ({
               </div>
             </div>
             
-            {/* Fixed position for the dropdown menu to prevent overlap */}
-            <div className="self-start mt-1 ml-auto">
+            <div className="self-start mt-1">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button

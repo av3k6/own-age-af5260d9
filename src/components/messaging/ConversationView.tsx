@@ -131,10 +131,12 @@ const ConversationView: React.FC<ConversationViewProps> = ({
               }}
             />
             
-            <MessageInput
-              onSend={handleSendMessage}
-              isLoading={isSending}
-            />
+            <div className="flex-1">
+              <MessageInput
+                onSend={handleSendMessage}
+                isLoading={isSending}
+              />
+            </div>
           </div>
         </div>
       </div>
