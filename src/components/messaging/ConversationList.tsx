@@ -67,10 +67,14 @@ const ConversationList = ({
         const isSelected = selectedId === conversation.id;
         const hasUnread = conversation.unreadCount > 0;
         
-        // Get participant names (this is simplified since we don't have user details)
+        // Format participant information in a cleaner way
         const otherParticipants = conversation.participants.filter(p => p !== conversation.participants[0]);
-        const buyerName = otherParticipants[0]?.split('@')?.[0] || "Buyer";
-        const sellerName = conversation.participants[0]?.split('@')?.[0] || "Seller";
+        const buyerId = otherParticipants[0] || "";
+        const sellerId = conversation.participants[0] || "";
+        
+        // Format the IDs for display
+        const buyerName = buyerId.split('@')?.[0] || "Buyer";
+        const sellerName = sellerId.split('@')?.[0] || "Seller";
         
         return (
           <div
@@ -111,7 +115,7 @@ const ConversationList = ({
                     </span>
                   </div>
                   <p className="text-sm text-muted-foreground truncate mt-0.5">
-                    Seller: {sellerName} • Buyer: {buyerName}
+                    From: {buyerName}
                   </p>
                   {hasUnread && (
                     <Badge variant="default" className="mt-1 bg-primary">
@@ -162,6 +166,6 @@ const ConversationList = ({
       })}
     </div>
   );
-};
+}
 
 export default ConversationList;
