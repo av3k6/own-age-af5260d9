@@ -4,11 +4,13 @@ import { User } from '@/types';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { useToast } from '@/components/ui/use-toast';
 import { mapUserData } from '@/utils/authUtils';
+import { SessionStatus } from '@/types/auth';
 
 export const useAuthState = (supabase: SupabaseClient) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [sessionStatus, setSessionStatus] = useState<SessionStatus>('active');
   const authStateInitialized = useRef(false);
   const { toast } = useToast();
 
@@ -27,6 +29,7 @@ export const useAuthState = (supabase: SupabaseClient) => {
         if (sessionError) {
           console.error("Error getting session:", sessionError);
           setUser(null);
+          setSessionStatus('error');
           return;
         }
         
@@ -38,6 +41,7 @@ export const useAuthState = (supabase: SupabaseClient) => {
           
           if (fullUserData) {
             setUser(fullUserData);
+            setSessionStatus('active');
             console.log("User initialized:", fullUserData.email);
           } else {
             console.log("Could not map user data, using basic info");
@@ -51,15 +55,18 @@ export const useAuthState = (supabase: SupabaseClient) => {
               user_metadata: sessionData.session.user.user_metadata
             };
             setUser(basicUserData);
+            setSessionStatus('active');
           }
         } else {
           setUser(null);
+          setSessionStatus('unauthenticated');
           console.log("No active session found");
         }
       } catch (error) {
         console.error("Auth initialization error:", error);
         if (isMounted) {
           setUser(null);
+          setSessionStatus('error');
         }
       } finally {
         if (isMounted) {
@@ -93,6 +100,14 @@ export const useAuthState = (supabase: SupabaseClient) => {
         if (!isMounted) return;
         
         try {
+          if (event === 'TOKEN_REFRESHED') {
+            console.log("Token refreshed successfully");
+            setSessionStatus('active');
+          } else if (event === 'SIGNED_OUT') {
+            setSessionStatus('unauthenticated');
+            setUser(null);
+          }
+          
           if (session?.user) {
             console.log("Auth state change with user, mapping data");
             const fullUserData = await mapUserData(supabase, session.user);
@@ -101,6 +116,7 @@ export const useAuthState = (supabase: SupabaseClient) => {
             
             if (fullUserData) {
               setUser(fullUserData);
+              setSessionStatus('active');
             } else {
               // Fallback to basic user info if mapping fails
               const basicUserData: User = {
@@ -112,6 +128,7 @@ export const useAuthState = (supabase: SupabaseClient) => {
                 user_metadata: session.user.user_metadata
               };
               setUser(basicUserData);
+              setSessionStatus('active');
             }
             
             if (event === 'SIGNED_IN') {
@@ -128,10 +145,12 @@ export const useAuthState = (supabase: SupabaseClient) => {
                 title: "Signed out",
                 description: "You have been signed out successfully.",
               });
+              setSessionStatus('unauthenticated');
             }
           }
         } catch (error) {
           console.error("Error handling auth state change:", error);
+          setSessionStatus('error');
         }
       }
     );
@@ -159,5 +178,7 @@ export const useAuthState = (supabase: SupabaseClient) => {
     loading,
     setLoading,
     isInitialized,
+    sessionStatus,
+    setSessionStatus
   };
 };
