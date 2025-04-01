@@ -131,41 +131,44 @@ const ConversationList = ({
               </div>
             </div>
             
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="opacity-0 group-hover:opacity-100 transition-opacity ml-2 mt-1 h-8 w-8"
-                  disabled={isDeleting}
-                >
-                  <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
-                  <span className="sr-only">More options</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-[180px]">
-                {onArchive && (
+            {/* Fixed position for the dropdown menu to prevent overlap */}
+            <div className="self-start mt-1">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8"
+                    disabled={isDeleting}
+                  >
+                    <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
+                    <span className="sr-only">More options</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-[180px]">
+                  {onArchive && (
+                    <DropdownMenuItem 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onArchive(conversation.id);
+                      }}
+                    >
+                      Archive
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem 
                     onClick={(e) => {
                       e.stopPropagation();
-                      onArchive(conversation.id);
+                      onDelete(conversation.id);
                     }}
+                    className="text-destructive focus:text-destructive"
                   >
-                    Archive
+                    Delete
                   </DropdownMenuItem>
-                )}
-                <DropdownMenuItem 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDelete(conversation.id);
-                  }}
-                  className="text-destructive focus:text-destructive"
-                >
-                  Delete
-                </DropdownMenuItem>
-                {onArchive && <DropdownMenuSeparator />}
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  {onArchive && <DropdownMenuSeparator />}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
         );
       })}
