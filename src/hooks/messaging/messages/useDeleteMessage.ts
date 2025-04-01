@@ -42,26 +42,20 @@ export function useDeleteMessage() {
         throw new Error("You are not authorized to delete this message");
       }
 
-      // In our approach, we'll mark the message as deleted for this user
-      // Rather than actually deleting it from the database
-      let updateField = {};
-      if (message.sender_id === user.id) {
-        updateField = { deleted_by_sender: true };
-      } else {
-        updateField = { deleted_by_receiver: true };
-      }
-      
+      // Since we don't have deleted_by_sender and deleted_by_receiver columns yet,
+      // we'll actually delete the message from the database
+      // In a production environment, you would typically mark it as deleted rather than removing it
       const { error } = await supabase
         .from('messages')
-        .update(updateField)
+        .delete()
         .eq('id', messageId);
         
       if (error) {
-        console.error("Error marking message as deleted:", error);
+        console.error("Error deleting message:", error);
         throw error;
       }
       
-      console.log("Message marked as deleted successfully");
+      console.log("Message deleted successfully");
       
       // Update local state if provided
       if (setState) {
