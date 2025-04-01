@@ -53,7 +53,7 @@ export function useContactSeller({ propertyId, propertyTitle, sellerId }: UseCon
         
         if (contactError) {
           console.error("Error saving contact request:", contactError);
-          // Continue even if contact request fails - we'll still try to send the message
+          // We'll continue even if contact request fails, but we'll log it properly
         } else {
           console.log("Contact request saved successfully");
         }
@@ -68,6 +68,7 @@ export function useContactSeller({ propertyId, propertyTitle, sellerId }: UseCon
           description: "Please create an account or log in to view responses from the seller.",
         });
         setOpen(false);
+        setIsSubmitting(false);
         return;
       }
       
@@ -100,12 +101,24 @@ export function useContactSeller({ propertyId, propertyTitle, sellerId }: UseCon
         propertyId
       });
       
-      const conversation = await createConversation(
-        sellerId,
-        subject,
-        values.message,
-        propertyId
-      );
+      let conversation;
+      try {
+        conversation = await createConversation(
+          sellerId,
+          subject,
+          values.message,
+          propertyId
+        );
+      } catch (convError) {
+        console.error("Failed to create conversation:", convError);
+        // Show a partial success message since at least the contact info was saved
+        toast.success("Contact Information Sent", {
+          description: "We couldn't create a messaging thread, but your contact info was shared with the seller.",
+        });
+        setOpen(false);
+        setIsSubmitting(false);
+        return;
+      }
       
       if (!conversation) {
         // We'll still show a success message since the contact request was saved
@@ -113,6 +126,7 @@ export function useContactSeller({ propertyId, propertyTitle, sellerId }: UseCon
           description: "Your contact information has been saved. The seller will contact you soon.",
         });
         setOpen(false);
+        setIsSubmitting(false);
         return;
       }
 
@@ -134,7 +148,7 @@ export function useContactSeller({ propertyId, propertyTitle, sellerId }: UseCon
     } catch (error) {
       console.error("Failed to send message:", error);
       toast.error("Failed to send message", {
-        description: "Your contact information has been saved. Please try messaging again later.",
+        description: "There was a problem sending your message. Please try again later.",
       });
     } finally {
       setIsSubmitting(false);
@@ -149,3 +163,4 @@ export function useContactSeller({ propertyId, propertyTitle, sellerId }: UseCon
     handleSubmit
   };
 }
+
