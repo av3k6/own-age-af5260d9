@@ -1,23 +1,28 @@
 
 import React from "react";
 import { formatDistanceToNow } from "date-fns";
-import { User } from "lucide-react";
+import { User, Trash2 } from "lucide-react";
 import { Conversation } from "@/types/message";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 interface ConversationListProps {
   conversations: Conversation[];
   selectedId?: string;
   onSelect: (conversation: Conversation) => void;
+  onDelete: (conversationId: string) => void;
   isLoading?: boolean;
+  isDeleting?: boolean;
 }
 
 const ConversationList = ({ 
   conversations, 
   selectedId, 
   onSelect, 
-  isLoading = false 
+  onDelete,
+  isLoading = false,
+  isDeleting = false
 }: ConversationListProps) => {
   if (isLoading) {
     return (
@@ -57,42 +62,61 @@ const ConversationList = ({
           <div
             key={conversation.id}
             className={cn(
-              "flex items-start p-3 cursor-pointer transition-colors",
-              hasUnread ? "bg-primary/5 hover:bg-primary/10" : "hover:bg-muted/50",
+              "group flex items-start p-3 hover:bg-muted/50 transition-colors",
+              hasUnread ? "bg-primary/5" : "",
               isSelected && "bg-muted/70"
             )}
-            onClick={() => onSelect(conversation)}
           >
-            <div className={cn(
-              "rounded-full p-2 mr-3 mt-1",
-              hasUnread ? "bg-primary/20" : "bg-primary/10"
-            )}>
-              <User className={cn(
-                "h-5 w-5",
-                hasUnread ? "text-primary" : "text-muted-foreground"
-              )} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex justify-between items-start">
-                <h4 className={cn(
-                  "truncate",
-                  hasUnread ? "font-semibold" : "font-medium"
-                )}>
-                  {conversation.subject || "No subject"}
-                </h4>
-                <span className="text-xs text-muted-foreground whitespace-nowrap ml-2">
-                  {formatDistanceToNow(new Date(conversation.lastMessageAt), { addSuffix: true })}
-                </span>
-              </div>
-              <p className="text-sm text-muted-foreground truncate">
-                Property ID: {conversation.propertyId || "N/A"}
-              </p>
-              {hasUnread && (
-                <Badge variant="default" className="mt-1 bg-primary">
-                  {conversation.unreadCount} {conversation.unreadCount === 1 ? "new message" : "new messages"}
-                </Badge>
+            <div 
+              className={cn(
+                "flex-1 cursor-pointer",
+                isDeleting && "pointer-events-none opacity-50"
               )}
+              onClick={() => onSelect(conversation)}
+            >
+              <div className="flex items-start">
+                <div className={cn(
+                  "rounded-full p-2 mr-3 mt-1",
+                  hasUnread ? "bg-primary/20" : "bg-primary/10"
+                )}>
+                  <User className={cn(
+                    "h-5 w-5",
+                    hasUnread ? "text-primary" : "text-muted-foreground"
+                  )} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex justify-between items-start">
+                    <h4 className={cn(
+                      "truncate",
+                      hasUnread ? "font-semibold" : "font-medium"
+                    )}>
+                      {conversation.subject || "No subject"}
+                    </h4>
+                    <span className="text-xs text-muted-foreground whitespace-nowrap ml-2">
+                      {formatDistanceToNow(new Date(conversation.lastMessageAt), { addSuffix: true })}
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground truncate">
+                    Property ID: {conversation.propertyId || "N/A"}
+                  </p>
+                  {hasUnread && (
+                    <Badge variant="default" className="mt-1 bg-primary">
+                      {conversation.unreadCount} {conversation.unreadCount === 1 ? "new message" : "new messages"}
+                    </Badge>
+                  )}
+                </div>
+              </div>
             </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="opacity-0 group-hover:opacity-100 transition-opacity ml-2 mt-1 h-8 w-8"
+              onClick={() => onDelete(conversation.id)}
+              disabled={isDeleting}
+            >
+              <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
+              <span className="sr-only">Delete conversation</span>
+            </Button>
           </div>
         );
       })}

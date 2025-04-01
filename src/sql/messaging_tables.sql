@@ -24,9 +24,7 @@ CREATE TABLE IF NOT EXISTS public.messages (
   receiver_id TEXT NOT NULL,
   content TEXT NOT NULL,
   read BOOLEAN DEFAULT FALSE,
-  attachments JSONB,
-  deleted_by_sender BOOLEAN DEFAULT FALSE,
-  deleted_by_receiver BOOLEAN DEFAULT FALSE
+  attachments JSONB
 );
 
 -- Add proper indexes
@@ -51,6 +49,11 @@ CREATE POLICY "Users can insert conversations they're part of"
 CREATE POLICY "Users can update their own conversations"
   ON public.conversations
   FOR UPDATE
+  USING (auth.uid()::text = ANY(participants));
+
+CREATE POLICY "Users can delete their own conversations"
+  ON public.conversations
+  FOR DELETE
   USING (auth.uid()::text = ANY(participants));
 
 -- Messages policies
@@ -94,3 +97,4 @@ CREATE TRIGGER update_unread_count_on_new_message
 AFTER INSERT ON messages
 FOR EACH ROW
 EXECUTE FUNCTION update_conversation_unread_count();
+

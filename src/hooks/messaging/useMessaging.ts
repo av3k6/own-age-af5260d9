@@ -6,6 +6,7 @@ import { Conversation } from "@/types/message";
 import { useToast } from "@/components/ui/use-toast";
 import { useSupabase } from "@/hooks/useSupabase";
 import { useAuth } from "@/contexts/AuthContext";
+import { useDeleteConversation } from "./conversations/useDeleteConversation";
 
 export function useMessaging() {
   const {
@@ -19,13 +20,13 @@ export function useMessaging() {
 
   const {
     loading: messagesLoading,
-    deleting: messageDeleting,
     messages,
     fetchMessages: fetchMessagesBase,
     sendMessage: sendMessageBase,
     markMessagesAsRead,
-    deleteMessage: deleteMessageBase
   } = useMessages();
+  
+  const { deleteConversation, deleting: conversationDeleting } = useDeleteConversation();
   
   const { toast } = useToast();
   const { supabase } = useSupabase();
@@ -33,7 +34,7 @@ export function useMessaging() {
 
   // Combine loading states
   const loading = conversationsLoading || messagesLoading;
-  const deleting = messageDeleting;
+  const deleting = conversationDeleting;
 
   // Initialize conversations list on component mount
   useEffect(() => {
@@ -135,19 +136,21 @@ export function useMessaging() {
     }
   };
 
-  // Wrapper for message deletion
-  const handleDeleteMessage = async (messageId: string) => {
+  // Wrapper for conversation deletion
+  const handleDeleteConversation = async (conversationId: string) => {
     try {
-      await deleteMessageBase(messageId);
-      
-      // Refresh the conversation list after deletion
-      await fetchConversations();
+      // If the conversation being deleted is the current one, clear it
+      if (currentConversation?.id === conversationId) {
+        setCurrentConversation(null);
+      }
+
+      await deleteConversation(conversationId);
       
       return true;
     } catch (error) {
-      console.error("Error in handleDeleteMessage:", error);
+      console.error("Error in handleDeleteConversation:", error);
       toast({
-        title: "Error deleting message",
+        title: "Error deleting conversation",
         description: "Please try again later.",
         variant: "destructive"
       });
@@ -214,7 +217,7 @@ export function useMessaging() {
     fetchConversations,
     fetchMessages: handleSelectConversation,
     sendMessage: handleSendMessage,
-    deleteMessage: handleDeleteMessage,
+    deleteConversation: handleDeleteConversation,
     createConversation: handleCreateConversation,
     setCurrentConversation,
   };

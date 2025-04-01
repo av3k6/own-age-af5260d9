@@ -37,7 +37,7 @@ const Messaging = () => {
     sendMessage,
     createConversation,
     setCurrentConversation,
-    deleteMessage,
+    deleteConversation,
     deleting
   } = useMessaging();
   
@@ -94,12 +94,12 @@ const Messaging = () => {
     }
   };
 
-  const handleDeleteMessage = async (messageId: string) => {
+  const handleDeleteConversation = async (conversationId: string) => {
     try {
-      await deleteMessage(messageId);
+      await deleteConversation(conversationId);
     } catch (error) {
-      console.error("Error deleting message:", error);
-      toast.error("Failed to delete message", {
+      console.error("Error deleting conversation:", error);
+      toast.error("Failed to delete conversation", {
         description: "Please try again later"
       });
     }
@@ -251,7 +251,9 @@ const Messaging = () => {
                 conversations={conversations}
                 selectedId={currentConversation?.id}
                 onSelect={handleSelectConversation}
+                onDelete={handleDeleteConversation}
                 isLoading={loading}
+                isDeleting={deleting}
               />
             </div>
           )}
@@ -286,8 +288,6 @@ const Messaging = () => {
                     <MessageList 
                       messages={messages} 
                       isLoading={loading}
-                      onDeleteMessage={handleDeleteMessage}
-                      isDeleting={deleting}
                     />
                   </div>
                   <MessageInput onSend={handleSendMessage} isLoading={loading} />
