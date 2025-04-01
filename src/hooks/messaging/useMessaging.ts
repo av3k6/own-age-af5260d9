@@ -19,10 +19,12 @@ export function useMessaging() {
 
   const {
     loading: messagesLoading,
+    deleting: messageDeleting,
     messages,
     fetchMessages: fetchMessagesBase,
     sendMessage: sendMessageBase,
-    markMessagesAsRead
+    markMessagesAsRead,
+    deleteMessage: deleteMessageBase
   } = useMessages();
   
   const { toast } = useToast();
@@ -31,6 +33,7 @@ export function useMessaging() {
 
   // Combine loading states
   const loading = conversationsLoading || messagesLoading;
+  const deleting = messageDeleting;
 
   // Initialize conversations list on component mount
   useEffect(() => {
@@ -132,6 +135,26 @@ export function useMessaging() {
     }
   };
 
+  // Wrapper for message deletion
+  const handleDeleteMessage = async (messageId: string) => {
+    try {
+      await deleteMessageBase(messageId);
+      
+      // Refresh the conversation list after deletion
+      await fetchConversations();
+      
+      return true;
+    } catch (error) {
+      console.error("Error in handleDeleteMessage:", error);
+      toast({
+        title: "Error deleting message",
+        description: "Please try again later.",
+        variant: "destructive"
+      });
+      return false;
+    }
+  };
+
   // Wrapper for creating a conversation with an optional initial message
   const handleCreateConversation = async (
     receiverId: string, 
@@ -184,12 +207,14 @@ export function useMessaging() {
 
   return {
     loading,
+    deleting,
     conversations,
     messages,
     currentConversation,
     fetchConversations,
     fetchMessages: handleSelectConversation,
     sendMessage: handleSendMessage,
+    deleteMessage: handleDeleteMessage,
     createConversation: handleCreateConversation,
     setCurrentConversation,
   };

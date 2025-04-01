@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -37,10 +36,11 @@ const Messaging = () => {
     fetchMessages,
     sendMessage,
     createConversation,
-    setCurrentConversation
+    setCurrentConversation,
+    deleteMessage,
+    deleting
   } = useMessaging();
   
-  // State to control the mobile view
   const [showConversations, setShowConversations] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [newConversationOpen, setNewConversationOpen] = useState(false);
@@ -67,14 +67,12 @@ const Messaging = () => {
     }
   }, [user]);
 
-  // When a conversation is selected on mobile, switch to the message view
   const handleSelectConversation = (conversation: Conversation) => {
     setCurrentConversation(conversation);
     fetchMessages(conversation);
     if (isMobile) {
       setShowConversations(false);
     }
-    // Clear any previous errors when selecting a conversation
     setError(null);
   };
 
@@ -87,11 +85,21 @@ const Messaging = () => {
     
     try {
       await sendMessage(currentConversation.id, content, attachments);
-      // Clear any previous errors
       setError(null);
     } catch (error) {
       console.error("Error sending message:", error);
       toast.error("Failed to send message", {
+        description: "Please try again later"
+      });
+    }
+  };
+
+  const handleDeleteMessage = async (messageId: string) => {
+    try {
+      await deleteMessage(messageId);
+    } catch (error) {
+      console.error("Error deleting message:", error);
+      toast.error("Failed to delete message", {
         description: "Please try again later"
       });
     }
@@ -112,18 +120,12 @@ const Messaging = () => {
       );
       
       if (newConversation) {
-        // Close dialog
         setNewConversationOpen(false);
-        
-        // Reset form
         setReceiverId("");
         setSubject("");
         setInitialMessage("");
         setPropertyId("");
-        
-        // Select the new conversation
         handleSelectConversation(newConversation);
-        
         toast.success("Conversation created successfully");
       }
     } catch (error) {
@@ -240,7 +242,6 @@ const Messaging = () => {
         </div>
       ) : (
         <div className="border rounded-lg overflow-hidden grid grid-cols-1 md:grid-cols-3 h-[70vh] bg-background shadow-sm">
-          {/* Conversation List - Always shown on desktop, conditionally shown on mobile */}
           {(!isMobile || (isMobile && showConversations)) && (
             <div className={`border-r ${isMobile ? 'col-span-1' : 'col-span-1'}`}>
               <div className="p-3 border-b bg-muted/30">
@@ -255,7 +256,6 @@ const Messaging = () => {
             </div>
           )}
 
-          {/* Message Area - Always shown on desktop, conditionally shown on mobile */}
           {(!isMobile || (isMobile && !showConversations)) && (
             <div className={`${isMobile ? 'col-span-1' : 'col-span-2'} flex flex-col`}>
               {currentConversation ? (
@@ -283,7 +283,12 @@ const Messaging = () => {
                     </div>
                   </div>
                   <div className="flex-1 overflow-y-auto">
-                    <MessageList messages={messages} isLoading={loading} />
+                    <MessageList 
+                      messages={messages} 
+                      isLoading={loading}
+                      onDeleteMessage={handleDeleteMessage}
+                      isDeleting={deleting}
+                    />
                   </div>
                   <MessageInput onSend={handleSendMessage} isLoading={loading} />
                 </>

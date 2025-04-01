@@ -20,11 +20,12 @@ export function useFetchMessages() {
     try {
       console.log("Fetching messages for conversation:", conversationId);
       
-      // Fetch messages
+      // Fetch messages, excluding those deleted by the current user
       const { data, error } = await supabase
         .from('messages')
         .select('*')
         .eq('conversation_id', conversationId)
+        .or(`deleted_by_sender.eq.false,deleted_by_receiver.eq.false`)
         .order('created_at', { ascending: true });
         
       if (error) {
@@ -34,8 +35,19 @@ export function useFetchMessages() {
       
       console.log("Messages fetched:", data?.length || 0);
       
+      // Filter out messages deleted by the current user
+      const filteredMessages = data?.filter(msg => {
+        if (msg.sender_id === user.id && msg.deleted_by_sender) {
+          return false;
+        }
+        if (msg.receiver_id === user.id && msg.deleted_by_receiver) {
+          return false;
+        }
+        return true;
+      });
+      
       // Map database column names to our client-side property names
-      const mappedMessages = data?.map(msg => ({
+      const mappedMessages = filteredMessages?.map(msg => ({
         id: msg.id,
         conversationId: msg.conversation_id,
         senderId: msg.sender_id,

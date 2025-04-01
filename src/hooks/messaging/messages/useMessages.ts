@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useFetchMessages } from "./useFetchMessages";
 import { useMarkMessagesAsRead } from "./useMarkMessagesAsRead";
 import { useSendMessage } from "./useSendMessage";
+import { useDeleteMessage } from "./useDeleteMessage";
 import { MessagesState, UseMessagesReturn } from "./types";
 import { useSupabase } from "@/hooks/useSupabase";
 import { useAuth } from "@/contexts/AuthContext";
@@ -17,6 +18,7 @@ export function useMessages(): UseMessagesReturn {
   const { fetchMessages: fetchMessagesBase } = useFetchMessages();
   const { markMessagesAsRead: markMessagesAsReadBase } = useMarkMessagesAsRead();
   const { sendMessage: sendMessageBase } = useSendMessage();
+  const { deleteMessage: deleteMessageBase, deleting } = useDeleteMessage();
   const { supabase } = useSupabase();
   const { user } = useAuth();
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
@@ -75,12 +77,18 @@ export function useMessages(): UseMessagesReturn {
   const markMessagesAsRead = async (conversationId: string) => {
     await markMessagesAsReadBase(conversationId, setState);
   };
+  
+  const deleteMessage = async (messageId: string) => {
+    await deleteMessageBase(messageId, setState);
+  };
 
   return {
     loading: state.loading,
+    deleting,
     messages: state.messages,
     fetchMessages,
     sendMessage,
-    markMessagesAsRead
+    markMessagesAsRead,
+    deleteMessage
   };
 }

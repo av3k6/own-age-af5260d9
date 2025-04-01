@@ -24,7 +24,9 @@ CREATE TABLE IF NOT EXISTS public.messages (
   receiver_id TEXT NOT NULL,
   content TEXT NOT NULL,
   read BOOLEAN DEFAULT FALSE,
-  attachments JSONB
+  attachments JSONB,
+  deleted_by_sender BOOLEAN DEFAULT FALSE,
+  deleted_by_receiver BOOLEAN DEFAULT FALSE
 );
 
 -- Add proper indexes

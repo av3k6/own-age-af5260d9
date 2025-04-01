@@ -1,18 +1,26 @@
 
 import React, { useEffect, useRef } from "react";
 import { formatRelative } from "date-fns";
-import { Paperclip, User } from "lucide-react";
+import { Paperclip, User, Trash2 } from "lucide-react";
 import { Message } from "@/types/message";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
 
 interface MessageListProps {
   messages: Message[];
   isLoading: boolean;
+  onDeleteMessage?: (messageId: string) => void;
+  isDeleting?: boolean;
 }
 
-const MessageList = ({ messages, isLoading }: MessageListProps) => {
+const MessageList = ({ 
+  messages, 
+  isLoading, 
+  onDeleteMessage,
+  isDeleting = false
+}: MessageListProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
   
@@ -72,7 +80,7 @@ const MessageList = ({ messages, isLoading }: MessageListProps) => {
             )}
             
             <div className={cn(
-              "max-w-[70%] rounded-lg p-3",
+              "max-w-[70%] rounded-lg p-3 relative group",
               isCurrentUser 
                 ? "bg-primary text-primary-foreground" 
                 : "bg-muted"
@@ -106,6 +114,22 @@ const MessageList = ({ messages, isLoading }: MessageListProps) => {
               )}>
                 {formatRelative(new Date(message.createdAt), new Date())}
               </div>
+              
+              {/* Delete button - only visible on hover */}
+              {onDeleteMessage && (
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className={cn(
+                    "absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity",
+                    isCurrentUser ? "text-primary-foreground/80 hover:text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+                  )}
+                  onClick={() => onDeleteMessage(message.id)}
+                  disabled={isDeleting}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              )}
             </div>
           </div>
         );
