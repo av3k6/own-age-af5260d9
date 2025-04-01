@@ -1,6 +1,6 @@
 
 import { Conversation } from "@/types/message";
-import { ToastApi } from "@/components/ui/use-toast";
+import { toast, type Toast } from "@/hooks/use-toast";
 
 export function useMessagingActions({
   fetchMessagesBase,
@@ -19,7 +19,7 @@ export function useMessagingActions({
   fetchConversations: () => Promise<void>;
   markMessagesAsRead: (conversationId: string) => Promise<void>;
   setCurrentConversation: (conversation: Conversation | null) => void;
-  toast: ToastApi;
+  toast: typeof toast;
 }) {
   // Handle conversation selection with messages fetching
   const handleSelectConversation = (conversation: Conversation) => {

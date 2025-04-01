@@ -1,7 +1,7 @@
 
 import { useEffect } from "react";
 import { Conversation } from "@/types/message";
-import { ToastApi } from "@/components/ui/use-toast";
+import { toast, type Toast } from "@/hooks/use-toast";
 
 export function useConversationHandlers({
   user,
@@ -14,7 +14,7 @@ export function useConversationHandlers({
   currentConversation: Conversation | null;
   fetchConversations: () => Promise<void>;
   fetchMessagesBase: (conversationId: string) => Promise<void>;
-  toast: ToastApi;
+  toast: typeof toast;
 }) {
   // Initialize conversations list on component mount
   useEffect(() => {
