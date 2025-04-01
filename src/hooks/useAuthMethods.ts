@@ -33,7 +33,7 @@ export const useAuthMethods = ({ supabase, setLoading }: AuthMethodsProps) => {
     }
   }, [supabase, setLoading]);
 
-  const signUp = useCallback(async (email: string, password: string, userData: { name?: string }) => {
+  const signUp = useCallback(async (email: string, password: string, userData: { name?: string; role?: string }) => {
     setLoading(true);
     try {
       // Simple signup with minimal data
@@ -43,6 +43,7 @@ export const useAuthMethods = ({ supabase, setLoading }: AuthMethodsProps) => {
         options: {
           data: {
             full_name: userData.name || '',
+            role: userData.role || 'buyer',
           },
         },
       });
