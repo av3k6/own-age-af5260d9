@@ -17,26 +17,16 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Handle navigation to dashboard if user is already logged in
+  // Handle redirect if user is already logged in
   useEffect(() => {
-    let navigationTimer: NodeJS.Timeout | null = null;
-    
-    // Only attempt navigation if auth is initialized
+    // Only attempt navigation if auth is initialized and we have a user
     if (isInitialized && user) {
-      const redirectTo = location.state?.from || "/dashboard";
-      console.log("User already logged in, redirecting to:", redirectTo);
+      const from = location.state?.from?.pathname || "/dashboard";
+      console.log("User already logged in, redirecting to:", from);
       
-      // Use a short timeout to ensure navigation happens after component mounts
-      navigationTimer = setTimeout(() => {
-        navigate(redirectTo, { replace: true });
-      }, 100);
+      // Redirect to intended destination
+      navigate(from, { replace: true });
     }
-    
-    return () => {
-      if (navigationTimer) {
-        clearTimeout(navigationTimer);
-      }
-    };
   }, [user, isInitialized, navigate, location.state]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -59,7 +49,12 @@ const Login = () => {
       
       if (error) {
         console.error("Login error details:", error);
-        throw error;
+        toast({
+          title: "Login Error",
+          description: error?.message || "Failed to sign in",
+          variant: "destructive",
+        });
+        return;
       }
       
       toast({
@@ -129,6 +124,15 @@ const Login = () => {
       setIsLoading(false);
     }
   };
+
+  // Show loading indicator while auth is initializing
+  if (!isInitialized) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <AuthPageLayout

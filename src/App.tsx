@@ -8,6 +8,10 @@ import {
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { Toaster } from '@/components/ui/toaster';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
+
+// Pages
 import Home from './pages/Index';
 import Buy from "@/pages/buy";
 import Sell from './pages/Sell';
@@ -35,36 +39,71 @@ const LoadingFallback = () => (
 
 function App() {
   return (
-    <Suspense fallback={<LoadingFallback />}>
-      <Router>
+    <Router>
+      <ErrorBoundary>
         <ThemeProvider>
           <AuthProvider>
-            <Routes>
-              <Route element={<Layout />}>
+            <Suspense fallback={<LoadingFallback />}>
+              <Routes>
+                {/* Public routes */}
                 <Route path="/" element={<Home />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<Signup />} />
                 <Route path="/buy" element={<Buy />} />
                 <Route path="/property/:id" element={<PropertyDetail />} />
-                <Route path="/sell" element={<Sell />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/showings" element={<UserShowings />} />
-                <Route path="/property/:id/make-offer" element={<MakeOffer />} />
-                <Route path="/property/:id/edit" element={<EditListing />} />
-                <Route path="/documents" element={<DocumentManagement />} />
-                <Route path="/messages" element={<Messaging />} />
-              </Route>
-              
-              {/* Auth routes don't need the Layout with header/footer */}
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
-              
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-            <Toaster />
+                
+                {/* Protected routes with Layout */}
+                <Route element={<Layout />}>
+                  <Route path="/dashboard" element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/profile" element={
+                    <ProtectedRoute>
+                      <Profile />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/sell" element={
+                    <ProtectedRoute>
+                      <Sell />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/showings" element={
+                    <ProtectedRoute>
+                      <UserShowings />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/property/:id/make-offer" element={
+                    <ProtectedRoute>
+                      <MakeOffer />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/property/:id/edit" element={
+                    <ProtectedRoute>
+                      <EditListing />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/documents" element={
+                    <ProtectedRoute>
+                      <DocumentManagement />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/messages" element={
+                    <ProtectedRoute>
+                      <Messaging />
+                    </ProtectedRoute>
+                  } />
+                </Route>
+                
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+              <Toaster />
+            </Suspense>
           </AuthProvider>
         </ThemeProvider>
-      </Router>
-    </Suspense>
+      </ErrorBoundary>
+    </Router>
   );
 }
 

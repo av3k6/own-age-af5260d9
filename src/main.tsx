@@ -1,8 +1,10 @@
 
-import { createRoot } from 'react-dom/client'
-import App from './App.tsx'
-import './index.css'
-import { supabase } from './lib/supabase'
+import { createRoot } from 'react-dom/client';
+import App from './App.tsx';
+import './index.css';
+import { supabase } from './lib/supabase';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import React from 'react';
 
 // Add error handling for the root rendering
 const renderApp = () => {
@@ -19,7 +21,9 @@ const renderApp = () => {
     // Wrap the app in an error boundary for better debugging
     root.render(
       <React.StrictMode>
-        <App />
+        <ErrorBoundary>
+          <App />
+        </ErrorBoundary>
       </React.StrictMode>
     );
     
@@ -43,9 +47,6 @@ const renderApp = () => {
     }
   }
 };
-
-// Add missing React import
-import React from 'react';
 
 // Execute the render function
 renderApp();

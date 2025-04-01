@@ -32,7 +32,7 @@ const LoginForm = ({
   const [localIsLoading, setLocalIsLoading] = useState(false);
   const [localEmail, setLocalEmail] = useState("");
   const [localPassword, setLocalPassword] = useState("");
-  const { signIn } = useAuth();
+  const { signIn, user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
@@ -49,16 +49,7 @@ const LoginForm = ({
     
     if (onSubmit) {
       // If external submit handler is provided, use that
-      try {
-        await onSubmit(e);
-      } catch (error) {
-        console.error("External submit handler failed:", error);
-        toast({
-          title: "Error",
-          description: "Login process failed. Please try again later.",
-          variant: "destructive",
-        });
-      }
+      await onSubmit(e);
       return;
     }
 
@@ -85,23 +76,15 @@ const LoginForm = ({
           variant: "destructive",
         });
       } else {
-        console.log("SignIn successful, preparing to navigate...");
+        console.log("SignIn successful!");
         toast({
           title: "Success",
           description: "Logged in successfully!",
         });
         
-        // Get destination from location state or default to dashboard
-        const redirectTo = location.state?.from || "/dashboard";
-        console.log("LoginForm redirecting to:", redirectTo);
-        
-        // Use shorter delay for navigation
-        setTimeout(() => {
-          console.log("Executing navigation to:", redirectTo);
-          navigate(redirectTo, { replace: true });
-        }, 100); // Reduced from 500ms to 100ms for better UX
+        // Auth state listener will handle redirect
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("LoginForm local handler error:", error);
       toast({
         title: "Error",
@@ -140,6 +123,7 @@ const LoginForm = ({
             onChange={(e) => setEmail(e.target.value)}
             className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-zen-blue-500 focus:border-zen-blue-500 sm:text-sm"
             autoComplete="email"
+            disabled={isLoading}
           />
         </div>
         <div>
@@ -150,6 +134,7 @@ const LoginForm = ({
             onChange={(e) => setPassword(e.target.value)}
             className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-zen-blue-500 focus:border-zen-blue-500 sm:text-sm"
             autoComplete="current-password"
+            disabled={isLoading}
           />
         </div>
         <Button
@@ -172,6 +157,7 @@ const LoginForm = ({
       <SocialLoginButtons 
         onGoogleSignIn={handleGoogleSignIn}
         onFacebookSignIn={handleFacebookSignIn}
+        isLoading={isLoading}
       />
 
       <div className="text-center text-sm text-zen-gray-500">
