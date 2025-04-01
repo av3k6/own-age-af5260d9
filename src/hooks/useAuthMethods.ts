@@ -1,26 +1,16 @@
-import { useState } from 'react';
-import { User, UserRole } from '@/types';
-import { useToast } from '@/components/ui/use-toast';
-import { useSupabase } from '@/hooks/useSupabase';
+
+import { useState, useCallback } from 'react';
+import { User } from '@/types';
+import { SupabaseClient } from '@supabase/supabase-js';
 import { mapUserData } from '@/utils/authUtils';
 
-export interface AuthActionsReturn {
-  loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signUp: (email: string, password: string, userData: Partial<User>) => Promise<{ error: any }>;
-  signOut: () => Promise<void>;
-  resetPassword: (email: string) => Promise<{ error: any }>;
-  checkIsAuthenticated: () => Promise<boolean>;
+interface AuthMethodsProps {
+  supabase: SupabaseClient;
+  setLoading: (loading: boolean) => void;
 }
 
-export const useAuthActions = (
-  setUser: React.Dispatch<React.SetStateAction<User | null>>
-): AuthActionsReturn => {
-  const [loading, setLoading] = useState(false);
-  const { supabase } = useSupabase();
-  const { toast } = useToast();
-
-  const signIn = async (email: string, password: string) => {
+export const useAuthMethods = ({ supabase, setLoading }: AuthMethodsProps) => {
+  const signIn = useCallback(async (email: string, password: string) => {
     try {
       console.log('Attempting to sign in:', email);
       setLoading(true);
@@ -35,22 +25,8 @@ export const useAuthActions = (
         return { error };
       } 
       
-      if (data.user) {
-        console.log('Sign in successful for:', data.user.email);
-        try {
-          // Fetch user profile after successful login
-          const mappedUser = await mapUserData(supabase, data.user);
-          console.log("User mapped after login:", mappedUser);
-          setUser(mappedUser);
-          
-          return { error: null };
-        } catch (err) {
-          console.error("Error mapping user after login:", err);
-          // Continue despite mapping error, auth session is still valid
-          return { error: null };
-        }
-      }
-      
+      // We don't need to manually set the user here
+      // The auth state listener will handle it
       return { error: null };
     } catch (error) {
       console.error('Unexpected sign in error:', error);
@@ -58,9 +34,10 @@ export const useAuthActions = (
     } finally {
       setLoading(false);
     }
-  };
+  }, [supabase, setLoading]);
 
-  const signUp = async (email: string, password: string, userData: Partial<User>) => {
+  const signUp = useCallback(async (email: string, password: string, userData: Partial<User>) => {
+    setLoading(true);
     try {
       const { error: signUpError, data } = await supabase.auth.signUp({
         email,
@@ -68,7 +45,7 @@ export const useAuthActions = (
         options: {
           data: {
             full_name: userData.name,
-            role: userData.role || UserRole.BUYER,
+            role: userData.role,
             phone: userData.phone || '',
           },
         },
@@ -84,7 +61,7 @@ export const useAuthActions = (
             id: data.user.id,
             email,
             name: userData.name,
-            role: userData.role || UserRole.BUYER,
+            role: userData.role,
             phone: userData.phone || '',
             created_at: new Date(),
           },
@@ -99,21 +76,27 @@ export const useAuthActions = (
     } catch (error) {
       console.error('Unexpected sign up error:', error);
       return { error };
+    } finally {
+      setLoading(false);
     }
-  };
+  }, [supabase, setLoading]);
 
-  const signOut = async () => {
+  const signOut = useCallback(async () => {
+    setLoading(true);
     try {
       await supabase.auth.signOut();
-      setUser(null);
-      console.log('User signed out');
+      // Don't manually set user to null here
+      // The auth state listener will handle it
+      console.log('Sign out request sent');
     } catch (error) {
       console.error('Error signing out:', error);
       throw error;
+    } finally {
+      setLoading(false);
     }
-  };
+  }, [supabase, setLoading]);
 
-  const resetPassword = async (email: string) => {
+  const resetPassword = useCallback(async (email: string) => {
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password`,
@@ -122,27 +105,23 @@ export const useAuthActions = (
     } catch (error) {
       return { error };
     }
-  };
+  }, [supabase]);
 
-  const checkIsAuthenticated = async (): Promise<boolean> => {
+  const checkIsAuthenticated = useCallback(async (): Promise<boolean> => {
     try {
-      console.log("Checking if user is authenticated");
       const { data: { session } } = await supabase.auth.getSession();
-      const isAuthenticated = !!session?.user;
-      console.log("Authentication check result:", isAuthenticated);
-      return isAuthenticated;
+      return !!session?.user;
     } catch (error) {
       console.error('Authentication check error:', error);
       return false;
     }
-  };
+  }, [supabase]);
 
   return {
-    loading,
     signIn,
     signUp,
     signOut,
     resetPassword,
-    checkIsAuthenticated,
+    checkIsAuthenticated
   };
 };
