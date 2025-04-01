@@ -1,85 +1,154 @@
 
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { Menu, Home, ShoppingBag, Store, LayoutDashboard, User, Bell } from "lucide-react";
-import ProvinceSelector from "./ProvinceSelector";
-import SearchBar from "./SearchBar";
-import UserMenu from "./UserMenu";
-import { useIsMobile } from "@/hooks/use-mobile";
-import ThemeToggle from "@/components/theme/ThemeToggle";
+import { Menu, X, Home, Search, User, Settings, LogOut, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { useAuth } from "@/contexts/AuthContext";
+import { Link, useNavigate } from "react-router-dom";
+import ProvinceSelector from "./ProvinceSelector";
+import { Navigation } from "./Navigation";
+import ThemeToggle from "@/components/theme/ThemeToggle";
+import SearchBar from "./SearchBar";
+import { Badge } from "@/components/ui/badge";
 
 interface MobileMenuProps {
   isAuthenticated: boolean;
+  unreadMessageCount?: number;
 }
 
-const MobileMenu = ({ isAuthenticated }: MobileMenuProps) => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const isMobile = useIsMobile();
-  const { user } = useAuth();
+const MobileMenu = ({ isAuthenticated, unreadMessageCount = 0 }: MobileMenuProps) => {
+  const [open, setOpen] = useState(false);
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
 
-  if (!isMobile) return null;
+  const handleSignOut = async () => {
+    await signOut();
+    setOpen(false);
+    navigate('/login');
+  };
+
+  const handleLinkClick = () => {
+    setOpen(false);
+  };
 
   return (
-    <>
-      <div className="flex items-center space-x-3">
-        {/* Province dropdown for mobile */}
-        <div className="mr-1">
-          <ProvinceSelector className="w-[90px] h-8" />
-        </div>
-        
-        {user && (
-          <Button variant="ghost" size="icon" className="h-9 w-9 p-0" aria-label="Notifications">
-            <Bell className="h-5 w-5" />
+    <div className="flex md:hidden">
+      <SearchBar />
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetTrigger asChild>
+          <Button variant="ghost" size="icon" className="ml-2">
+            <Menu className="h-6 w-6" />
           </Button>
-        )}
-        
-        <ThemeToggle />
-        <button
-          className="text-foreground transition-colors"
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-        >
-          <Menu className="h-6 w-6" />
-        </button>
-      </div>
+        </SheetTrigger>
+        <SheetContent side="left" className="w-[250px] sm:w-[300px]">
+          <SheetHeader>
+            <SheetTitle className="flex justify-between items-center">
+              Menu <X className="h-4 w-4 cursor-pointer" onClick={() => setOpen(false)} />
+            </SheetTitle>
+          </SheetHeader>
 
-      {/* Mobile menu dropdown - Fixed positioning to prevent cutoff */}
-      {isMenuOpen && (
-        <div className="absolute left-0 right-0 top-16 z-50 bg-background border-b shadow-md transition-colors">
-          <div className="px-4 py-3 flex flex-col space-y-3">
-            <Link to="/" className="text-foreground hover:text-primary py-2 transition-colors flex items-center gap-2">
-              <Home className="h-4 w-4" />
-              Home
-            </Link>
-            <Link to="/buy" className="text-foreground hover:text-primary py-2 transition-colors flex items-center gap-2">
-              <ShoppingBag className="h-4 w-4" />
-              Buy
-            </Link>
-            <Link to="/sell" className="text-foreground hover:text-primary py-2 transition-colors flex items-center gap-2">
-              <Store className="h-4 w-4" />
-              Sell
-            </Link>
-            <Link to="/professionals" className="text-foreground hover:text-primary py-2 transition-colors flex items-center gap-2">
-              <User className="h-4 w-4" />
-              Professionals
-            </Link>
-            {isAuthenticated && (
-              <Link to="/dashboard" className="text-foreground hover:text-primary py-2 transition-colors flex items-center gap-2">
-                <LayoutDashboard className="h-4 w-4" />
-                Dashboard
-              </Link>
-            )}
-            
-            <div className="relative my-2">
-              <SearchBar />
+          <div className="py-4">
+            <ProvinceSelector className="w-full mb-4" />
+
+            <div className="space-y-1 mt-2">
+              <Button
+                variant="ghost"
+                className="w-full justify-start"
+                asChild
+                onClick={handleLinkClick}
+              >
+                <Link to="/">
+                  <Home className="mr-2 h-4 w-4" />
+                  Home
+                </Link>
+              </Button>
+
+              <Navigation
+                isAuthenticated={isAuthenticated}
+                className="flex flex-col space-y-1"
+                onClick={handleLinkClick}
+              />
+
+              {isAuthenticated && (
+                <>
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start relative"
+                    asChild
+                    onClick={handleLinkClick}
+                  >
+                    <Link to="/messages">
+                      <MessageSquare className="mr-2 h-4 w-4" />
+                      Messages
+                      {unreadMessageCount > 0 && (
+                        <Badge 
+                          variant="destructive" 
+                          className="ml-auto" 
+                        >
+                          {unreadMessageCount > 99 ? '99+' : unreadMessageCount}
+                        </Badge>
+                      )}
+                    </Link>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start"
+                    asChild
+                    onClick={handleLinkClick}
+                  >
+                    <Link to="/profile">
+                      <User className="mr-2 h-4 w-4" />
+                      Profile
+                    </Link>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start"
+                    asChild
+                    onClick={handleLinkClick}
+                  >
+                    <Link to="/settings">
+                      <Settings className="mr-2 h-4 w-4" />
+                      Settings
+                    </Link>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start text-destructive hover:text-destructive"
+                    onClick={handleSignOut}
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign Out
+                  </Button>
+                </>
+              )}
             </div>
-            
-            <UserMenu isMobile={true} />
           </div>
-        </div>
-      )}
-    </>
+
+          <div className="absolute bottom-4 left-4 right-4">
+            <div className="flex justify-between items-center">
+              <ThemeToggle />
+              {!isAuthenticated && (
+                <div className="space-x-2">
+                  <Button size="sm" variant="outline" asChild onClick={handleLinkClick}>
+                    <Link to="/login">Login</Link>
+                  </Button>
+                  <Button size="sm" asChild onClick={handleLinkClick}>
+                    <Link to="/signup">Sign Up</Link>
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
+    </div>
   );
 };
 
