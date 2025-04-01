@@ -102,7 +102,7 @@ export const useAuthMethods = ({ supabase, setLoading }: AuthMethodsProps) => {
           title: "Session Expiring Soon",
           description: "Your session will expire soon. Please save your work.",
           duration: 10000,
-          variant: "warning",
+          variant: "default", // Changed from "warning" to "default" to match the allowed variants
         });
       }, warningTime);
     }
