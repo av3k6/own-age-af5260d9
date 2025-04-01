@@ -1,11 +1,11 @@
 
 import { Link } from "react-router-dom"
-import { Home, ShoppingBag, Store, User, LayoutDashboard } from "lucide-react"
+import { Home, ShoppingBag, Store, User } from "lucide-react"
 
 interface NavigationProps {
   isAuthenticated?: boolean;
   className?: string;
-  onClick?: () => void; // Added onClick prop
+  onClick?: () => void;
 }
 
 export function Navigation({ isAuthenticated, className = "", onClick }: NavigationProps) {
@@ -47,18 +47,6 @@ export function Navigation({ isAuthenticated, className = "", onClick }: Navigat
         <User className="h-4 w-4" />
         Professionals
       </Link>
-      
-      {isAuthenticated && (
-        <Link
-          to="/dashboard"
-          className="text-base font-medium transition-colors hover:text-primary flex items-center gap-1.5"
-          onClick={handleClick}
-        >
-          <LayoutDashboard className="h-4 w-4" />
-          Dashboard
-        </Link>
-      )}
     </nav>
   );
 }
-
