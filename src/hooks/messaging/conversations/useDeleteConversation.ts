@@ -42,9 +42,7 @@ export function useDeleteConversation() {
         throw new Error("You are not authorized to delete this conversation");
       }
 
-      // In a production environment, we would typically mark the conversation as deleted 
-      // for this specific user rather than removing it completely, but for now
-      // we'll actually delete the conversation since we don't have the deleted_by_users column
+      // Delete the conversation
       const { error } = await supabase
         .from('conversations')
         .delete()
@@ -70,6 +68,8 @@ export function useDeleteConversation() {
         title: "Conversation deleted",
         description: "The conversation has been removed from your inbox",
       });
+      
+      return true;
     } catch (error: any) {
       console.error('Error deleting conversation:', error);
       toast({
@@ -77,6 +77,7 @@ export function useDeleteConversation() {
         description: error.message || "Please try again later",
         variant: "destructive",
       });
+      return false;
     } finally {
       setDeleting(false);
     }

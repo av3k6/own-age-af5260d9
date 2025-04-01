@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -103,6 +104,13 @@ const Messaging = () => {
         description: "Please try again later"
       });
     }
+  };
+
+  const handleArchiveConversation = (conversationId: string) => {
+    // This is just a placeholder for now
+    toast.info("Archive functionality coming soon", {
+      description: "This feature is not yet implemented"
+    });
   };
 
   const handleCreateNewConversation = async () => {
@@ -252,6 +260,7 @@ const Messaging = () => {
                 selectedId={currentConversation?.id}
                 onSelect={handleSelectConversation}
                 onDelete={handleDeleteConversation}
+                onArchive={handleArchiveConversation}
                 isLoading={loading}
                 isDeleting={deleting}
               />

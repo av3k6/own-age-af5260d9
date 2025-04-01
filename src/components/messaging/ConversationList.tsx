@@ -1,11 +1,18 @@
 
 import React from "react";
 import { formatDistanceToNow } from "date-fns";
-import { User, Trash2 } from "lucide-react";
+import { User, MoreHorizontal } from "lucide-react";
 import { Conversation } from "@/types/message";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface ConversationListProps {
   conversations: Conversation[];
@@ -14,6 +21,7 @@ interface ConversationListProps {
   onDelete: (conversationId: string) => void;
   isLoading?: boolean;
   isDeleting?: boolean;
+  onArchive?: (conversationId: string) => void;
 }
 
 const ConversationList = ({ 
@@ -21,6 +29,7 @@ const ConversationList = ({
   selectedId, 
   onSelect, 
   onDelete,
+  onArchive,
   isLoading = false,
   isDeleting = false
 }: ConversationListProps) => {
@@ -58,6 +67,11 @@ const ConversationList = ({
         const isSelected = selectedId === conversation.id;
         const hasUnread = conversation.unreadCount > 0;
         
+        // Get participant names (this is simplified since we don't have user details)
+        const otherParticipants = conversation.participants.filter(p => p !== conversation.participants[0]);
+        const buyerName = otherParticipants[0]?.split('@')?.[0] || "Buyer";
+        const sellerName = conversation.participants[0]?.split('@')?.[0] || "Seller";
+        
         return (
           <div
             key={conversation.id}
@@ -87,17 +101,17 @@ const ConversationList = ({
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-start">
                     <h4 className={cn(
-                      "truncate",
+                      "truncate max-w-[calc(100%-4rem)]",
                       hasUnread ? "font-semibold" : "font-medium"
                     )}>
                       {conversation.subject || "No subject"}
                     </h4>
-                    <span className="text-xs text-muted-foreground whitespace-nowrap ml-2">
+                    <span className="text-xs text-muted-foreground whitespace-nowrap ml-2 max-w-[4rem] truncate">
                       {formatDistanceToNow(new Date(conversation.lastMessageAt), { addSuffix: true })}
                     </span>
                   </div>
-                  <p className="text-sm text-muted-foreground truncate">
-                    Property ID: {conversation.propertyId || "N/A"}
+                  <p className="text-sm text-muted-foreground truncate mt-0.5">
+                    Seller: {sellerName} • Buyer: {buyerName}
                   </p>
                   {hasUnread && (
                     <Badge variant="default" className="mt-1 bg-primary">
@@ -107,16 +121,42 @@ const ConversationList = ({
                 </div>
               </div>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="opacity-0 group-hover:opacity-100 transition-opacity ml-2 mt-1 h-8 w-8"
-              onClick={() => onDelete(conversation.id)}
-              disabled={isDeleting}
-            >
-              <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
-              <span className="sr-only">Delete conversation</span>
-            </Button>
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="opacity-0 group-hover:opacity-100 transition-opacity ml-2 mt-1 h-8 w-8"
+                  disabled={isDeleting}
+                >
+                  <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
+                  <span className="sr-only">More options</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-[180px]">
+                {onArchive && (
+                  <DropdownMenuItem 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onArchive(conversation.id);
+                    }}
+                  >
+                    Archive
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(conversation.id);
+                  }}
+                  className="text-destructive focus:text-destructive"
+                >
+                  Delete
+                </DropdownMenuItem>
+                {onArchive && <DropdownMenuSeparator />}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         );
       })}
