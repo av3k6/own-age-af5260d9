@@ -10,3 +10,13 @@ export interface AuthContextType {
   signOut: () => Promise<{ error: any }>;
   checkIsAuthenticated: () => Promise<boolean>;
 }
+
+export interface AuthErrorResponse {
+  message: string;
+  status?: number;
+  code?: string;
+}
+
+export interface AuthSuccessResponse<T = any> {
+  data: T;
+}

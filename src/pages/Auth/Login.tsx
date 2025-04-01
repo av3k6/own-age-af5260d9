@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -15,6 +15,7 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
   const { toast } = useToast();
   const { signIn, user, isInitialized } = useAuth();
   const navigate = useNavigate();
@@ -22,15 +23,25 @@ const Login = () => {
   
   console.log("Login page rendering with state:", { isInitialized, hasUser: !!user });
   
+  const handleRedirect = useCallback(() => {
+    if (user) {
+      setRedirecting(true);
+      const from = location.state?.from?.pathname || "/dashboard";
+      console.log("User authenticated, redirecting to:", from);
+      
+      // Slight delay to ensure state updates complete
+      setTimeout(() => {
+        navigate(from, { replace: true });
+      }, 100);
+    }
+  }, [user, navigate, location.state]);
+  
   // Handle redirect if user is already logged in
   useEffect(() => {
-    console.log("Login useEffect triggered:", { isInitialized, hasUser: !!user, from: location.state?.from?.pathname });
-    if (isInitialized && user) {
-      const from = location.state?.from?.pathname || "/dashboard";
-      console.log("User already logged in, redirecting to:", from);
-      navigate(from, { replace: true });
+    if (isInitialized && user && !redirecting) {
+      handleRedirect();
     }
-  }, [user, isInitialized, navigate, location.state]);
+  }, [user, isInitialized, handleRedirect, redirecting]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,7 +59,7 @@ const Login = () => {
       setIsLoading(true);
       console.log("Login form submitting with email:", email);
       
-      const { error, data } = await signIn(email, password);
+      const { error } = await signIn(email, password);
       
       if (error) {
         console.error("Login error details:", error);
@@ -65,9 +76,6 @@ const Login = () => {
         title: "Success",
         description: "Logged in successfully!",
       });
-      
-      // Navigate after successful login
-      navigate("/dashboard");
     } catch (error: any) {
       console.error("Login error:", error);
       toast({
@@ -112,7 +120,7 @@ const Login = () => {
               onChange={(e) => setEmail(e.target.value)}
               className="pl-10 appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
               autoComplete="email"
-              disabled={isLoading}
+              disabled={isLoading || redirecting}
             />
           </div>
           
@@ -127,7 +135,7 @@ const Login = () => {
               onChange={(e) => setPassword(e.target.value)}
               className="pl-10 appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
               autoComplete="current-password"
-              disabled={isLoading}
+              disabled={isLoading || redirecting}
             />
             <div 
               className="absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer" 
@@ -149,12 +157,12 @@ const Login = () => {
           <Button
             type="submit"
             className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-            disabled={isLoading}
+            disabled={isLoading || redirecting}
           >
-            {isLoading && (
+            {(isLoading || redirecting) && (
               <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
             )}
-            Sign In
+            {redirecting ? "Redirecting..." : "Sign In"}
           </Button>
         </form>
       </div>

@@ -10,6 +10,7 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import { Toaster } from '@/components/ui/toaster';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import { UserRole } from '@/types';
 
 // Pages
 import Home from './pages/Index';
@@ -70,7 +71,7 @@ function App() {
                     </ProtectedRoute>
                   } />
                   <Route path="/sell" element={
-                    <ProtectedRoute>
+                    <ProtectedRoute requiredRole={[UserRole.SELLER, UserRole.PROFESSIONAL]}>
                       <Sell />
                     </ProtectedRoute>
                   } />
@@ -80,12 +81,12 @@ function App() {
                     </ProtectedRoute>
                   } />
                   <Route path="/property/:id/make-offer" element={
-                    <ProtectedRoute>
+                    <ProtectedRoute requiredRole={UserRole.BUYER}>
                       <MakeOffer />
                     </ProtectedRoute>
                   } />
                   <Route path="/property/:id/edit" element={
-                    <ProtectedRoute>
+                    <ProtectedRoute requiredRole={UserRole.SELLER}>
                       <EditListing />
                     </ProtectedRoute>
                   } />
