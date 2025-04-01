@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { format, addDays, startOfDay, parseISO } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
@@ -6,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useSupabase } from "@/hooks/useSupabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { Showing, TimeSlot } from "@/types";
+import { ShowingStatus } from "@/types/enums";
 import { Calendar as CalendarIcon, Clock } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
