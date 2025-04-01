@@ -60,13 +60,12 @@ export function useMessages(): UseMessagesReturn {
   }, [currentConversationId, user]);
 
   // Wrapper functions that pass the state setter
-  const fetchMessages = async (conversationId: string) => {
+  const fetchMessages = async (conversationId: string): Promise<void> => {
     setCurrentConversationId(conversationId);
     const messages = await fetchMessagesBase(conversationId, setState);
     if (messages && messages.length > 0) {
       await markMessagesAsRead(conversationId);
     }
-    return messages;
   };
 
   const sendMessage = async (conversationId: string, content: string, attachments?: File[]) => {
