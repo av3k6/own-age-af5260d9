@@ -54,21 +54,63 @@ BEGIN
   END IF;
 END $$;
 
+-- Create indexes for search performance
+DO $$ 
+BEGIN 
+  IF NOT EXISTS (SELECT 1 FROM pg_indexes 
+                 WHERE indexname = 'idx_messages_content_search') THEN
+    CREATE INDEX idx_messages_content_search ON public.messages USING GIN (to_tsvector('english', content));
+  END IF;
+END $$;
+
+DO $$ 
+BEGIN 
+  IF NOT EXISTS (SELECT 1 FROM pg_indexes 
+                 WHERE indexname = 'idx_conversations_subject_search') THEN
+    CREATE INDEX idx_conversations_subject_search ON public.conversations USING GIN (to_tsvector('english', subject));
+  END IF;
+END $$;
+
 -- Policies for user_encryption_keys
 -- Anyone can read public keys (needed for encryption)
-CREATE POLICY "Anyone can read public keys"
+CREATE POLICY IF NOT EXISTS "Anyone can read public keys"
   ON public.user_encryption_keys
   FOR SELECT
   USING (true);
 
 -- Users can only update their own keys
-CREATE POLICY "Users can update their own keys"
+CREATE POLICY IF NOT EXISTS "Users can update their own keys"
   ON public.user_encryption_keys
   FOR UPDATE
   USING (auth.uid()::text = user_id);
 
 -- Users can insert their own keys
-CREATE POLICY "Users can insert their own keys"
+CREATE POLICY IF NOT EXISTS "Users can insert their own keys"
   ON public.user_encryption_keys
   FOR INSERT
   WITH CHECK (auth.uid()::text = user_id);
+
+-- Create function to update message delivery status
+CREATE OR REPLACE FUNCTION update_message_delivery_status()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- If the message is being marked as read
+  IF NEW.read = TRUE AND OLD.read = FALSE THEN
+    NEW.delivery_status = 'read';
+  END IF;
+  
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create trigger to update delivery status when message is read
+DO $$ 
+BEGIN 
+  IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'update_delivery_status_on_read') THEN
+    CREATE TRIGGER update_delivery_status_on_read
+    BEFORE UPDATE ON messages
+    FOR EACH ROW
+    WHEN (NEW.read = TRUE AND OLD.read = FALSE)
+    EXECUTE FUNCTION update_message_delivery_status();
+  END IF;
+END $$;

@@ -84,9 +84,23 @@ const ConversationList = ({
                   {formatDistanceToNow(new Date(conversation.lastMessageAt), { addSuffix: true })}
                 </span>
               </div>
-              <p className="text-sm text-muted-foreground truncate">
-                Property ID: {conversation.propertyId || "N/A"}
-              </p>
+              <div className="flex items-center space-x-1 mt-1">
+                {conversation.propertyId && (
+                  <span className="text-xs text-muted-foreground truncate max-w-[100px]">
+                    {conversation.propertyId}
+                  </span>
+                )}
+                {conversation.category && (
+                  <Badge variant="outline" className="text-xs">
+                    {conversation.category}
+                  </Badge>
+                )}
+                {conversation.isEncrypted && (
+                  <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                    Encrypted
+                  </Badge>
+                )}
+              </div>
               {hasUnread && (
                 <Badge variant="default" className="mt-1 bg-primary">
                   {conversation.unreadCount} {conversation.unreadCount === 1 ? "new message" : "new messages"}

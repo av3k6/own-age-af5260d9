@@ -6,7 +6,7 @@ import { useMessaging } from "@/hooks/useMessaging";
 import ConversationList from "@/components/messaging/ConversationList";
 import MessageList from "@/components/messaging/MessageList";
 import MessageInput from "@/components/messaging/MessageInput";
-import { Plus, MessageSquare, ArrowLeft, AlertCircle, Users } from "lucide-react";
+import { Plus, MessageSquare, ArrowLeft, AlertCircle, Users, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Conversation } from "@/types/message";
@@ -23,6 +23,17 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import ConversationSearch from "@/components/messaging/ConversationSearch";
+import { ConversationCategory } from "@/types/encryption";
+import { useMessageSearch } from "@/hooks/messaging/useMessageSearch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 
 const Messaging = () => {
   const { user, loading: authLoading } = useAuth();
@@ -48,6 +59,18 @@ const Messaging = () => {
   const [subject, setSubject] = useState("");
   const [initialMessage, setInitialMessage] = useState("");
   const [propertyId, setPropertyId] = useState("");
+  const [category, setCategory] = useState<ConversationCategory>(ConversationCategory.GENERAL);
+  
+  // Use the message search hook
+  const {
+    searchTerm,
+    filters,
+    filteredConversations,
+    setSearchTerm,
+    setCategory: setSearchCategory,
+    setHasUnread,
+    clearFilters
+  } = useMessageSearch(conversations);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -108,7 +131,8 @@ const Messaging = () => {
         receiverId,
         subject || "New conversation",
         initialMessage,
-        propertyId || undefined
+        propertyId || undefined,
+        category
       );
       
       if (newConversation) {
@@ -120,6 +144,7 @@ const Messaging = () => {
         setSubject("");
         setInitialMessage("");
         setPropertyId("");
+        setCategory(ConversationCategory.GENERAL);
         
         // Select the new conversation
         handleSelectConversation(newConversation);
@@ -152,10 +177,31 @@ const Messaging = () => {
     );
   }
 
+  const getConversationStats = () => {
+    const total = conversations.length;
+    const unread = conversations.filter(c => c.unreadCount > 0).length;
+    
+    return { total, unread };
+  };
+
+  const { total, unread } = getConversationStats();
+
   return (
     <div className="container py-6 max-w-6xl">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold">Messages</h1>
+        <div>
+          <h1 className="text-3xl font-bold">Messages</h1>
+          <div className="flex items-center space-x-2 mt-1">
+            <Badge variant="outline" className="text-xs">
+              {total} conversation{total !== 1 ? 's' : ''}
+            </Badge>
+            {unread > 0 && (
+              <Badge variant="default" className="text-xs bg-primary">
+                {unread} unread
+              </Badge>
+            )}
+          </div>
+        </div>
         <Dialog open={newConversationOpen} onOpenChange={setNewConversationOpen}>
           <DialogTrigger asChild>
             <Button className="flex items-center gap-2">
@@ -208,6 +254,26 @@ const Messaging = () => {
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="category" className="text-right">
+                  Category
+                </Label>
+                <Select
+                  value={category}
+                  onValueChange={(value) => setCategory(value as ConversationCategory)}
+                >
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={ConversationCategory.GENERAL}>General</SelectItem>
+                    <SelectItem value={ConversationCategory.PROPERTY}>Property</SelectItem>
+                    <SelectItem value={ConversationCategory.OFFER}>Offer</SelectItem>
+                    <SelectItem value={ConversationCategory.DOCUMENT}>Document</SelectItem>
+                    <SelectItem value={ConversationCategory.SUPPORT}>Support</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="message" className="text-right">
                   Message
                 </Label>
@@ -243,15 +309,25 @@ const Messaging = () => {
           {/* Conversation List - Always shown on desktop, conditionally shown on mobile */}
           {(!isMobile || (isMobile && showConversations)) && (
             <div className={`border-r ${isMobile ? 'col-span-1' : 'col-span-1'}`}>
-              <div className="p-3 border-b bg-muted/30">
-                <h2 className="font-medium text-lg">Conversations</h2>
+              <div className="flex flex-col h-full">
+                <ConversationSearch 
+                  searchTerm={searchTerm}
+                  onSearchChange={setSearchTerm}
+                  selectedCategory={filters.category}
+                  onCategoryChange={setSearchCategory}
+                  hasUnread={filters.hasUnread}
+                  onUnreadChange={setHasUnread}
+                  onClearFilters={clearFilters}
+                />
+                <div className="flex-1 overflow-y-auto">
+                  <ConversationList 
+                    conversations={filteredConversations}
+                    selectedId={currentConversation?.id}
+                    onSelect={handleSelectConversation}
+                    isLoading={loading}
+                  />
+                </div>
               </div>
-              <ConversationList 
-                conversations={conversations}
-                selectedId={currentConversation?.id}
-                onSelect={handleSelectConversation}
-                isLoading={loading}
-              />
             </div>
           )}
 
@@ -275,11 +351,16 @@ const Messaging = () => {
                       <h2 className="font-medium">
                         {currentConversation.subject || "No subject"}
                       </h2>
-                      <p className="text-xs text-muted-foreground">
-                        {currentConversation.propertyId 
-                          ? `Property ID: ${currentConversation.propertyId}` 
-                          : "Direct message"}
-                      </p>
+                      <div className="flex items-center text-xs text-muted-foreground">
+                        {currentConversation.propertyId && (
+                          <span className="mr-2">Property ID: {currentConversation.propertyId}</span>
+                        )}
+                        {currentConversation.category && (
+                          <Badge variant="outline" className="text-xs">
+                            {currentConversation.category}
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                   </div>
                   <div className="flex-1 overflow-y-auto">
