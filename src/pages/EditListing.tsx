@@ -225,43 +225,62 @@ export default function EditListing() {
 
       console.log("Updating listing status to:", values.status);
 
-      const { error } = await supabase
-        .from("property_listings")
-        .update({
-          title: values.title,
-          description: values.description,
-          price: values.price,
-          property_type: values.propertyType,
-          bedrooms: values.bedrooms,
-          bathrooms: values.bathrooms,
-          square_feet: values.squareFeet,
-          year_built: values.yearBuilt,
-          address: {
-            street: values.street,
-            city: values.city,
-            state: values.state,
-            zipCode: values.zipCode,
-          },
-          features: featuresArray,
-          status: values.status,
-          room_details: {
-            bedrooms: bedroomRooms,
-            otherRooms: otherRooms,
-          },
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", id)
-        .eq("seller_id", user.id)
-        .select();
-
-      if (error) throw error;
-
-      toast({
-        title: "Listing Updated",
-        description: `Your property listing has been updated successfully with status: ${values.status}.`,
-      });
-
-      navigate(`/property/${id}`);
+      const updateData = {
+        title: values.title,
+        description: values.description,
+        price: values.price,
+        property_type: values.propertyType,
+        bedrooms: values.bedrooms,
+        bathrooms: values.bathrooms,
+        square_feet: values.squareFeet,
+        year_built: values.yearBuilt,
+        address: {
+          street: values.street,
+          city: values.city,
+          state: values.state,
+          zipCode: values.zipCode,
+        },
+        features: featuresArray,
+        status: values.status,
+        updated_at: new Date().toISOString(),
+      };
+      
+      try {
+        const { error } = await supabase
+          .from("property_listings")
+          .update(updateData)
+          .eq("id", id)
+          .eq("seller_id", user.id);
+          
+        if (error) throw error;
+          
+        toast({
+          title: "Listing Updated",
+          description: `Your property listing has been updated successfully with status: ${values.status}.`,
+        });
+        
+        navigate(`/property/${id}`);
+      } catch (initialError: any) {
+        if (!initialError.message.includes("room_details")) {
+          throw initialError;
+        }
+        
+        console.log("Retrying update without room_details field");
+        const { error } = await supabase
+          .from("property_listings")
+          .update(updateData)
+          .eq("id", id)
+          .eq("seller_id", user.id);
+          
+        if (error) throw error;
+        
+        toast({
+          title: "Listing Updated",
+          description: `Your property listing has been updated successfully with status: ${values.status}.`,
+        });
+        
+        navigate(`/property/${id}`);
+      }
     } catch (error: any) {
       console.error("Failed to update listing:", error);
       toast({
