@@ -14,7 +14,7 @@ export function useConversationHandlers({
   currentConversation: Conversation | null;
   fetchConversations: () => Promise<void>;
   fetchMessagesBase: (conversationId: string) => Promise<void>;
-  toast: typeof toast;
+  toast: any; // Change to any to avoid circular reference
 }) {
   // Initialize conversations list on component mount
   useEffect(() => {

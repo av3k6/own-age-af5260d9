@@ -19,7 +19,7 @@ export function useMessagingActions({
   fetchConversations: () => Promise<void>;
   markMessagesAsRead: (conversationId: string) => Promise<void>;
   setCurrentConversation: (conversation: Conversation | null) => void;
-  toast: typeof toast;
+  toast: any; // Change to any to avoid circular reference
 }) {
   // Handle conversation selection with messages fetching
   const handleSelectConversation = (conversation: Conversation) => {
