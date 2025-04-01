@@ -45,12 +45,16 @@ function App() {
           <AuthProvider>
             <Suspense fallback={<LoadingFallback />}>
               <Routes>
-                {/* Public routes */}
-                <Route path="/" element={<Home />} />
+                {/* Public routes with Layout */}
+                <Route element={<Layout />}>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/buy" element={<Buy />} />
+                  <Route path="/property/:id" element={<PropertyDetail />} />
+                </Route>
+                
+                {/* Auth routes without Layout */}
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<Signup />} />
-                <Route path="/buy" element={<Buy />} />
-                <Route path="/property/:id" element={<PropertyDetail />} />
                 
                 {/* Protected routes with Layout */}
                 <Route element={<Layout />}>
