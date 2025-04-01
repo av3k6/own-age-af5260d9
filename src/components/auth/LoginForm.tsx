@@ -37,6 +37,12 @@ const LoginForm = ({
   const { signIn } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  
+  console.log("LoginForm rendering with props:", { 
+    hasExternalSubmit: !!onSubmit,
+    hasExternalEmail: externalEmail !== undefined,
+    externalIsLoading
+  });
 
   // Use external state if provided, otherwise use local state
   const isLoading = externalIsLoading !== undefined ? externalIsLoading : localIsLoading;
@@ -47,9 +53,11 @@ const LoginForm = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("LoginForm handleSubmit called");
     
     if (onSubmit) {
       // If external submit handler is provided, use that
+      console.log("Using external submit handler");
       await onSubmit(e);
       return;
     }
@@ -101,6 +109,7 @@ const LoginForm = ({
     setShowPassword(!showPassword);
   };
 
+  console.log("LoginForm finished rendering setup, returning JSX");
   return (
     <div className="space-y-6">
       <form onSubmit={handleSubmit} className="space-y-6">

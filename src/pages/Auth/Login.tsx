@@ -17,8 +17,11 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
+  console.log("Login page rendering with state:", { isInitialized, hasUser: !!user });
+  
   // Handle redirect if user is already logged in
   useEffect(() => {
+    console.log("Login useEffect triggered:", { isInitialized, hasUser: !!user, from: location.state?.from?.pathname });
     if (isInitialized && user) {
       const from = location.state?.from?.pathname || "/dashboard";
       console.log("User already logged in, redirecting to:", from);
@@ -54,6 +57,7 @@ const Login = () => {
         return;
       }
       
+      console.log("Login successful, awaiting auth state update");
       toast({
         title: "Success",
         description: "Logged in successfully!",
@@ -122,6 +126,7 @@ const Login = () => {
 
   // Show loading indicator while auth is initializing
   if (!isInitialized) {
+    console.log("Auth not initialized yet, showing loading state");
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -129,6 +134,7 @@ const Login = () => {
     );
   }
 
+  console.log("Rendering login form");
   return (
     <AuthPageLayout
       title="Welcome back"

@@ -38,6 +38,7 @@ const LoadingFallback = () => (
 );
 
 function App() {
+  console.log("App component rendering");
   return (
     <Router>
       <ErrorBoundary>
