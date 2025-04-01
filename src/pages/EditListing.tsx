@@ -33,6 +33,13 @@ export default function EditListing() {
     );
   }
 
+  // Using a simpler onClick handler to avoid syntax issues on line 74-75
+  const handleCancel = () => {
+    if (id) {
+      window.location.href = `/property/${id}`;
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="max-w-2xl mx-auto">
@@ -71,7 +78,7 @@ export default function EditListing() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => id && window.location.href = `/property/${id}`}
+                onClick={handleCancel}
               >
                 Cancel
               </Button>
