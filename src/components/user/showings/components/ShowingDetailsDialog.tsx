@@ -67,7 +67,7 @@ export default function ShowingDetailsDialog({
   const getBadgeVariant = (status: string) => {
     switch (status) {
       case 'PENDING': return "outline";
-      case 'APPROVED': return "success";
+      case 'APPROVED': return "default"; // Changed from "success" to "default" with green styling
       case 'REJECTED': return "destructive";
       case 'CANCELED': return "secondary";
       case 'COMPLETED': return "default";
@@ -97,7 +97,10 @@ export default function ShowingDetailsDialog({
                 <span>{formatTime(showing.requestedTimeStart)} - {formatTime(showing.requestedTimeEnd)}</span>
               </div>
             </div>
-            <Badge variant={getBadgeVariant(showing.status)}>
+            <Badge 
+              variant={getBadgeVariant(showing.status)}
+              className={showing.status === 'APPROVED' ? 'bg-green-500 text-white hover:bg-green-600' : ''}
+            >
               {showing.status.charAt(0) + showing.status.slice(1).toLowerCase()}
             </Badge>
           </div>

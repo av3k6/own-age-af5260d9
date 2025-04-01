@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12,7 +13,6 @@ import {
 import { CalendarDays } from "lucide-react";
 import ShowingRequestForm from "./ShowingRequestForm";
 import { useToast } from "@/hooks/use-toast";
-import { useRouter } from "react-router-dom";
 
 interface ScheduleShowingDialogProps {
   propertyId: string;
@@ -27,7 +27,7 @@ export default function ScheduleShowingDialog({
 }: ScheduleShowingDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const { toast } = useToast();
-  const router = useRouter();
+  const navigate = useNavigate();
 
   const handleShowingRequestSubmit = (data: any) => {
     console.log("Showing request submitted:", data);
@@ -42,7 +42,7 @@ export default function ScheduleShowingDialog({
     
     // Optional: Redirect to the user's showings page
     setTimeout(() => {
-      router.navigate("/user/showings");
+      navigate("/user/showings");
     }, 1500);
   };
 

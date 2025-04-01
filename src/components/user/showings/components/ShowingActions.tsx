@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { ShowingWithProperty } from "../types";
-import { ShowingStatus } from "@/types";
+import { ShowingStatus } from "@/types/enums";
 import { 
   Loader2, 
   CheckCircle, 
@@ -43,7 +43,7 @@ export const ShowingActions = ({
   // Handle each status explicitly to avoid TypeScript errors
   switch (showing.status) {
     // Seller actions for requested showings
-    case ShowingStatus.REQUESTED:
+    case ShowingStatus.PENDING:
       if (!isBuyer) {
         return (
           <div className="flex space-x-2">
@@ -59,7 +59,7 @@ export const ShowingActions = ({
               variant="outline" 
               size="sm"
               className="border-red-500 text-red-600 hover:bg-red-50"
-              onClick={() => onUpdateStatus(showing.id, ShowingStatus.DECLINED)}
+              onClick={() => onUpdateStatus(showing.id, ShowingStatus.REJECTED)}
             >
               <XCircle className="h-4 w-4 mr-1" /> Decline
             </Button>
@@ -113,7 +113,7 @@ export const ShowingActions = ({
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem 
-              onClick={() => onUpdateStatus(showing.id, ShowingStatus.CANCELLED)}
+              onClick={() => onUpdateStatus(showing.id, ShowingStatus.CANCELED)}
               className="text-red-600"
             >
               <XCircle className="h-4 w-4 mr-2" /> 
@@ -136,8 +136,8 @@ export const ShowingActions = ({
       );
       
     // For cancelled or declined showings
-    case ShowingStatus.CANCELLED:
-    case ShowingStatus.DECLINED:
+    case ShowingStatus.CANCELED:
+    case ShowingStatus.REJECTED:
       return (
         <Button variant="ghost" size="icon" onClick={() => onView(showing)}>
           <ExternalLink className="h-5 w-5" />

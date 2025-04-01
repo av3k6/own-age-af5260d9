@@ -20,11 +20,16 @@ export default function ShowingRequestManager({ isBuyer }: ShowingRequestManager
     );
   }
   
+  // Create a wrapper function to handle the status change
+  const handleStatusChange = async (id: string, status: string) => {
+    await changeShowingStatus(id, status);
+  };
+  
   return (
     <ShowingTable 
       showings={showings} 
       isBuyer={isBuyer} 
-      onStatusChange={changeShowingStatus}
+      onStatusChange={handleStatusChange}
     />
   );
 }

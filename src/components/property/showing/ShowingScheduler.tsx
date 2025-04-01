@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { format, addDays, startOfDay, parseISO } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
@@ -148,7 +147,7 @@ export default function ShowingScheduler({
         buyerId: user?.id || "",
         startTime: slot.startTime,
         endTime: slot.endTime,
-        status: "PENDING"
+        status: ShowingStatus.PENDING
       };
       
       onSchedule(showing);

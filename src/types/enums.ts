@@ -1,3 +1,4 @@
+
 export enum UserRole {
   BUYER = "buyer",
   SELLER = "seller",
@@ -35,5 +36,9 @@ export enum ShowingStatus {
   APPROVED = "APPROVED",
   REJECTED = "REJECTED",
   CANCELED = "CANCELED", 
-  COMPLETED = "COMPLETED"
+  COMPLETED = "COMPLETED",
+  // Adding these aliases to fix the type errors
+  REQUESTED = "PENDING",
+  DECLINED = "REJECTED",
+  CANCELLED = "CANCELED"
 }

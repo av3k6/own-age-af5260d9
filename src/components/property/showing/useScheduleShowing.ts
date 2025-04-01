@@ -56,7 +56,7 @@ export const useScheduleShowing = ({
         seller_id: sellerId,
         start_time: showingData.startTime,
         end_time: showingData.endTime,
-        status: ShowingStatus.REQUESTED,
+        status: ShowingStatus.PENDING,
         notes: showingData.notes || '',
         created_at: new Date(),
         updated_at: new Date(),

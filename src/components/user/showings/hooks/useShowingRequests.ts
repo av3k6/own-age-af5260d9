@@ -4,6 +4,7 @@ import { useSupabase } from "@/hooks/useSupabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { ViewingRequest } from "@/types/showing";
+import { ShowingStatus } from "@/types/enums";
 
 export function useShowingRequests(isBuyer: boolean) {
   const { supabase } = useSupabase();
@@ -41,7 +42,7 @@ export function useShowingRequests(isBuyer: boolean) {
         
         if (data) {
           // Transform the data to match the ViewingRequest type
-          const formattedShowings = data.map(showing => ({
+          const formattedShowings: ViewingRequest[] = data.map(showing => ({
             id: showing.id,
             propertyId: showing.property_id,
             sellerId: showing.seller_id,
@@ -52,7 +53,7 @@ export function useShowingRequests(isBuyer: boolean) {
             requestedDate: showing.requested_date,
             requestedTimeStart: showing.requested_time_start,
             requestedTimeEnd: showing.requested_time_end,
-            status: showing.status,
+            status: showing.status as ShowingStatus,
             buyerNotes: showing.buyer_notes,
             sellerNotes: showing.seller_notes,
             isVirtual: showing.is_virtual,
@@ -80,7 +81,7 @@ export function useShowingRequests(isBuyer: boolean) {
   
   // Change showing request status
   const changeShowingStatus = async (id: string, status: string) => {
-    if (!user) return;
+    if (!user) return false;
     
     try {
       const { error } = await supabase
@@ -97,7 +98,7 @@ export function useShowingRequests(isBuyer: boolean) {
       // Update local state
       setShowings(prevShowings => 
         prevShowings.map(showing => 
-          showing.id === id ? { ...showing, status } : showing
+          showing.id === id ? { ...showing, status: status as ShowingStatus } : showing
         )
       );
       

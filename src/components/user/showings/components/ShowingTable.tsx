@@ -57,7 +57,7 @@ export default function ShowingTable({
   const getBadgeVariant = (status: string) => {
     switch (status) {
       case 'PENDING': return "outline";
-      case 'APPROVED': return "success";
+      case 'APPROVED': return "default"; // Changed from "success" to "default"
       case 'REJECTED': return "destructive";
       case 'CANCELED': return "secondary";
       case 'COMPLETED': return "default";
@@ -90,7 +90,6 @@ export default function ShowingTable({
             {showings.map((showing) => (
               <TableRow key={showing.id}>
                 <TableCell className="font-medium">
-                  {/* This would ideally show property title */}
                   Property #{showing.propertyId.slice(0, 8)}
                 </TableCell>
                 <TableCell>
@@ -119,7 +118,10 @@ export default function ShowingTable({
                   )}
                 </TableCell>
                 <TableCell>
-                  <Badge variant={getBadgeVariant(showing.status)}>
+                  <Badge 
+                    variant={getBadgeVariant(showing.status)}
+                    className={showing.status === 'APPROVED' ? 'bg-green-500 text-white hover:bg-green-600' : ''}
+                  >
                     {getFormattedStatus(showing.status)}
                   </Badge>
                 </TableCell>

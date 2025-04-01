@@ -2,12 +2,13 @@
 import * as React from "react";
 import { Input } from "@/components/ui/input";
 
-interface TimeInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+interface TimeInputProps {
   value: string;
   onChange: (value: string) => void;
+  className?: string;
 }
 
-export function TimeInput({ value, onChange, className, ...props }: TimeInputProps) {
+export function TimeInput({ value, onChange, className, ...props }: TimeInputProps & Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'value'>) {
   const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onChange(e.target.value);
   };
