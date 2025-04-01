@@ -51,7 +51,15 @@ export function useSendMessage() {
       if (!receiverId) throw new Error("Recipient not found");
       
       // Create message object with snake_case keys for the database
-      const newMessage = {
+      const newMessage: {
+        sender_id: string;
+        receiver_id: string;
+        content: string;
+        read: boolean;
+        conversation_id: string;
+        created_at: string;
+        attachments?: Attachment[];
+      } = {
         sender_id: user.id,
         receiver_id: receiverId,
         content,
