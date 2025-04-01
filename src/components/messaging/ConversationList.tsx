@@ -72,9 +72,14 @@ const ConversationList = ({
         const buyerId = otherParticipants[0] || "";
         const sellerId = conversation.participants[0] || "";
         
-        // Format the IDs for display
-        const buyerName = buyerId.split('@')?.[0] || "Buyer";
-        const sellerName = sellerId.split('@')?.[0] || "Seller";
+        // Format the IDs for display - Extract name from email or use first part of ID
+        const buyerName = buyerId.includes('@') 
+          ? buyerId.split('@')[0] 
+          : buyerId.split('-')[0] || "Buyer";
+          
+        const sellerName = sellerId.includes('@') 
+          ? sellerId.split('@')[0] 
+          : sellerId.split('-')[0] || "Seller";
         
         return (
           <div

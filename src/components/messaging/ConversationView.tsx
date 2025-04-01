@@ -28,12 +28,12 @@ const ConversationView: React.FC<ConversationViewProps> = ({
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isSending, setIsSending] = useState(false);
 
-  const handleSendMessage = async (content: string) => {
-    if (!content.trim() && selectedFiles.length === 0) return;
+  const handleSendMessage = async (content: string, attachments?: File[]) => {
+    if (!content.trim() && (!attachments || attachments.length === 0)) return;
     
     try {
       setIsSending(true);
-      await onSendMessage(content, selectedFiles.length > 0 ? selectedFiles : undefined);
+      await onSendMessage(content, attachments);
       setSelectedFiles([]);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
@@ -45,23 +45,18 @@ const ConversationView: React.FC<ConversationViewProps> = ({
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setSelectedFiles(Array.from(e.target.files));
-    }
-  };
-
-  const handleRemoveFile = (index: number) => {
-    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
-  };
-
   // Extract and format participant information
   const otherParticipant = conversation.participants.find(p => p !== conversation.participants[0]) || "";
   const seller = conversation.participants[0] || "";
   
-  // Format the IDs for display (removing the UUID format)
-  const buyerName = otherParticipant.split('@')[0] || "Buyer";
-  const sellerName = seller.split('@')[0] || "Seller";
+  // Format the IDs for display
+  const buyerName = otherParticipant.includes('@') 
+    ? otherParticipant.split('@')[0] 
+    : otherParticipant.split('-')[0] || "Buyer";
+    
+  const sellerName = seller.includes('@') 
+    ? seller.split('@')[0] 
+    : seller.split('-')[0] || "Seller";
 
   return (
     <>
@@ -98,7 +93,7 @@ const ConversationView: React.FC<ConversationViewProps> = ({
                     variant="ghost"
                     size="icon"
                     className="h-4 w-4 ml-1"
-                    onClick={() => handleRemoveFile(index)}
+                    onClick={() => setSelectedFiles(prev => prev.filter((_, i) => i !== index))}
                   >
                     <span className="sr-only">Remove</span>
                     ×
@@ -109,32 +104,34 @@ const ConversationView: React.FC<ConversationViewProps> = ({
           </div>
         )}
 
-        <div className="p-3 border-t mt-auto">
-          <MessageInput
-            onSend={handleSendMessage}
-            isLoading={isSending}
-            extraButton={
-              <>
-                <Button
-                  type="button"
-                  size="icon"
-                  variant="ghost"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <Paperclip className="h-5 w-5" />
-                  <span className="sr-only">Attach file</span>
-                </Button>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  multiple
-                  className="hidden"
-                  onChange={handleFileChange}
-                />
-              </>
-            }
-          />
-        </div>
+        <MessageInput
+          onSend={handleSendMessage}
+          isLoading={isSending}
+          extraButton={
+            <>
+              <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Paperclip className="h-5 w-5" />
+                <span className="sr-only">Attach file</span>
+              </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                className="hidden"
+                onChange={(e) => {
+                  if (e.target.files) {
+                    setSelectedFiles(Array.from(e.target.files));
+                  }
+                }}
+              />
+            </>
+          }
+        />
       </div>
     </>
   );
