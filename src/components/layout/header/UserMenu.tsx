@@ -1,9 +1,17 @@
 
 import { Link, useNavigate } from "react-router-dom";
-import { User, LogOut } from "lucide-react";
+import { User, LogOut, Settings, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface UserMenuProps {
   isMobile?: boolean;
@@ -55,9 +63,9 @@ const UserMenu = ({ isMobile = false }: UserMenuProps) => {
     }
     
     return (
-      <div className="flex items-center">
+      <div className="flex items-center gap-2">
         <Link to="/login">
-          <Button variant="ghost" size="sm" className="ml-1 text-foreground hover:text-primary transition-colors">
+          <Button variant="ghost" size="sm" className="text-foreground hover:text-primary transition-colors">
             Log in
           </Button>
         </Link>
@@ -78,6 +86,22 @@ const UserMenu = ({ isMobile = false }: UserMenuProps) => {
           <User className="h-4 w-4" />
           <span>{userDisplayName}</span>
         </div>
+        
+        <Link to="/profile" className="text-foreground hover:text-primary py-2 transition-colors flex items-center gap-2">
+          <User className="h-4 w-4" />
+          Profile
+        </Link>
+        
+        <Link to="/messages" className="text-foreground hover:text-primary py-2 transition-colors flex items-center gap-2">
+          <MessageSquare className="h-4 w-4" />
+          Messages
+        </Link>
+        
+        <Link to="/settings" className="text-foreground hover:text-primary py-2 transition-colors flex items-center gap-2">
+          <Settings className="h-4 w-4" />
+          Settings
+        </Link>
+        
         <Button onClick={handleSignOut} className="flex items-center justify-center gap-2">
           <LogOut className="h-4 w-4" />
           <span>Sign out</span>
@@ -87,16 +111,46 @@ const UserMenu = ({ isMobile = false }: UserMenuProps) => {
   }
 
   return (
-    <div className="flex items-center">
-      <Button variant="ghost" size="sm" className="flex items-center gap-1 text-foreground hover:text-primary transition-colors">
-        <User className="h-4 w-4" />
-        <span className="text-sm font-medium">{userDisplayName}</span>
-      </Button>
-      <Button variant="ghost" size="sm" onClick={handleSignOut} className="flex items-center gap-1 text-foreground hover:text-primary transition-colors">
-        <LogOut className="h-4 w-4" />
-        <span>Sign out</span>
-      </Button>
-    </div>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" className="flex items-center gap-2 h-9 px-2">
+          <Avatar className="h-7 w-7">
+            <AvatarImage src={user?.profileImage} alt={userDisplayName} />
+            <AvatarFallback>{userDisplayName?.charAt(0) || 'U'}</AvatarFallback>
+          </Avatar>
+          <span className="text-sm font-medium">{userDisplayName}</span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuItem asChild>
+          <Link to="/profile" className="flex items-center gap-2 cursor-pointer">
+            <User className="h-4 w-4" />
+            <span>Profile</span>
+          </Link>
+        </DropdownMenuItem>
+        
+        <DropdownMenuItem asChild>
+          <Link to="/messages" className="flex items-center gap-2 cursor-pointer">
+            <MessageSquare className="h-4 w-4" />
+            <span>Messages</span>
+          </Link>
+        </DropdownMenuItem>
+        
+        <DropdownMenuItem asChild>
+          <Link to="/settings" className="flex items-center gap-2 cursor-pointer">
+            <Settings className="h-4 w-4" />
+            <span>Settings</span>
+          </Link>
+        </DropdownMenuItem>
+        
+        <DropdownMenuSeparator />
+        
+        <DropdownMenuItem onClick={handleSignOut} className="flex items-center gap-2 cursor-pointer">
+          <LogOut className="h-4 w-4" />
+          <span>Sign out</span>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
 

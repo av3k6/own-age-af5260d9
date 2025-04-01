@@ -1,6 +1,6 @@
 
 import { Link } from "react-router-dom";
-import { Bell, MessageSquare } from "lucide-react";
+import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import ThemeToggle from "@/components/theme/ThemeToggle";
@@ -19,10 +19,10 @@ const Header = () => {
   return (
     <header className="sticky top-0 z-50 bg-background border-b shadow-sm transition-colors duration-300">
       <div className="container flex items-center justify-between h-16 px-4 mx-auto relative">
+        {/* Logo and Province Selector */}
         <div className="flex items-center gap-1 pr-4">
           <HeaderLogo />
           
-          {/* Province Filter Dropdown - Desktop */}
           {!isMobile && (
             <div className="ml-1">
               <ProvinceSelector className="w-[140px] h-9" />
@@ -30,7 +30,7 @@ const Header = () => {
           )}
         </div>
         
-        {/* Navigation - Desktop */}
+        {/* Main Navigation - Desktop */}
         {!isMobile && (
           <Navigation 
             isAuthenticated={!!user} 
@@ -38,20 +38,17 @@ const Header = () => {
           />
         )}
 
-        {/* Desktop Menu */}
+        {/* Desktop Right Side Menu */}
         {!isMobile && (
-          <div className="hidden md:flex items-center gap-1">
+          <div className="hidden md:flex items-center gap-2">
             <SearchBar />
+            
             {user && (
-              <Link to="/messages">
-                <Button variant="ghost" size="icon">
-                  <MessageSquare className="h-5 w-5" />
-                </Button>
-              </Link>
+              <Button variant="ghost" size="icon" aria-label="Notifications">
+                <Bell className="h-5 w-5" />
+              </Button>
             )}
-            <Button variant="ghost" size="icon">
-              <Bell className="h-5 w-5" />
-            </Button>
+            
             <ThemeToggle />
             <UserMenu />
           </div>

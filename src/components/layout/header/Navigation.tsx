@@ -1,21 +1,6 @@
 
 import { Link } from "react-router-dom"
-import { Icons } from "@/components/ui/icons"
-import { useAuth } from "@/contexts/AuthContext"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { useNavigate } from "react-router-dom"
-import { Button } from "@/components/ui/button"
-import { MessageSquare, Bell, Home, ShoppingBag, Store, User, LayoutDashboard } from "lucide-react"
-import { useEffect, useState } from "react"
-import { useSupabase } from "@/hooks/useSupabase"
-import { Badge } from "@/components/ui/badge"
+import { Home, ShoppingBag, Store, User, LayoutDashboard } from "lucide-react"
 
 interface NavigationProps {
   isAuthenticated?: boolean;
@@ -23,55 +8,6 @@ interface NavigationProps {
 }
 
 export function Navigation({ isAuthenticated, className = "" }: NavigationProps) {
-  const { user, signOut } = useAuth();
-  const navigate = useNavigate();
-  const { supabase } = useSupabase();
-  const [unreadCount, setUnreadCount] = useState(0);
-
-  // Fetch unread message count
-  useEffect(() => {
-    if (!user) return;
-    
-    const fetchUnreadCount = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('conversations')
-          .select('unreadCount')
-          .contains('participants', [user.id]);
-          
-        if (error) {
-          console.error("Error fetching unread count:", error);
-          return;
-        }
-        
-        const totalUnread = data?.reduce((sum, conv) => sum + (conv.unreadCount || 0), 0) || 0;
-        setUnreadCount(totalUnread);
-      } catch (err) {
-        console.error("Error calculating unread messages:", err);
-      }
-    };
-    
-    fetchUnreadCount();
-    
-    // Set up subscription for real-time unread count updates
-    const channel = supabase
-      .channel('public:conversations')
-      .on('postgres_changes', {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'conversations',
-        filter: `participants=cs.{${user.id}}`
-      }, () => {
-        // When conversations are updated, refresh the unread count
-        fetchUnreadCount();
-      })
-      .subscribe();
-    
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user]);
-
   return (
     <nav className={className || "hidden md:flex items-center space-x-6"}>
       <Link
@@ -103,64 +39,15 @@ export function Navigation({ isAuthenticated, className = "" }: NavigationProps)
         Professionals
       </Link>
       
-      {user || isAuthenticated ? (
-        <>
-          <Link
-            to="/dashboard"
-            className="text-base font-medium transition-colors hover:text-primary flex items-center gap-1.5"
-          >
-            <LayoutDashboard className="h-4 w-4" />
-            Dashboard
-          </Link>
-          <Link
-            to="/messages"
-            className="text-base font-medium transition-colors hover:text-primary flex items-center gap-1.5 relative"
-          >
-            <MessageSquare className="h-4 w-4" />
-            Messages
-            {unreadCount > 0 && (
-              <Badge variant="destructive" className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs">
-                {unreadCount > 9 ? '9+' : unreadCount}
-              </Badge>
-            )}
-          </Link>
-          
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 rounded-full">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={user?.profileImage} alt={user?.name} />
-                  <AvatarFallback>{user?.name?.charAt(0) || 'U'}</AvatarFallback>
-                </Avatar>
-                <span className="sr-only">Open user menu</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <div className="grid gap-2 px-2">
-                <DropdownMenuItem>
-                  <Link to="/dashboard">Dashboard</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Link to="/profile">Profile</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Link to="/messages">Messages</Link>
-                </DropdownMenuItem>
-              </div>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => {
-                  signOut();
-                  navigate("/login");
-                }}
-              >
-                Sign out
-                <Icons.logout className="ml-auto h-4 w-4" />
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </>
-      ) : null}
+      {isAuthenticated && (
+        <Link
+          to="/dashboard"
+          className="text-base font-medium transition-colors hover:text-primary flex items-center gap-1.5"
+        >
+          <LayoutDashboard className="h-4 w-4" />
+          Dashboard
+        </Link>
+      )}
     </nav>
   );
 }
