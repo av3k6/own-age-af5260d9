@@ -1,4 +1,3 @@
-
 export enum UserRole {
   BUYER = "buyer",
   SELLER = "seller",
@@ -32,9 +31,9 @@ export enum ProfessionalType {
 }
 
 export enum ShowingStatus {
-  REQUESTED = "requested",
-  APPROVED = "approved",
-  DECLINED = "declined",
-  COMPLETED = "completed",
-  CANCELLED = "cancelled",
+  PENDING = "PENDING",
+  APPROVED = "APPROVED",
+  REJECTED = "REJECTED",
+  CANCELED = "CANCELED", 
+  COMPLETED = "COMPLETED"
 }

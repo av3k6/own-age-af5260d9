@@ -1,5 +1,5 @@
 
-import { Calendar } from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -9,8 +9,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useScheduleShowing } from "./useScheduleShowing";
-import ShowingForm from "./ShowingForm";
+import { CalendarDays } from "lucide-react";
+import ShowingRequestForm from "./ShowingRequestForm";
+import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "react-router-dom";
 
 interface ScheduleShowingDialogProps {
   propertyId: string;
@@ -18,43 +20,55 @@ interface ScheduleShowingDialogProps {
   sellerId: string;
 }
 
-export default function ScheduleShowingDialog({
-  propertyId,
+export default function ScheduleShowingDialog({ 
+  propertyId, 
   propertyTitle,
-  sellerId,
+  sellerId 
 }: ScheduleShowingDialogProps) {
-  const {
-    open,
-    setOpen,
-    isSubmitting,
-    handleShowingRequest
-  } = useScheduleShowing({
-    propertyId,
-    propertyTitle,
-    sellerId
-  });
+  const [isOpen, setIsOpen] = useState(false);
+  const { toast } = useToast();
+  const router = useRouter();
+
+  const handleShowingRequestSubmit = (data: any) => {
+    console.log("Showing request submitted:", data);
+    
+    toast({
+      title: "Viewing Request Submitted",
+      description: "The seller will be notified of your request.",
+    });
+    
+    // Close the dialog
+    setIsOpen(false);
+    
+    // Optional: Redirect to the user's showings page
+    setTimeout(() => {
+      router.navigate("/user/showings");
+    }, 1500);
+  };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button className="w-full">
-          <Calendar className="h-4 w-4 mr-2" />
+          <CalendarDays className="h-4 w-4 mr-2" />
           Schedule a Showing
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Schedule a Showing</DialogTitle>
+          <DialogTitle>Schedule a Property Showing</DialogTitle>
           <DialogDescription>
-            Request a time to visit {propertyTitle}
+            Request a time to view {propertyTitle}
           </DialogDescription>
         </DialogHeader>
-        <ShowingForm
-          propertyId={propertyId}
-          sellerId={sellerId}
-          isSubmitting={isSubmitting}
-          onRequestSubmit={handleShowingRequest}
-        />
+        
+        <div className="py-4">
+          <ShowingRequestForm
+            propertyId={propertyId}
+            sellerId={sellerId}
+            onRequestSubmit={handleShowingRequestSubmit}
+          />
+        </div>
       </DialogContent>
     </Dialog>
   );

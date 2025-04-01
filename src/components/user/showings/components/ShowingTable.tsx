@@ -1,118 +1,161 @@
 
 import { useState } from "react";
 import { formatDate, formatTime } from "@/lib/formatters";
-import { ShowingWithProperty } from "../types";
-import { ShowingStatus } from "@/types";
-import { Badge } from "@/components/ui/badge";
-import { Loader2, Calendar } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
-  TableRow
+  TableRow,
 } from "@/components/ui/table";
-import { ShowingActions } from "./ShowingActions";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Badge } from "@/components/ui/badge";
+import { Calendar, Clock, Home, User, Calendar as CalendarIcon } from "lucide-react";
+import { ViewingRequest } from "@/types/showing";
+import ShowingDetailsDialog from "./ShowingDetailsDialog";
 
 interface ShowingTableProps {
-  showingsList: ShowingWithProperty[];
-  isLoading: boolean;
+  showings: ViewingRequest[];
   isBuyer: boolean;
-  onViewShowing: (showing: ShowingWithProperty) => void;
-  onUpdateStatus: (showingId: string, newStatus: ShowingStatus) => void;
-  isProcessing: boolean;
+  onStatusChange?: (id: string, status: string) => Promise<void>;
 }
 
-export const getStatusBadge = (status: ShowingStatus) => {
-  switch (status) {
-    case ShowingStatus.REQUESTED:
-      return <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-300">Requested</Badge>;
-    case ShowingStatus.APPROVED:
-      return <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">Approved</Badge>;
-    case ShowingStatus.DECLINED:
-      return <Badge variant="outline" className="bg-red-100 text-red-800 border-red-300">Declined</Badge>;
-    case ShowingStatus.COMPLETED:
-      return <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300">Completed</Badge>;
-    case ShowingStatus.CANCELLED:
-      return <Badge variant="outline" className="bg-gray-100 text-gray-800 border-gray-300">Cancelled</Badge>;
-    default:
-      return <Badge variant="outline">{status}</Badge>;
-  }
-};
-
-export const formatAddress = (address: any) => {
-  if (!address) return "Address not available";
-  return `${address.street}, ${address.city}, ${address.state} ${address.zipCode}`;
-};
-
-export const ShowingTable = ({
-  showingsList,
-  isLoading,
+export default function ShowingTable({ 
+  showings, 
   isBuyer,
-  onViewShowing,
-  onUpdateStatus,
-  isProcessing
-}: ShowingTableProps) => {
-  if (isLoading) {
+  onStatusChange 
+}: ShowingTableProps) {
+  const [selectedShowing, setSelectedShowing] = useState<ViewingRequest | null>(null);
+  
+  if (showings.length === 0) {
     return (
-      <div className="flex justify-center py-8">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div className="text-center py-8 border rounded-md">
+        <p className="text-muted-foreground">
+          {isBuyer 
+            ? "You have no showing requests. Browse properties to schedule viewings!" 
+            : "You have no showing requests from buyers yet."}
+        </p>
+        {isBuyer && (
+          <Button variant="outline" className="mt-4" asChild>
+            <a href="/buy">
+              <Home className="mr-2 h-4 w-4" />
+              Browse Properties
+            </a>
+          </Button>
+        )}
       </div>
     );
   }
   
-  if (showingsList.length === 0) {
-    return (
-      <div className="text-center py-8">
-        <Calendar className="h-12 w-12 mx-auto text-muted-foreground opacity-50" />
-        <p className="text-muted-foreground mt-2">No showings found</p>
-      </div>
-    );
-  }
+  const getBadgeVariant = (status: string) => {
+    switch (status) {
+      case 'PENDING': return "outline";
+      case 'APPROVED': return "success";
+      case 'REJECTED': return "destructive";
+      case 'CANCELED': return "secondary";
+      case 'COMPLETED': return "default";
+      default: return "outline";
+    }
+  };
+  
+  const getFormattedStatus = (status: string) => {
+    return status.charAt(0) + status.slice(1).toLowerCase();
+  };
+  
+  const openShowingDetails = (showing: ViewingRequest) => {
+    setSelectedShowing(showing);
+  };
   
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Date & Time</TableHead>
-          <TableHead>Property</TableHead>
-          <TableHead>{isBuyer ? 'Seller' : 'Buyer'}</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead className="text-right">Actions</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {showingsList.map((showing) => (
-          <TableRow key={showing.id}>
-            <TableCell>
-              <div className="font-medium">{formatDate(showing.startTime)}</div>
-              <div className="text-sm text-muted-foreground">
-                {formatTime(showing.startTime)} - {formatTime(showing.endTime)}
-              </div>
-            </TableCell>
-            <TableCell>
-              <div className="font-medium">{showing.property?.title || 'Property'}</div>
-              <div className="text-sm text-muted-foreground truncate max-w-[200px]">
-                {showing.property?.address ? formatAddress(showing.property.address) : 'Address not available'}
-              </div>
-            </TableCell>
-            <TableCell>
-              {isBuyer ? showing.sellerName || 'Seller' : showing.buyerName || 'Buyer'}
-            </TableCell>
-            <TableCell>{getStatusBadge(showing.status)}</TableCell>
-            <TableCell className="text-right">
-              <ShowingActions 
-                showing={showing} 
-                isBuyer={isBuyer} 
-                onView={onViewShowing} 
-                onUpdateStatus={onUpdateStatus}
-                isProcessing={isProcessing}
-              />
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+    <div>
+      <div className="rounded-md border overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Property</TableHead>
+              <TableHead>Date & Time</TableHead>
+              <TableHead>{isBuyer ? "Seller" : "Buyer"}</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {showings.map((showing) => (
+              <TableRow key={showing.id}>
+                <TableCell className="font-medium">
+                  {/* This would ideally show property title */}
+                  Property #{showing.propertyId.slice(0, 8)}
+                </TableCell>
+                <TableCell>
+                  <div className="flex flex-col">
+                    <div className="flex items-center text-sm">
+                      <Calendar className="mr-1 h-3 w-3" />
+                      {formatDate(showing.requestedDate)}
+                    </div>
+                    <div className="flex items-center text-sm text-muted-foreground">
+                      <Clock className="mr-1 h-3 w-3" />
+                      {formatTime(showing.requestedTimeStart)} - {formatTime(showing.requestedTimeEnd)}
+                    </div>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center">
+                    <User className="mr-1 h-4 w-4" />
+                    {isBuyer 
+                      ? `Seller #${showing.sellerId.slice(0, 8)}` 
+                      : showing.buyerName || `Buyer #${showing.buyerId.slice(0, 8)}`}
+                  </div>
+                  {!isBuyer && showing.buyerPhone && (
+                    <div className="text-xs text-muted-foreground mt-1">
+                      {showing.buyerPhone}
+                    </div>
+                  )}
+                </TableCell>
+                <TableCell>
+                  <Badge variant={getBadgeVariant(showing.status)}>
+                    {getFormattedStatus(showing.status)}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-right">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openShowingDetails(showing)}
+                        >
+                          <CalendarIcon className="h-4 w-4" />
+                          <span className="sr-only">View Details</span>
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>View showing details</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+      
+      {selectedShowing && (
+        <ShowingDetailsDialog
+          showing={selectedShowing}
+          isBuyer={isBuyer}
+          onClose={() => setSelectedShowing(null)}
+          onStatusChange={onStatusChange}
+        />
+      )}
+    </div>
   );
-};
+}

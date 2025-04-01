@@ -1,193 +1,204 @@
 
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ShowingWithProperty } from "../types";
-import { ShowingStatus } from "@/types";
 import { formatDate, formatTime } from "@/lib/formatters";
-import { formatAddress, getStatusBadge } from "./ShowingTable";
-import { Calendar, Clock, User, Mail, Phone, MessageSquare, Loader2, CheckCircle, XCircle } from "lucide-react";
+import { ViewingRequest } from "@/types/showing";
+import { Calendar, Clock, User, Mail, Phone, MessageSquare } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
 
 interface ShowingDetailsDialogProps {
-  showing: ShowingWithProperty | null;
-  isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
-  onUpdateStatus: (showingId: string, newStatus: ShowingStatus) => void;
+  showing: ViewingRequest;
   isBuyer: boolean;
-  isProcessing: boolean;
+  onClose: () => void;
+  onStatusChange?: (id: string, status: string) => Promise<void>;
 }
 
-export const ShowingDetailsDialog = ({
+export default function ShowingDetailsDialog({
   showing,
-  isOpen,
-  onOpenChange,
-  onUpdateStatus,
   isBuyer,
-  isProcessing
-}: ShowingDetailsDialogProps) => {
-  if (!showing) return null;
-  
+  onClose,
+  onStatusChange
+}: ShowingDetailsDialogProps) {
+  const [isOpen, setIsOpen] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [sellerNotes, setSellerNotes] = useState(showing.sellerNotes || "");
+  const { toast } = useToast();
+
+  const handleClose = () => {
+    setIsOpen(false);
+    onClose();
+  };
+
+  const handleStatusChange = async (status: string) => {
+    if (!onStatusChange) return;
+    
+    setIsLoading(true);
+    
+    try {
+      await onStatusChange(showing.id, status);
+      toast({
+        title: "Status Updated",
+        description: `Showing request has been ${status.toLowerCase()}.`,
+      });
+      handleClose();
+    } catch (error) {
+      console.error("Error updating status:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update showing status",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const getBadgeVariant = (status: string) => {
+    switch (status) {
+      case 'PENDING': return "outline";
+      case 'APPROVED': return "success";
+      case 'REJECTED': return "destructive";
+      case 'CANCELED': return "secondary";
+      case 'COMPLETED': return "default";
+      default: return "outline";
+    }
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogContent className="sm:max-w-[550px]">
         <DialogHeader>
-          <DialogTitle>Showing Details</DialogTitle>
+          <DialogTitle>Showing Request Details</DialogTitle>
           <DialogDescription>
-            {showing.property?.title || 'Property Showing Request'}
+            {isBuyer ? "Your request to view this property" : "Request to view your property"}
           </DialogDescription>
         </DialogHeader>
         
-        <div className="grid gap-4 py-4">
-          <div className="flex items-center gap-4">
-            <div className="w-24 h-24 rounded-md overflow-hidden bg-muted">
-              {showing.property?.images && showing.property.images.length > 0 ? (
-                <img 
-                  src={showing.property.images[0]} 
-                  alt={showing.property.title}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center bg-muted">
-                  <Calendar className="h-8 w-8 text-muted-foreground" />
-                </div>
-              )}
-            </div>
-            
-            <div className="flex-1">
-              <h3 className="font-medium">{showing.property?.title || 'Property'}</h3>
-              <p className="text-sm text-muted-foreground">
-                {showing.property?.address 
-                  ? formatAddress(showing.property.address)
-                  : 'Address not available'}
-              </p>
-              <div className="mt-2">
-                {getStatusBadge(showing.status)}
-              </div>
-            </div>
-          </div>
-          
-          <div className="rounded-md border p-4 bg-muted/10 space-y-2">
-            <div className="flex items-center">
-              <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
-              <span className="font-medium">{formatDate(showing.startTime)}</span>
-            </div>
-            <div className="flex items-center">
-              <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
-              <span>
-                {formatTime(showing.startTime)} - {formatTime(showing.endTime)}
-              </span>
-            </div>
-          </div>
-          
-          {isBuyer ? (
-            <div className="rounded-md border p-4 space-y-2">
-              <h4 className="text-sm font-medium">Seller Information</h4>
+        <div className="space-y-6">
+          <div className="flex justify-between items-start">
+            <div className="flex flex-col space-y-1">
               <div className="flex items-center">
-                <User className="h-4 w-4 mr-2 text-muted-foreground" />
-                <span>{showing.sellerName || 'Seller'}</span>
+                <Calendar className="w-4 h-4 mr-2 text-muted-foreground" />
+                <span className="font-medium">{formatDate(showing.requestedDate)}</span>
               </div>
-              {showing.status === ShowingStatus.APPROVED && (
-                <>
+              <div className="flex items-center">
+                <Clock className="w-4 h-4 mr-2 text-muted-foreground" />
+                <span>{formatTime(showing.requestedTimeStart)} - {formatTime(showing.requestedTimeEnd)}</span>
+              </div>
+            </div>
+            <Badge variant={getBadgeVariant(showing.status)}>
+              {showing.status.charAt(0) + showing.status.slice(1).toLowerCase()}
+            </Badge>
+          </div>
+          
+          {!isBuyer && (
+            <div className="space-y-4 border-t pt-4">
+              <div>
+                <h4 className="text-sm font-medium mb-2">Buyer Information</h4>
+                <div className="space-y-2">
                   <div className="flex items-center">
-                    <Mail className="h-4 w-4 mr-2 text-muted-foreground" />
-                    <a href={`mailto:seller@example.com`} className="text-primary">
-                      Contact Seller
-                    </a>
+                    <User className="w-4 h-4 mr-2 text-muted-foreground" />
+                    <span>{showing.buyerName}</span>
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    Contact information is available after your request is approved.
-                  </p>
-                </>
-              )}
-            </div>
-          ) : (
-            <div className="rounded-md border p-4 space-y-2">
-              <h4 className="text-sm font-medium">Buyer Information</h4>
-              <div className="flex items-center">
-                <User className="h-4 w-4 mr-2 text-muted-foreground" />
-                <span>{showing.buyerName || 'Buyer'}</span>
+                  <div className="flex items-center">
+                    <Phone className="w-4 h-4 mr-2 text-muted-foreground" />
+                    <span>{showing.buyerPhone}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <Mail className="w-4 h-4 mr-2 text-muted-foreground" />
+                    <span>{showing.buyerEmail}</span>
+                  </div>
+                </div>
               </div>
               
-              <div className="flex items-center">
-                <Mail className="h-4 w-4 mr-2 text-muted-foreground" />
-                <a href={`mailto:${showing.buyerEmail}`} className="text-primary">
-                  {showing.buyerEmail}
-                </a>
-              </div>
-              
-              {showing.buyerPhone && (
-                <div className="flex items-center">
-                  <Phone className="h-4 w-4 mr-2 text-muted-foreground" />
-                  <a href={`tel:${showing.buyerPhone}`} className="text-primary">
-                    {showing.buyerPhone}
-                  </a>
+              {showing.buyerNotes && (
+                <div>
+                  <h4 className="text-sm font-medium mb-2">Buyer's Notes</h4>
+                  <div className="bg-muted p-3 rounded-md text-sm">
+                    <MessageSquare className="w-4 h-4 inline-block mr-2 text-muted-foreground" />
+                    {showing.buyerNotes}
+                  </div>
                 </div>
               )}
             </div>
           )}
           
-          {showing.notes && (
-            <div className="rounded-md border p-4">
-              <div className="flex items-start space-x-2">
-                <MessageSquare className="h-4 w-4 text-muted-foreground mt-0.5" />
-                <div>
-                  <h4 className="text-sm font-medium">Notes</h4>
-                  <p className="text-sm mt-1">{showing.notes}</p>
-                </div>
+          {!isBuyer && showing.status === 'PENDING' && (
+            <div className="border-t pt-4">
+              <Label htmlFor="seller-notes">Add notes for the buyer (optional)</Label>
+              <Textarea
+                id="seller-notes"
+                placeholder="Add any specific instructions or notes for the buyer..."
+                value={sellerNotes}
+                onChange={(e) => setSellerNotes(e.target.value)}
+                className="mt-2"
+              />
+            </div>
+          )}
+          
+          {isBuyer && showing.sellerNotes && (
+            <div className="border-t pt-4">
+              <h4 className="text-sm font-medium mb-2">Seller's Notes</h4>
+              <div className="bg-muted p-3 rounded-md text-sm">
+                <MessageSquare className="w-4 h-4 inline-block mr-2 text-muted-foreground" />
+                {showing.sellerNotes}
               </div>
             </div>
           )}
         </div>
         
-        <DialogFooter>
-          {!isBuyer && showing.status === ShowingStatus.REQUESTED && (
-            <div className="flex space-x-2">
+        <DialogFooter className="flex justify-between items-center gap-2">
+          {!isBuyer && showing.status === 'PENDING' && onStatusChange && (
+            <>
               <Button 
-                variant="outline" 
-                className="border-green-500 text-green-600 hover:bg-green-50"
-                onClick={() => onUpdateStatus(showing.id, ShowingStatus.APPROVED)}
-                disabled={isProcessing}
+                onClick={() => handleStatusChange('REJECTED')}
+                variant="destructive"
+                disabled={isLoading}
               >
-                {isProcessing ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                )}
-                Approve
-              </Button>
-              <Button 
-                variant="outline"
-                className="border-red-500 text-red-600 hover:bg-red-50"
-                onClick={() => onUpdateStatus(showing.id, ShowingStatus.DECLINED)}
-                disabled={isProcessing}
-              >
-                {isProcessing ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <XCircle className="h-4 w-4 mr-2" />
-                )}
                 Decline
               </Button>
-            </div>
+              <Button 
+                onClick={() => handleStatusChange('APPROVED')}
+                disabled={isLoading}
+              >
+                Approve
+              </Button>
+            </>
           )}
           
-          {showing.status === ShowingStatus.APPROVED && (
+          {isBuyer && showing.status === 'PENDING' && onStatusChange && (
             <Button 
+              onClick={() => handleStatusChange('CANCELED')}
               variant="destructive"
-              onClick={() => onUpdateStatus(showing.id, ShowingStatus.CANCELLED)}
-              disabled={isProcessing}
+              disabled={isLoading}
             >
-              {isProcessing ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <XCircle className="h-4 w-4 mr-2" />
-              )}
-              Cancel Showing
+              Cancel Request
             </Button>
           )}
           
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
+          {((isBuyer && showing.status !== 'PENDING') || 
+            (!isBuyer && showing.status !== 'PENDING') ||
+            !onStatusChange) && (
+            <Button 
+              onClick={handleClose}
+              variant="outline"
+            >
+              Close
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
-};
+}

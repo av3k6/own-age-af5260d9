@@ -44,11 +44,22 @@ export interface CalendarEvent {
   buyerName?: string;
 }
 
-export interface ExternalCalendarConfig {
-  provider: 'google' | 'apple' | 'outlook';
-  isEnabled: boolean;
-  accessToken?: string;
-  refreshToken?: string;
-  expiry?: Date;
-  calendarId?: string;
+export interface ViewingRequest {
+  id: string;
+  propertyId: string;
+  sellerId: string;
+  buyerId: string;
+  buyerName: string;
+  buyerEmail: string;
+  buyerPhone: string;
+  requestedDate: string;
+  requestedTimeStart: string;
+  requestedTimeEnd: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELED' | 'COMPLETED';
+  buyerNotes?: string;
+  sellerNotes?: string;
+  isVirtual: boolean;
+  meetingLink?: string;
+  createdAt: string;
+  updatedAt: string;
 }
