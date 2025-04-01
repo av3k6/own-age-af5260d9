@@ -54,12 +54,31 @@ const ConversationList = ({
       <div className="flex flex-col items-center justify-center p-8 text-center h-full">
         <User className="h-10 w-10 text-muted-foreground mb-2" />
         <h3 className="font-medium text-lg">No conversations yet</h3>
-        <p className="text-muted-foreground text-sm mt-1">
+        <p className="text-sm text-muted-foreground mt-1">
           When you start or receive messages, they'll appear here
         </p>
       </div>
     );
   }
+
+  // Helper function to format user ID into a readable name
+  const formatUserName = (userId: string) => {
+    if (!userId) return "Unknown";
+    
+    // If it's an email, get the part before @
+    if (userId.includes('@')) {
+      return userId.split('@')[0];
+    }
+    
+    // If UUID format with dashes, use first segment or abbreviate
+    if (userId.includes('-')) {
+      const firstPart = userId.split('-')[0];
+      return firstPart.length > 8 ? firstPart.substring(0, 8) : firstPart;
+    }
+    
+    // For other formats, show first 8 chars if long
+    return userId.length > 12 ? `${userId.substring(0, 8)}...` : userId;
+  };
 
   return (
     <div className="flex flex-col divide-y divide-border">
@@ -72,14 +91,9 @@ const ConversationList = ({
         const buyerId = otherParticipants[0] || "";
         const sellerId = conversation.participants[0] || "";
         
-        // Format the IDs for display - Extract name from email or use first part of ID
-        const buyerName = buyerId.includes('@') 
-          ? buyerId.split('@')[0] 
-          : buyerId.split('-')[0] || "Buyer";
-          
-        const sellerName = sellerId.includes('@') 
-          ? sellerId.split('@')[0] 
-          : sellerId.split('-')[0] || "Seller";
+        // Format the IDs for display
+        const buyerName = formatUserName(buyerId);
+        const sellerName = formatUserName(sellerId);
         
         return (
           <div
@@ -107,7 +121,7 @@ const ConversationList = ({
                     hasUnread ? "text-primary" : "text-muted-foreground"
                   )} />
                 </div>
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 mr-2">
                   <div className="flex justify-between items-start">
                     <h4 className={cn(
                       "truncate max-w-[calc(100%-4rem)]",
@@ -132,7 +146,7 @@ const ConversationList = ({
             </div>
             
             {/* Fixed position for the dropdown menu to prevent overlap */}
-            <div className="self-start mt-1">
+            <div className="self-start mt-1 ml-auto">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -174,6 +188,6 @@ const ConversationList = ({
       })}
     </div>
   );
-}
+};
 
 export default ConversationList;

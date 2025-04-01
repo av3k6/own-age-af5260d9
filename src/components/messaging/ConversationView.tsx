@@ -28,12 +28,12 @@ const ConversationView: React.FC<ConversationViewProps> = ({
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isSending, setIsSending] = useState(false);
 
-  const handleSendMessage = async (content: string, attachments?: File[]) => {
-    if (!content.trim() && (!attachments || attachments.length === 0)) return;
+  const handleSendMessage = async (content: string) => {
+    if (!content.trim() && selectedFiles.length === 0) return;
     
     try {
       setIsSending(true);
-      await onSendMessage(content, attachments);
+      await onSendMessage(content, selectedFiles.length > 0 ? selectedFiles : undefined);
       setSelectedFiles([]);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
@@ -106,35 +106,36 @@ const ConversationView: React.FC<ConversationViewProps> = ({
           </div>
         )}
 
-        <div className="border-t mt-auto">
-          <MessageInput
-            onSend={handleSendMessage}
-            isLoading={isSending}
-            extraButton={
-              <>
-                <Button
-                  type="button"
-                  size="icon"
-                  variant="ghost"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <Paperclip className="h-5 w-5" />
-                  <span className="sr-only">Attach file</span>
-                </Button>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  multiple
-                  className="hidden"
-                  onChange={(e) => {
-                    if (e.target.files) {
-                      setSelectedFiles(Array.from(e.target.files));
-                    }
-                  }}
-                />
-              </>
-            }
-          />
+        <div className="border-t mt-auto p-3">
+          <div className="flex items-end gap-2">
+            <Button
+              type="button"
+              size="icon"
+              variant="ghost"
+              className="mb-1"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <Paperclip className="h-5 w-5" />
+              <span className="sr-only">Attach file</span>
+            </Button>
+            
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              className="hidden"
+              onChange={(e) => {
+                if (e.target.files) {
+                  setSelectedFiles(Array.from(e.target.files));
+                }
+              }}
+            />
+            
+            <MessageInput
+              onSend={handleSendMessage}
+              isLoading={isSending}
+            />
+          </div>
         </div>
       </div>
     </div>
