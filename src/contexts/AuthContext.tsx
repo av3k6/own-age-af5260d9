@@ -12,7 +12,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   
   const {
     user,
-    setUser,
     loading,
     setLoading,
     isInitialized
@@ -22,7 +21,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signIn,
     signUp,
     signOut,
-    resetPassword,
     checkIsAuthenticated
   } = useAuthMethods({
     supabase,
@@ -37,7 +35,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signIn,
     signUp,
     signOut,
-    resetPassword,
     checkIsAuthenticated,
   };
 

@@ -1,8 +1,6 @@
 
 import { useState, useCallback } from 'react';
-import { User } from '@/types';
 import { SupabaseClient } from '@supabase/supabase-js';
-import { mapUserData } from '@/utils/authUtils';
 
 interface AuthMethodsProps {
   supabase: SupabaseClient;
@@ -25,9 +23,8 @@ export const useAuthMethods = ({ supabase, setLoading }: AuthMethodsProps) => {
         return { error };
       } 
       
-      // We don't need to manually set the user here
-      // The auth state listener will handle it
-      return { error: null };
+      console.log('Sign in successful:', data);
+      return { error: null, data };
     } catch (error) {
       console.error('Unexpected sign in error:', error);
       return { error };
@@ -36,43 +33,21 @@ export const useAuthMethods = ({ supabase, setLoading }: AuthMethodsProps) => {
     }
   }, [supabase, setLoading]);
 
-  const signUp = useCallback(async (email: string, password: string, userData: Partial<User>) => {
+  const signUp = useCallback(async (email: string, password: string, userData: { name?: string }) => {
     setLoading(true);
     try {
-      const { error: signUpError, data } = await supabase.auth.signUp({
+      // Simple signup with minimal data
+      const { error, data } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
-            full_name: userData.name,
-            role: userData.role,
-            phone: userData.phone || '',
+            full_name: userData.name || '',
           },
         },
       });
 
-      if (signUpError) return { error: signUpError };
-
-      // Only try to create profile if sign up was successful
-      if (data?.user) {
-        // Create user profile in the users table
-        const { error: profileError } = await supabase.from('users').insert([
-          {
-            id: data.user.id,
-            email,
-            name: userData.name,
-            role: userData.role,
-            phone: userData.phone || '',
-            created_at: new Date(),
-          },
-        ]);
-
-        if (profileError) {
-          console.error('Error creating user profile:', profileError);
-        }
-      }
-
-      return { error: null };
+      return { error, data };
     } catch (error) {
       console.error('Unexpected sign up error:', error);
       return { error };
@@ -85,27 +60,15 @@ export const useAuthMethods = ({ supabase, setLoading }: AuthMethodsProps) => {
     setLoading(true);
     try {
       await supabase.auth.signOut();
-      // Don't manually set user to null here
-      // The auth state listener will handle it
       console.log('Sign out request sent');
+      return { error: null };
     } catch (error) {
       console.error('Error signing out:', error);
-      throw error;
+      return { error };
     } finally {
       setLoading(false);
     }
   }, [supabase, setLoading]);
-
-  const resetPassword = useCallback(async (email: string) => {
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
-      return { error };
-    } catch (error) {
-      return { error };
-    }
-  }, [supabase]);
 
   const checkIsAuthenticated = useCallback(async (): Promise<boolean> => {
     try {
@@ -121,7 +84,6 @@ export const useAuthMethods = ({ supabase, setLoading }: AuthMethodsProps) => {
     signIn,
     signUp,
     signOut,
-    resetPassword,
     checkIsAuthenticated
   };
 };

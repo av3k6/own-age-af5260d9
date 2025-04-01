@@ -3,17 +3,20 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { useSupabase } from "@/hooks/useSupabase";
 import AuthPageLayout from "@/components/auth/AuthPageLayout";
-import LoginForm from "@/components/auth/LoginForm";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Icons } from "@/components/Icons";
+import { Eye, EyeOff, Mail, Lock } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const { signIn, user, isInitialized } = useAuth();
-  const { supabase } = useSupabase();
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -45,7 +48,7 @@ const Login = () => {
       setIsLoading(true);
       console.log("Login form submitting with email:", email);
       
-      const { error } = await signIn(email, password);
+      const { error, data } = await signIn(email, password);
       
       if (error) {
         console.error("Login error details:", error);
@@ -62,61 +65,14 @@ const Login = () => {
         title: "Success",
         description: "Logged in successfully!",
       });
+      
+      // Navigate after successful login
+      navigate("/dashboard");
     } catch (error: any) {
       console.error("Login error:", error);
       toast({
         title: "Login Error",
         description: error?.message || "Failed to sign in",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleGoogleSignIn = async () => {
-    try {
-      setIsLoading(true);
-      console.log("Initiating Google sign in");
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/dashboard`,
-        },
-      });
-      
-      if (error) throw error;
-      console.log("Google sign in initiated:", data);
-    } catch (error: any) {
-      console.error("Google sign in error:", error);
-      toast({
-        title: "Error",
-        description: error?.message || "Failed to sign in with Google",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleFacebookSignIn = async () => {
-    try {
-      setIsLoading(true);
-      console.log("Initiating Facebook sign in");
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: "facebook",
-        options: {
-          redirectTo: `${window.location.origin}/dashboard`,
-        },
-      });
-      
-      if (error) throw error;
-      console.log("Facebook sign in initiated:", data);
-    } catch (error: any) {
-      console.error("Facebook sign in error:", error);
-      toast({
-        title: "Error",
-        description: error?.message || "Failed to sign in with Facebook",
         variant: "destructive",
       });
     } finally {
@@ -139,20 +95,69 @@ const Login = () => {
     <AuthPageLayout
       title="Welcome back"
       subtitle="Sign in to continue to your TransacZen Haven account"
-      footerText=""
-      footerLinkText=""
-      footerLinkTo=""
+      footerText="Don't have an account?"
+      footerLinkText="Sign up"
+      footerLinkTo="/signup"
     >
-      <LoginForm 
-        email={email}
-        setEmail={setEmail}
-        password={password}
-        setPassword={setPassword}
-        isLoading={isLoading}
-        onSubmit={handleSubmit}
-        onGoogleSignIn={handleGoogleSignIn}
-        onFacebookSignIn={handleFacebookSignIn}
-      />
+      <div className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
+              <Mail size={18} />
+            </div>
+            <Input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="pl-10 appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+              autoComplete="email"
+              disabled={isLoading}
+            />
+          </div>
+          
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
+              <Lock size={18} />
+            </div>
+            <Input
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="pl-10 appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+              autoComplete="current-password"
+              disabled={isLoading}
+            />
+            <div 
+              className="absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer" 
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? 
+                <EyeOff size={18} className="text-gray-400 hover:text-gray-500" /> : 
+                <Eye size={18} className="text-gray-400 hover:text-gray-500" />
+              }
+            </div>
+          </div>
+          
+          <div className="text-sm text-right">
+            <Link to="/forgot-password" className="hover:underline text-primary">
+              Forgot password?
+            </Link>
+          </div>
+          
+          <Button
+            type="submit"
+            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+            disabled={isLoading}
+          >
+            {isLoading && (
+              <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+            )}
+            Sign In
+          </Button>
+        </form>
+      </div>
     </AuthPageLayout>
   );
 };

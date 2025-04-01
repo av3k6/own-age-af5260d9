@@ -2,41 +2,82 @@
 import { useState, useEffect } from 'react';
 import { User } from '@/types';
 import { SupabaseClient } from '@supabase/supabase-js';
-import { mapUserData } from '@/utils/authUtils';
 import { useToast } from '@/components/ui/use-toast';
-import { useAuthInitializer } from './useAuthInitializer';
 
 export const useAuthState = (supabase: SupabaseClient) => {
-  const { user: initialUser, isInitialized } = useAuthInitializer(supabase);
-  const [user, setUser] = useState<User | null>(initialUser);
-  const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [isInitialized, setIsInitialized] = useState(false);
   const { toast } = useToast();
 
+  // Initialize auth state
   useEffect(() => {
-    // Update user state when initialUser changes
-    setUser(initialUser);
-  }, [initialUser]);
+    async function initializeAuth() {
+      try {
+        // Get current session
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error("Error getting session:", sessionError);
+          setUser(null);
+          return;
+        }
+        
+        if (sessionData?.session?.user) {
+          // Map the user basic data
+          const userData: User = {
+            id: sessionData.session.user.id,
+            email: sessionData.session.user.email || '',
+            name: sessionData.session.user.user_metadata?.full_name || '',
+            role: sessionData.session.user.user_metadata?.role || 'buyer',
+            createdAt: new Date(),
+            user_metadata: sessionData.session.user.user_metadata
+          };
+          
+          setUser(userData);
+          console.log("User initialized:", userData.email);
+        } else {
+          setUser(null);
+          console.log("No active session found");
+        }
+      } catch (error) {
+        console.error("Auth initialization error:", error);
+        setUser(null);
+      } finally {
+        setLoading(false);
+        setIsInitialized(true);
+      }
+    }
+    
+    initializeAuth();
+  }, [supabase]);
 
+  // Set up auth state change listener
   useEffect(() => {
-    // Set up auth state change listener
+    if (!isInitialized) return;
+    
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth state changed:', event);
         
         if (session?.user) {
-          try {
-            const mappedUser = await mapUserData(supabase, session.user);
-            setUser(mappedUser);
-            
-            if (event === 'SIGNED_IN') {
-              toast({
-                title: "Signed in",
-                description: `Welcome${mappedUser?.name ? `, ${mappedUser.name}` : ''}!`,
-              });
-            }
-          } catch (err) {
-            console.error("Error mapping user on auth change:", err);
-            setUser(null);
+          // Map the user data simply
+          const userData: User = {
+            id: session.user.id,
+            email: session.user.email || '',
+            name: session.user.user_metadata?.full_name || '',
+            role: session.user.user_metadata?.role || 'buyer',
+            createdAt: new Date(),
+            user_metadata: session.user.user_metadata
+          };
+          
+          setUser(userData);
+          
+          if (event === 'SIGNED_IN') {
+            toast({
+              title: "Signed in",
+              description: `Welcome${userData?.name ? `, ${userData.name}` : ''}!`,
+            });
           }
         } else {
           setUser(null);
@@ -54,7 +95,7 @@ export const useAuthState = (supabase: SupabaseClient) => {
     return () => {
       subscription.unsubscribe();
     };
-  }, [supabase, toast]);
+  }, [supabase, toast, isInitialized]);
 
   return {
     user,
