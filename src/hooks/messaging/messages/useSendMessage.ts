@@ -54,7 +54,7 @@ export function useSendMessage() {
       );
       
       // Create message object with snake_case keys for the database
-      const newMessage = {
+      const newMessage: any = {
         sender_id: user.id,
         receiver_id: receiverId,
         content: displayContent,

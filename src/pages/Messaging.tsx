@@ -4,18 +4,16 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMessaging } from "@/hooks/useMessaging";
 import { useMessageSearch } from "@/hooks/messaging/useMessageSearch";
-import { Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Conversation } from "@/types/message";
 import { toast } from "sonner";
 import { ConversationCategory } from "@/types/encryption";
 
-// Import our new components
-import MessageArea from "@/components/messaging/MessageArea";
-import ConversationListSection from "@/components/messaging/ConversationListSection";
+// Import our components
+import MessagingHeader from "@/components/messaging/MessagingHeader";
+import MessagingContainer from "@/components/messaging/MessagingContainer";
+import MessagingLoading from "@/components/messaging/MessagingLoading";
 import NewConversationDialog from "@/components/messaging/NewConversationDialog";
-import ErrorState from "@/components/messaging/ErrorState";
 
 const Messaging = () => {
   const { user, loading: authLoading } = useAuth();
@@ -87,7 +85,6 @@ const Messaging = () => {
     
     try {
       await sendMessage(currentConversation.id, content, attachments);
-      // Clear any previous errors
       setError(null);
     } catch (error) {
       console.error("Error sending message:", error);
@@ -119,12 +116,8 @@ const Messaging = () => {
       );
       
       if (newConversation) {
-        // Close dialog
         setNewConversationOpen(false);
-        
-        // Select the new conversation
         handleSelectConversation(newConversation);
-        
         toast.success("Conversation created successfully");
       }
     } catch (error) {
@@ -144,69 +137,34 @@ const Messaging = () => {
   };
 
   if (authLoading) {
-    return (
-      <div className="container py-10">
-        <div className="w-full h-40 flex items-center justify-center">
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    );
+    return <MessagingLoading />;
   }
 
   return (
     <div className="container py-6 max-w-6xl">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-3xl font-bold">Messages</h1>
-        </div>
-        <Button 
-          className="flex items-center gap-2"
-          onClick={() => setNewConversationOpen(true)}
-        >
-          <Plus className="h-4 w-4" /> 
-          New Message
-        </Button>
-      </div>
-
-      {error ? (
-        <ErrorState message={error} onRetry={handleRetry} />
-      ) : (
-        <div className="border rounded-lg overflow-hidden grid grid-cols-1 md:grid-cols-3 h-[70vh] bg-background shadow-sm">
-          {/* Conversation List - Always shown on desktop, conditionally shown on mobile */}
-          {(!isMobile || (isMobile && showConversations)) && (
-            <div className={`border-r ${isMobile ? 'col-span-1' : 'col-span-1'}`}>
-              <ConversationListSection 
-                conversations={filteredConversations}
-                currentConversation={currentConversation}
-                loading={loading}
-                searchTerm={searchTerm}
-                selectedCategory={filters.category}
-                hasUnread={filters.hasUnread}
-                onSearchChange={setSearchTerm}
-                onCategoryChange={setSearchCategory}
-                onUnreadChange={setHasUnread}
-                onClearFilters={clearFilters}
-                onSelectConversation={handleSelectConversation}
-              />
-            </div>
-          )}
-
-          {/* Message Area - Always shown on desktop, conditionally shown on mobile */}
-          {(!isMobile || (isMobile && !showConversations)) && (
-            <div className={`${isMobile ? 'col-span-1' : 'col-span-2'} flex flex-col`}>
-              <MessageArea 
-                currentConversation={currentConversation}
-                messages={messages}
-                loading={loading}
-                isMobile={isMobile}
-                onGoBack={handleGoBackToConversations}
-                onSend={handleSendMessage}
-                onNewConversation={() => setNewConversationOpen(true)}
-              />
-            </div>
-          )}
-        </div>
-      )}
+      <MessagingHeader onNewMessage={() => setNewConversationOpen(true)} />
+      
+      <MessagingContainer 
+        error={error}
+        conversations={conversations}
+        currentConversation={currentConversation}
+        messages={messages}
+        loading={loading}
+        searchTerm={searchTerm}
+        filters={filters}
+        filteredConversations={filteredConversations}
+        isMobile={isMobile}
+        showConversations={showConversations}
+        onSelectConversation={handleSelectConversation}
+        onGoBack={handleGoBackToConversations}
+        onSendMessage={handleSendMessage}
+        onNewConversation={() => setNewConversationOpen(true)}
+        onSearchChange={setSearchTerm}
+        onCategoryChange={setSearchCategory}
+        onUnreadChange={setHasUnread}
+        onClearFilters={clearFilters}
+        onRetry={handleRetry}
+      />
       
       <NewConversationDialog 
         open={newConversationOpen}
