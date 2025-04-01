@@ -55,14 +55,13 @@ const ConversationView: React.FC<ConversationViewProps> = ({
     setSelectedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
-  // Extract participant information
-  const otherParticipants = conversation.participants.filter(p => p !== conversation.participants[0]);
-  const buyerId = otherParticipants[0] || "";
-  const sellerId = conversation.participants[0] || "";
+  // Extract and format participant information
+  const otherParticipant = conversation.participants.find(p => p !== conversation.participants[0]) || "";
+  const seller = conversation.participants[0] || "";
   
   // Format the IDs for display (removing the UUID format)
-  const buyerName = buyerId.split('@')[0] || "Buyer";
-  const sellerName = sellerId.split('@')[0] || "Seller";
+  const buyerName = otherParticipant.split('@')[0] || "Buyer";
+  const sellerName = seller.split('@')[0] || "Seller";
 
   return (
     <>
@@ -75,7 +74,7 @@ const ConversationView: React.FC<ConversationViewProps> = ({
         <div className="flex-1">
           <h2 className="text-xl font-semibold">{conversation.subject || "No Subject"}</h2>
           <div className="text-sm text-muted-foreground mt-0.5">
-            Seller: {sellerName} • Buyer: {buyerName}
+            From: {buyerName} • To: {sellerName}
           </div>
           {conversation.propertyId && (
             <div className="text-sm text-muted-foreground mt-0.5">
@@ -112,8 +111,8 @@ const ConversationView: React.FC<ConversationViewProps> = ({
 
         <div className="p-3 border-t mt-auto">
           <MessageInput
-            onSendMessage={handleSendMessage}
-            isSending={isSending}
+            onSend={handleSendMessage}
+            isLoading={isSending}
             extraButton={
               <>
                 <Button
