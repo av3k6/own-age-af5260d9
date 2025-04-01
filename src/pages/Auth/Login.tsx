@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
@@ -16,21 +17,26 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Improved redirect if already logged in
+  // Handle navigation to dashboard if user is already logged in
   useEffect(() => {
-    if (!isInitialized) {
-      // Wait for auth to initialize before making decisions
-      console.log("Auth not yet initialized, waiting...");
-      return;
-    }
+    let navigationTimer: NodeJS.Timeout | null = null;
     
-    if (user) {
+    // Only attempt navigation if auth is initialized
+    if (isInitialized && user) {
       const redirectTo = location.state?.from || "/dashboard";
       console.log("User already logged in, redirecting to:", redirectTo);
-      navigate(redirectTo, { replace: true });
-    } else {
-      console.log("No user found after auth initialized");
+      
+      // Use a short timeout to ensure navigation happens after component mounts
+      navigationTimer = setTimeout(() => {
+        navigate(redirectTo, { replace: true });
+      }, 100);
     }
+    
+    return () => {
+      if (navigationTimer) {
+        clearTimeout(navigationTimer);
+      }
+    };
   }, [user, isInitialized, navigate, location.state]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -61,12 +67,7 @@ const Login = () => {
         description: "Logged in successfully!",
       });
       
-      // Get destination from location state or default to dashboard
-      const redirectTo = location.state?.from || "/dashboard";
-      console.log("Redirecting to:", redirectTo);
-      
-      // Let the auth context handle the navigation through its useEffect
-      // This solves the race condition problem
+      // The auth state change will trigger navigation in useEffect
     } catch (error: any) {
       console.error("Login error:", error);
       toast({

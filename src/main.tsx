@@ -15,7 +15,14 @@ const renderApp = () => {
     
     console.log("Starting app rendering");
     const root = createRoot(rootElement);
-    root.render(<App />);
+    
+    // Wrap the app in an error boundary for better debugging
+    root.render(
+      <React.StrictMode>
+        <App />
+      </React.StrictMode>
+    );
+    
     console.log("App rendering complete");
     
     // Make Supabase available in browser console for debugging during development
@@ -24,8 +31,21 @@ const renderApp = () => {
     }
   } catch (error) {
     console.error("Failed to render application:", error);
+    // Show a fallback UI when rendering fails
+    const rootElement = document.getElementById("root");
+    if (rootElement) {
+      rootElement.innerHTML = `
+        <div style="padding: 20px; text-align: center;">
+          <h2>Something went wrong</h2>
+          <p>The application failed to initialize. Please check the console for more details.</p>
+        </div>
+      `;
+    }
   }
 };
+
+// Add missing React import
+import React from 'react';
 
 // Execute the render function
 renderApp();
