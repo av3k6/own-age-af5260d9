@@ -31,4 +31,4 @@ export interface UseConversationsReturn extends Omit<ConversationsState, 'filter
   filteredConversations: Conversation[];
 }
 
-export { ConversationFilterParams };
+export type { ConversationFilterParams };
