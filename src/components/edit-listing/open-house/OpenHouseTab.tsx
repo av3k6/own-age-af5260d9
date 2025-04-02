@@ -5,13 +5,14 @@ import OpenHouseList from "./OpenHouseList";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-import { useOpenHouseForm } from "./hooks/useOpenHouseForm";
+import { useOpenHouse } from "@/contexts/OpenHouseContext";
 
 interface OpenHouseTabProps {
   propertyId?: string;
 }
 
 export default function OpenHouseTab({ propertyId }: OpenHouseTabProps) {
+  // Use the context instead of the hook directly
   const {
     sessions,
     isLoading,
@@ -24,8 +25,20 @@ export default function OpenHouseTab({ propertyId }: OpenHouseTabProps) {
     handleCancelEdit,
     handleCancelAdd,
     handleShowAddForm
-  } = useOpenHouseForm(propertyId);
-  
+  } = useOpenHouse();
+
+  // Add debug logging
+  useEffect(() => {
+    console.log("OpenHouseTab: Rendered with propertyId:", propertyId);
+    console.log("OpenHouseTab: Current sessions:", sessions);
+    console.log("OpenHouseTab: showForm:", showForm);
+    console.log("OpenHouseTab: editingSession:", editingSession);
+    
+    return () => {
+      console.log("OpenHouseTab: Unmounting");
+    };
+  }, [propertyId, sessions, showForm, editingSession]);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -33,7 +46,7 @@ export default function OpenHouseTab({ propertyId }: OpenHouseTabProps) {
       </div>
     );
   }
-  
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -45,7 +58,10 @@ export default function OpenHouseTab({ propertyId }: OpenHouseTabProps) {
         </div>
         
         {!showForm && !editingSession && (
-          <Button onClick={handleShowAddForm}>
+          <Button onClick={(e) => {
+            e.stopPropagation(); // Prevent event bubbling
+            handleShowAddForm();
+          }}>
             <PlusCircle className="h-4 w-4 mr-1" />
             Add Open House
           </Button>

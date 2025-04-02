@@ -1,9 +1,12 @@
-
 import { useState, useCallback, useEffect } from "react";
 import { OpenHouseSession, OpenHouseSessionFormValues } from "@/types/open-house";
 import { useOpenHouseSchedule } from "@/hooks/useOpenHouseSchedule";
 
+// This hook is now deprecated in favor of OpenHouseContext
+// Keeping it for backward compatibility but with a deprecation warning
 export const useOpenHouseForm = (propertyId?: string) => {
+  console.warn("useOpenHouseForm is deprecated, use useOpenHouse from OpenHouseContext instead");
+  
   const [showForm, setShowForm] = useState(false);
   const [editingSession, setEditingSession] = useState<OpenHouseSession | null>(null);
   

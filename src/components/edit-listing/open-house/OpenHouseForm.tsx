@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -52,17 +53,26 @@ export default function OpenHouseForm({
     },
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  // Changed from form submission to button click handler
+  const handleSubmit = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent event bubbling
+    console.log("OpenHouseForm: Submit button clicked");
     form.handleSubmit((data) => {
       console.log("Form data being submitted:", data);
       onSubmit(data);
-    })(e);
+    })();
+  };
+
+  const handleCancel = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent event bubbling
+    console.log("OpenHouseForm: Cancel button clicked");
+    if (onCancel) onCancel();
   };
 
   return (
     <Form {...form}>
-      <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Changed from <form> to <div> to avoid nested forms */}
+      <div className="space-y-4">
         <FormField
           control={form.control}
           name="date"
@@ -161,15 +171,16 @@ export default function OpenHouseForm({
 
         <div className="flex justify-end space-x-2 pt-2">
           {onCancel && (
-            <Button type="button" variant="outline" onClick={onCancel}>
+            <Button type="button" variant="outline" onClick={handleCancel}>
               Cancel
             </Button>
           )}
-          <Button type="submit">
+          {/* Changed from type="submit" to type="button" with onClick handler */}
+          <Button type="button" onClick={handleSubmit}>
             {isEditing ? "Update Open House" : "Add Open House"}
           </Button>
         </div>
-      </form>
+      </div>
     </Form>
   );
 }

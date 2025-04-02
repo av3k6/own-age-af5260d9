@@ -1,6 +1,6 @@
 
-import React, { useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useParams, Link, useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,10 +10,16 @@ import RoomDetailsTab from "@/components/edit-listing/RoomDetailsTab";
 import FloorPlanTab from "@/components/edit-listing/floor-plan/FloorPlanTab";
 import OpenHouseTab from "@/components/edit-listing/open-house/OpenHouseTab";
 import ListingNumberDisplay from "@/components/property/ListingNumberDisplay";
+import { OpenHouseProvider } from "@/contexts/OpenHouseContext";
 
 export default function EditListing() {
   const { id } = useParams<{ id: string }>();
-  const [activeTab, setActiveTab] = useState("basic");
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  
+  // Get tab from URL query or default to "basic"
+  const tabFromQuery = searchParams.get("tab");
+  const [activeTab, setActiveTab] = useState(tabFromQuery || "basic");
   
   const {
     form,
@@ -29,7 +35,24 @@ export default function EditListing() {
     propertyDetails
   } = useEditListing(id);
 
-  const onSubmit = form.handleSubmit(saveProperty);
+  // Update URL when tab changes
+  const handleTabChange = (newTab: string) => {
+    console.log("EditListing: Tab changed to:", newTab);
+    setActiveTab(newTab);
+    searchParams.set("tab", newTab);
+    setSearchParams(searchParams);
+  };
+
+  // Add debug logging
+  useEffect(() => {
+    console.log("EditListing: Rendered with activeTab:", activeTab);
+    console.log("EditListing: propertyId:", id);
+  }, [activeTab, id]);
+
+  const onSubmit = form.handleSubmit((data) => {
+    console.log("EditListing: Main form submitted with data:", data);
+    saveProperty(data);
+  });
 
   if (isLoading) {
     return (
@@ -41,8 +64,9 @@ export default function EditListing() {
 
   // Improved navigation handler that uses React Router's navigate
   const handleCancel = () => {
+    console.log("EditListing: Cancel button clicked");
     if (id) {
-      window.location.href = `/property/${id}`;
+      navigate(`/property/${id}`);
     }
   };
 
@@ -65,57 +89,81 @@ export default function EditListing() {
           )}
         </div>
 
-        <Form {...form}>
-          <form onSubmit={onSubmit} className="space-y-6">
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid grid-cols-4 mb-4">
-                <TabsTrigger value="basic">Basic Details</TabsTrigger>
-                <TabsTrigger value="rooms">Room Details</TabsTrigger>
-                <TabsTrigger value="floorPlans">Floor Plans</TabsTrigger>
-                <TabsTrigger value="openHouse">Open House</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="basic">
-                <BasicDetailsTab form={form} />
-              </TabsContent>
-              
-              <TabsContent value="rooms">
-                <RoomDetailsTab 
-                  bedroomRooms={bedroomRooms}
-                  setBedroomRooms={setBedroomRooms}
-                  otherRooms={otherRooms}
-                  setOtherRooms={setOtherRooms}
-                  bedroomCount={form.watch("bedrooms")}
-                />
-              </TabsContent>
+        <Tabs value={activeTab} onValueChange={handleTabChange}>
+          <TabsList className="grid grid-cols-4 mb-4">
+            <TabsTrigger value="basic">Basic Details</TabsTrigger>
+            <TabsTrigger value="rooms">Room Details</TabsTrigger>
+            <TabsTrigger value="floorPlans">Floor Plans</TabsTrigger>
+            <TabsTrigger value="openHouse">Open House</TabsTrigger>
+          </TabsList>
+          
+          {/* Conditional rendering based on active tab */}
+          {activeTab !== "openHouse" ? (
+            <Form {...form}>
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                onSubmit();
+              }} className="space-y-6">
+                <TabsContent value="basic">
+                  <BasicDetailsTab form={form} />
+                </TabsContent>
+                
+                <TabsContent value="rooms">
+                  <RoomDetailsTab 
+                    bedroomRooms={bedroomRooms}
+                    setBedroomRooms={setBedroomRooms}
+                    otherRooms={otherRooms}
+                    setOtherRooms={setOtherRooms}
+                    bedroomCount={form.watch("bedrooms")}
+                  />
+                </TabsContent>
 
-              <TabsContent value="floorPlans">
-                <FloorPlanTab
-                  floorPlans={floorPlans}
-                  setFloorPlans={setFloorPlans}
-                  propertyId={id}
-                />
-              </TabsContent>
+                <TabsContent value="floorPlans">
+                  <FloorPlanTab
+                    floorPlans={floorPlans}
+                    setFloorPlans={setFloorPlans}
+                    propertyId={id}
+                  />
+                </TabsContent>
 
-              <TabsContent value="openHouse">
+                <div className="flex justify-end space-x-4 pt-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleCancel}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={isSaving}>
+                    {isSaving ? "Saving..." : "Update Listing"}
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          ) : (
+            <TabsContent value="openHouse">
+              <OpenHouseProvider propertyId={id}>
                 <OpenHouseTab propertyId={id} />
-              </TabsContent>
-            </Tabs>
-
-            <div className="flex justify-end space-x-4 pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleCancel}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isSaving}>
-                {isSaving ? "Saving..." : "Update Listing"}
-              </Button>
-            </div>
-          </form>
-        </Form>
+                
+                <div className="flex justify-end space-x-4 pt-4 mt-6">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleCancel}
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    type="button" 
+                    onClick={() => handleTabChange("basic")}
+                  >
+                    Back to Basic Details
+                  </Button>
+                </div>
+              </OpenHouseProvider>
+            </TabsContent>
+          )}
+        </Tabs>
       </div>
     </div>
   );

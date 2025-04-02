@@ -27,7 +27,7 @@ import {
 interface OpenHouseListProps {
   sessions: OpenHouseSession[];
   onEdit: (session: OpenHouseSession) => void;
-  onDelete: (id: string) => void;
+  onDelete: (id: string) => Promise<boolean>;
 }
 
 export default function OpenHouseList({ 
@@ -68,7 +68,10 @@ export default function OpenHouseList({
             <Button 
               variant="outline" 
               size="sm"
-              onClick={() => onEdit(session)}
+              onClick={(e) => {
+                e.stopPropagation(); // Prevent event bubbling
+                onEdit(session);
+              }}
             >
               <Pencil className="h-4 w-4 mr-1" />
               Edit
@@ -84,13 +87,16 @@ export default function OpenHouseList({
                 <Button 
                   variant="destructive" 
                   size="sm"
-                  onClick={() => setSelectedId(session.id)}
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent event bubbling
+                    setSelectedId(session.id);
+                  }}
                 >
                   <Trash2 className="h-4 w-4 mr-1" />
                   Delete
                 </Button>
               </AlertDialogTrigger>
-              <AlertDialogContent>
+              <AlertDialogContent onClick={(e) => e.stopPropagation()}>
                 <AlertDialogHeader>
                   <AlertDialogTitle>Delete Open House Session</AlertDialogTitle>
                   <AlertDialogDescription>
@@ -98,8 +104,11 @@ export default function OpenHouseList({
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={() => onDelete(session.id)}>
+                  <AlertDialogCancel onClick={(e) => e.stopPropagation()}>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(session.id);
+                  }}>
                     Delete
                   </AlertDialogAction>
                 </AlertDialogFooter>
