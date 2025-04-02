@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -18,7 +17,6 @@ const AdminLogin = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if already authenticated
     if (checkAdminAuth()) {
       navigate("/admin/dashboard");
     }
@@ -28,16 +26,13 @@ const AdminLogin = () => {
     e.preventDefault();
     
     if (showTwoFactor) {
-      // Handle 2FA verification
       const success = await verify2FA(twoFactorCode);
       if (success) {
         navigate("/admin/dashboard");
       }
     } else {
-      // Regular login
       const success = await loginAsAdmin(username, password);
       
-      // Check if 2FA is required
       if (success && localStorage.getItem("admin_session")) {
         const adminSession = JSON.parse(localStorage.getItem("admin_session") || "{}");
         if (adminSession.twoFactorEnabled) {
@@ -78,8 +73,8 @@ const AdminLogin = () => {
                     onChange={setTwoFactorCode}
                     render={({ slots }) => (
                       <InputOTPGroup>
-                        {slots.map((slot, index) => (
-                          <InputOTPSlot key={index} {...slot} />
+                        {slots.map((slot, i) => (
+                          <InputOTPSlot key={i} {...slot} index={i} />
                         ))}
                       </InputOTPGroup>
                     )}

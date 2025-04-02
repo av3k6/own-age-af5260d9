@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -33,7 +32,6 @@ const AdminSecuritySettings = () => {
   const [twoFactorCode, setTwoFactorCode] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
   
-  // Check if 2FA is enabled from localStorage
   const twoFactorEnabled = is2FAEnabled();
   
   const passwordForm = useForm<PasswordFormValues>({
@@ -81,7 +79,6 @@ const AdminSecuritySettings = () => {
 
   const handleToggle2FA = async (enabled: boolean) => {
     if (enabled) {
-      // Enable 2FA flow
       const secret = await setup2FA();
       if (secret) {
         setShowTwoFactorSetup(true);
@@ -93,7 +90,6 @@ const AdminSecuritySettings = () => {
         });
       }
     } else {
-      // Disable 2FA flow
       const success = await disable2FA();
       if (success) {
         toast({
@@ -141,7 +137,6 @@ const AdminSecuritySettings = () => {
     }
   };
 
-  // Get 2FA secret for QR code if available
   const twoFactorSecret = getTwoFactorSecret();
 
   return (
@@ -283,8 +278,8 @@ const AdminSecuritySettings = () => {
                       onChange={setTwoFactorCode}
                       render={({ slots }) => (
                         <InputOTPGroup>
-                          {slots.map((slot, index) => (
-                            <InputOTPSlot key={index} {...slot} />
+                          {slots.map((slot, i) => (
+                            <InputOTPSlot key={i} {...slot} index={i} />
                           ))}
                         </InputOTPGroup>
                       )}
