@@ -7,16 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { professionalData } from "./data/professionalData";
 import { Building2, Phone, Mail, MapPin, Save } from "lucide-react";
-
-// Mock database of user-to-business assignments
-// In a real app, this would be stored in a database
-const businessAssignments = [
-  { userId: "user123", businessId: "pillar-to-post", email: "john@example.com" },
-  { userId: "testuser", businessId: "pillar-to-post", email: "test@example.com" },
-];
 
 const EditBusinessProfile = () => {
   const { user } = useAuth();
@@ -40,24 +32,32 @@ const EditBusinessProfile = () => {
     }
     
     // In a real app, we would query the database for this information
-    const userAssignment = businessAssignments.find(
-      assignment => assignment.email === user.email
-    );
-    
-    if (userAssignment) {
-      const business = professionalData.professionals.find(
-        pro => pro.id === userAssignment.businessId
+    // Here we're loading from localStorage if available
+    try {
+      const savedAssignments = localStorage.getItem("businessAssignments");
+      const businessAssignments = savedAssignments ? JSON.parse(savedAssignments) : [];
+      
+      const userAssignment = businessAssignments.find(
+        (assignment: any) => assignment.email === user.email
       );
       
-      if (business) {
-        setAssignedBusiness(business);
-        setBusinessName(business.name);
-        setExpertise(business.expertise);
-        setPhone(business.phone);
-        setEmail(business.email);
-        setAddress(business.address);
-        setServiceArea(business.serviceArea || "");
+      if (userAssignment) {
+        const business = professionalData.professionals.find(
+          pro => pro.id === userAssignment.businessId
+        );
+        
+        if (business) {
+          setAssignedBusiness(business);
+          setBusinessName(business.name);
+          setExpertise(business.expertise);
+          setPhone(business.phone);
+          setEmail(business.email);
+          setAddress(business.address);
+          setServiceArea(business.serviceArea || "");
+        }
       }
+    } catch (e) {
+      console.error("Error loading business assignments:", e);
     }
     
     setIsLoading(false);
