@@ -1,13 +1,15 @@
 
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Home, Building2, Construction, Zap, Pipette, Thermometer, Flame, Bug, Droplet, FlaskRound, Radiation, Waves, Fuel, Bike, Hammer } from "lucide-react";
 import { ProfessionalType } from "@/types";
 import { Link } from "react-router-dom";
+import { professionalData } from "@/components/professionals/data/professionalData";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 // Define the categories and their icons
 const professionalCategories = [
@@ -28,6 +30,8 @@ const professionalCategories = [
   { type: "pool", label: "Pool Inspectors", icon: Bike },
   { type: "contractor", label: "General Contractors", icon: Hammer },
 ];
+
+const MAX_PREVIEW_ITEMS = 3; // Number of professionals to show in preview
 
 const Professionals = () => {
   const { toast } = useToast();
@@ -107,14 +111,41 @@ const Professionals = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid gap-4">
-                    <Link to={`/professionals/${category.type}`} className="w-full">
-                      <Button variant="outline" className="w-full">
-                        View All {category.label}
-                      </Button>
-                    </Link>
-                  </div>
+                  {/* Preview list of professionals in this category */}
+                  {professionalData.professionals
+                    .filter(pro => pro.category === category.type)
+                    .slice(0, MAX_PREVIEW_ITEMS)
+                    .map((professional) => (
+                      <div key={professional.id} className="flex items-center justify-between py-4 border-b last:border-0">
+                        <div className="flex items-center">
+                          <Avatar className="h-10 w-10 mr-3">
+                            <AvatarFallback>{professional.name[0]}</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <h3 className="font-semibold">{professional.name}</h3>
+                            <p className="text-sm text-muted-foreground">{professional.expertise}</p>
+                          </div>
+                        </div>
+                        <Link to={`/professionals/${category.type}/${professional.id}`}>
+                          <Button size="sm" variant="outline">Details</Button>
+                        </Link>
+                      </div>
+                    ))}
+                  
+                  {/* If there are no professionals in this category */}
+                  {professionalData.professionals.filter(pro => pro.category === category.type).length === 0 && (
+                    <div className="text-center py-6 text-muted-foreground">
+                      No professionals found in this category.
+                    </div>
+                  )}
                 </CardContent>
+                <CardFooter className="flex justify-center">
+                  <Link to={`/professionals/${category.type}`} className="w-full">
+                    <Button variant="default" className="w-full">
+                      View All {category.label}
+                    </Button>
+                  </Link>
+                </CardFooter>
               </Card>
             </TabsContent>
           ))}
