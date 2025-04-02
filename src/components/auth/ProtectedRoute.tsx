@@ -27,29 +27,42 @@ const ProtectedRoute = ({
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [sessionCheckComplete, setSessionCheckComplete] = useState(false);
   const [authVerificationProgress, setAuthVerificationProgress] = useState(10);
+  const [verificationTime, setVerificationTime] = useState(0);
   
   // Handle progress animation for verification
   useEffect(() => {
     let interval: NodeJS.Timeout;
-    if (isVerifying && authVerificationProgress < 70) {
+    
+    if (isVerifying) {
+      const startTime = Date.now();
       interval = setInterval(() => {
-        setAuthVerificationProgress(prev => Math.min(prev + 5, 70));
+        const elapsed = Date.now() - startTime;
+        setVerificationTime(elapsed);
+        
+        // Cap the progress at 70% while verifying
+        const calculatedProgress = Math.min(70, (elapsed / 2000) * 70);
+        setAuthVerificationProgress(calculatedProgress);
+        
+        // If taking too long (> 5 seconds), show slow connection message via progress color
+        if (elapsed > 5000 && authVerificationProgress < 70) {
+          setAuthVerificationProgress(prev => Math.min(prev + 1, 70));
+        }
       }, 100);
-    } else if (!isVerifying) {
-      // Complete the progress
+    } else {
+      // Complete the progress quickly once verification is done
       interval = setInterval(() => {
         setAuthVerificationProgress(prev => {
-          if (prev < 100) return Math.min(prev + 15, 100);
+          if (prev < 100) return Math.min(prev + 10, 100);
           clearInterval(interval);
           return prev;
         });
-      }, 50);
+      }, 30);
     }
     
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isVerifying, authVerificationProgress]);
+  }, [isVerifying]);
   
   // Attempt to refresh session if it's expired
   useEffect(() => {
@@ -94,8 +107,20 @@ const ProtectedRoute = ({
       }
     };
     
+    // Only run verification if auth system is initialized
     if (isInitialized) {
       verifyAuthentication();
+    } else {
+      // Force set verification complete after short timeout if still initializing
+      // This prevents long loading if auth system is having issues
+      const timeout = setTimeout(() => {
+        if (isMounted) {
+          console.log("ProtectedRoute: Auth not initialized in time, proceeding with verification");
+          verifyAuthentication();
+        }
+      }, 1000);
+      
+      return () => clearTimeout(timeout);
     }
     
     return () => {
@@ -108,9 +133,19 @@ const ProtectedRoute = ({
     return (
       <div className="flex flex-col justify-center items-center min-h-screen p-4">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
-        <p className="text-muted-foreground">Verifying your account...</p>
-        <div className="w-64 mt-4">
-          <Progress value={authVerificationProgress} className="h-2" />
+        <p className="text-muted-foreground mb-1">Verifying your account...</p>
+        
+        {verificationTime > 3000 && (
+          <p className="text-xs text-muted-foreground mb-4">
+            This is taking longer than usual. Please wait...
+          </p>
+        )}
+        
+        <div className="w-64 mt-2">
+          <Progress 
+            value={authVerificationProgress} 
+            className={`h-2 ${verificationTime > 5000 ? 'bg-orange-100' : ''}`} 
+          />
         </div>
       </div>
     );

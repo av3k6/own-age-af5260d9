@@ -12,11 +12,23 @@ export const useAuthState = (supabase: SupabaseClient) => {
   const [isInitialized, setIsInitialized] = useState(false);
   const [sessionStatus, setSessionStatus] = useState<SessionStatus>('active');
   const authStateInitialized = useRef(false);
+  const initializationTimeout = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
 
   // Initialize auth state
   useEffect(() => {
     let isMounted = true;
+    
+    // Set a timeout to force initialization after 1.5 seconds
+    // This prevents infinite loading if Supabase is slow to respond
+    initializationTimeout.current = setTimeout(() => {
+      if (isMounted && loading) {
+        console.log("Forcing auth initialization due to timeout");
+        setLoading(false);
+        setIsInitialized(true);
+        authStateInitialized.current = true;
+      }
+    }, 1500);
     
     async function initializeAuth() {
       try {
@@ -69,7 +81,10 @@ export const useAuthState = (supabase: SupabaseClient) => {
           setSessionStatus('error');
         }
       } finally {
-        if (isMounted) {
+        if (isMounted && initializationTimeout.current) {
+          clearTimeout(initializationTimeout.current);
+          initializationTimeout.current = null;
+          
           setLoading(false);
           setIsInitialized(true);
           authStateInitialized.current = true;
@@ -83,6 +98,10 @@ export const useAuthState = (supabase: SupabaseClient) => {
     // Cleanup function
     return () => {
       isMounted = false;
+      if (initializationTimeout.current) {
+        clearTimeout(initializationTimeout.current);
+        initializationTimeout.current = null;
+      }
     };
   }, [supabase]);
 
