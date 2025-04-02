@@ -10,8 +10,8 @@ const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
         type={type}
         className={cn(
           "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-          // If the input has a left icon (indicated by pl-10), ensure the text starts with enough padding
-          props["className"]?.includes('pl-10') ? 'text-left pl-10' : '',
+          // Increase left padding for inputs with icons to prevent text overlap
+          props["className"]?.includes('pl-10') ? 'pl-10' : '',
           className
         )}
         ref={ref}

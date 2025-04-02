@@ -198,9 +198,9 @@ const Login = () => {
                   if (e.target.value) validateEmail(e.target.value);
                 }}
                 onBlur={(e) => validateEmail(e.target.value)}
-                className={`pl-10 appearance-none block w-full px-3 py-2 border ${
+                className={`pl-10 ${
                   emailError ? 'border-red-500' : 'border-gray-300'
-                } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm`}
+                }`}
                 autoComplete="email"
                 disabled={isLoading || redirecting}
               />
@@ -224,9 +224,9 @@ const Login = () => {
                   if (e.target.value) validatePassword(e.target.value);
                 }}
                 onBlur={(e) => validatePassword(e.target.value)}
-                className={`pl-10 pr-10 appearance-none block w-full px-3 py-2 border ${
+                className={`pl-10 pr-10 ${
                   passwordError ? 'border-red-500' : 'border-gray-300'
-                } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm`}
+                }`}
                 autoComplete="current-password"
                 disabled={isLoading || redirecting}
               />

@@ -44,7 +44,6 @@ const LoginForm = ({
     externalIsLoading
   });
 
-  // Use external state if provided, otherwise use local state
   const isLoading = externalIsLoading !== undefined ? externalIsLoading : localIsLoading;
   const email = externalEmail !== undefined ? externalEmail : localEmail;
   const password = externalPassword !== undefined ? externalPassword : localPassword;
@@ -56,7 +55,6 @@ const LoginForm = ({
     console.log("LoginForm handleSubmit called");
     
     if (onSubmit) {
-      // If external submit handler is provided, use that
       console.log("Using external submit handler");
       await onSubmit(e);
       return;
@@ -122,7 +120,7 @@ const LoginForm = ({
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="pl-10 appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+            className="pl-10"
             autoComplete="email"
             disabled={isLoading}
           />

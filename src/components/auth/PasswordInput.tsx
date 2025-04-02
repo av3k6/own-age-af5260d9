@@ -36,7 +36,7 @@ const PasswordInput = ({
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        className="pl-10 pr-10"
+        className="pl-10 pr-10" 
       />
       <button
         type="button"
