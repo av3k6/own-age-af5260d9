@@ -1,29 +1,31 @@
 
 import { useState, useEffect } from "react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import AssignBusinessOwners from "@/components/admin/AssignBusinessOwners";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import AdminAccountSettings from "@/components/admin/AdminAccountSettings";
+import AdminSecuritySettings from "@/components/admin/AdminSecuritySettings";
 
 const AdminDashboard = () => {
-  const { user } = useAuth();
+  const { checkAdminAuth, logoutAdmin } = useAdminAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("assign-businesses");
   const [isAdmin, setIsAdmin] = useState(false);
   
   useEffect(() => {
     // Check if user is authenticated as admin
-    const adminAuthenticated = localStorage.getItem("admin_authenticated") === "true";
+    const adminAuthenticated = checkAdminAuth();
     
     if (!adminAuthenticated) {
       navigate("/admin/login");
     } else {
       setIsAdmin(true);
     }
-  }, [navigate]);
+  }, [navigate, checkAdminAuth]);
 
   if (!isAdmin) {
     return (
@@ -47,12 +49,22 @@ const AdminDashboard = () => {
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="mb-8">
           <TabsTrigger value="assign-businesses">Assign Business Owners</TabsTrigger>
+          <TabsTrigger value="account">Account Settings</TabsTrigger>
+          <TabsTrigger value="security">Security Settings</TabsTrigger>
           <TabsTrigger value="system">System Settings</TabsTrigger>
           <TabsTrigger value="users">User Management</TabsTrigger>
         </TabsList>
         
         <TabsContent value="assign-businesses">
           <AssignBusinessOwners />
+        </TabsContent>
+        
+        <TabsContent value="account">
+          <AdminAccountSettings />
+        </TabsContent>
+        
+        <TabsContent value="security">
+          <AdminSecuritySettings />
         </TabsContent>
         
         <TabsContent value="system">

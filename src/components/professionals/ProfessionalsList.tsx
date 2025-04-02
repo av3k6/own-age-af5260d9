@@ -1,9 +1,10 @@
+
 import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, ArrowLeft, Phone, Mail, MapPin } from "lucide-react";
+import { Search, ArrowLeft } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { professionalData } from "./data";
 
@@ -53,7 +54,9 @@ const ProfessionalsList = () => {
             Back
           </Button>
         </Link>
-        <h1 className="text-3xl font-bold">{categoryInfo.label}</h1>
+        <h1 className="text-3xl font-bold">
+          {categoryInfo.label}
+        </h1>
       </div>
 
       <Card className="mb-8">
@@ -86,31 +89,34 @@ const ProfessionalsList = () => {
             {professionals.length} professionals found
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-0 sm:px-6">
           <div className="rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[300px]">Company Name</TableHead>
-                  <TableHead>Area of Expertise</TableHead>
+                  <TableHead className="w-[40%] sm:w-[300px]">Company Name</TableHead>
+                  <TableHead className="w-[40%]">Area of Expertise</TableHead>
                   <TableHead className="hidden md:table-cell">Contact</TableHead>
-                  <TableHead className="text-right">Details</TableHead>
+                  <TableHead className="text-right w-[20%]">Details</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {professionals.map((professional) => (
                   <TableRow key={professional.id}>
-                    <TableCell className="font-medium">{professional.name}</TableCell>
-                    <TableCell>{professional.expertise}</TableCell>
+                    <TableCell className="font-medium break-words py-4">
+                      {professional.name}
+                    </TableCell>
+                    <TableCell className="break-words py-4">
+                      {professional.expertise}
+                    </TableCell>
                     <TableCell className="hidden md:table-cell">
                       <div className="flex items-center space-x-2">
-                        <Phone className="h-4 w-4" />
                         <span className="text-sm">{professional.phone}</span>
                       </div>
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right py-4">
                       <Link to={`/professionals/${category}/${professional.id}`}>
-                        <Button variant="outline" size="sm">View Profile</Button>
+                        <Button variant="outline" size="sm">View</Button>
                       </Link>
                     </TableCell>
                   </TableRow>
