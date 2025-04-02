@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -53,13 +52,17 @@ export default function OpenHouseForm({
     },
   });
 
-  const handleSubmit = (data: OpenHouseSessionFormValues) => {
-    onSubmit(data);
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    form.handleSubmit((data) => {
+      console.log("Form data being submitted:", data);
+      onSubmit(data);
+    })(e);
   };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4">
         <FormField
           control={form.control}
           name="date"

@@ -17,7 +17,6 @@ export default function OpenHouseTab({ propertyId }: OpenHouseTabProps) {
     isLoading,
     showForm,
     editingSession,
-    fetchSessions,
     handleAddSession,
     handleUpdateSession,
     handleEditClick,
@@ -26,16 +25,6 @@ export default function OpenHouseTab({ propertyId }: OpenHouseTabProps) {
     handleCancelAdd,
     handleShowAddForm
   } = useOpenHouseForm(propertyId);
-  
-  // Use an effect with proper dependency array to prevent infinite loops
-  useEffect(() => {
-    if (propertyId) {
-      console.log("OpenHouseTab - Fetching sessions for property:", propertyId);
-      fetchSessions();
-    } else {
-      console.log("OpenHouseTab - No property ID provided");
-    }
-  }, [propertyId, fetchSessions]);
   
   if (isLoading) {
     return (
