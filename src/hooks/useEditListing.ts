@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -8,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useSupabase } from "@/hooks/useSupabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { PropertyType, ListingStatus, Room } from "@/types";
+import { DocumentMetadata } from "@/types/document";
 
 // Form schema definition
 const formSchema = z.object({
@@ -45,6 +45,7 @@ export const useEditListing = (propertyId: string | undefined) => {
   const [isSaving, setIsSaving] = useState(false);
   const [bedroomRooms, setBedroomRooms] = useState<Room[]>([]);
   const [otherRooms, setOtherRooms] = useState<Room[]>([]);
+  const [floorPlans, setFloorPlans] = useState<DocumentMetadata[]>([]);
 
   const form = useForm<EditListingFormValues>({
     resolver: zodResolver(formSchema),
@@ -105,6 +106,20 @@ export const useEditListing = (propertyId: string | undefined) => {
         
         if (data.room_details?.otherRooms) {
           setOtherRooms(data.room_details.otherRooms);
+        }
+
+        try {
+          const { data: documentsData, error: documentsError } = await supabase
+            .from("property_documents")
+            .select("*")
+            .eq("property_id", propertyId)
+            .eq("document_type", "floor_plan");
+          
+          if (!documentsError && documentsData) {
+            setFloorPlans(documentsData as unknown as DocumentMetadata[]);
+          }
+        } catch (docError) {
+          console.error("Error fetching floor plans:", docError);
         }
 
         if (data) {
@@ -179,6 +194,10 @@ export const useEditListing = (propertyId: string | undefined) => {
         },
         features: featuresArray,
         status: values.status,
+        room_details: {
+          bedrooms: bedroomRooms,
+          otherRooms: otherRooms
+        },
         updated_at: new Date().toISOString(),
       };
       
@@ -190,6 +209,38 @@ export const useEditListing = (propertyId: string | undefined) => {
           .eq("seller_id", user.id);
           
         if (error) throw error;
+
+        for (const floorPlan of floorPlans) {
+          const { data: existingDoc } = await supabase
+            .from("property_documents")
+            .select("id")
+            .eq("id", floorPlan.id)
+            .single();
+
+          const documentData = {
+            id: floorPlan.id,
+            name: floorPlan.name,
+            url: floorPlan.url,
+            type: floorPlan.type,
+            size: floorPlan.size,
+            property_id: propertyId,
+            uploaded_by: user.id,
+            document_type: "floor_plan",
+            path: floorPlan.path,
+            created_at: floorPlan.createdAt
+          };
+
+          if (existingDoc) {
+            await supabase
+              .from("property_documents")
+              .update(documentData)
+              .eq("id", floorPlan.id);
+          } else {
+            await supabase
+              .from("property_documents")
+              .insert(documentData);
+          }
+        }
           
         toast({
           title: "Listing Updated",
@@ -198,25 +249,27 @@ export const useEditListing = (propertyId: string | undefined) => {
         
         navigate(`/property/${propertyId}`);
       } catch (initialError: any) {
-        if (!initialError.message.includes("room_details")) {
+        if (initialError.message.includes("room_details")) {
+          const { room_details, ...dataWithoutRoomDetails } = updateData;
+          
+          console.log("Retrying update without room_details field");
+          const { error } = await supabase
+            .from("property_listings")
+            .update(dataWithoutRoomDetails)
+            .eq("id", propertyId)
+            .eq("seller_id", user.id);
+            
+          if (error) throw error;
+          
+          toast({
+            title: "Listing Updated",
+            description: `Your property listing has been updated successfully with status: ${values.status}.`,
+          });
+          
+          navigate(`/property/${propertyId}`);
+        } else {
           throw initialError;
         }
-        
-        console.log("Retrying update without room_details field");
-        const { error } = await supabase
-          .from("property_listings")
-          .update(updateData)
-          .eq("id", propertyId)
-          .eq("seller_id", user.id);
-          
-        if (error) throw error;
-        
-        toast({
-          title: "Listing Updated",
-          description: `Your property listing has been updated successfully with status: ${values.status}.`,
-        });
-        
-        navigate(`/property/${propertyId}`);
       }
     } catch (error: any) {
       console.error("Failed to update listing:", error);
@@ -238,6 +291,8 @@ export const useEditListing = (propertyId: string | undefined) => {
     setBedroomRooms,
     otherRooms,
     setOtherRooms,
+    floorPlans,
+    setFloorPlans,
     saveProperty
   };
 };

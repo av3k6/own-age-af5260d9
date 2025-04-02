@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useEditListing } from "@/hooks/useEditListing";
 import BasicDetailsTab from "@/components/edit-listing/BasicDetailsTab";
 import RoomDetailsTab from "@/components/edit-listing/RoomDetailsTab";
+import FloorPlanTab from "@/components/edit-listing/FloorPlanTab";
 
 export default function EditListing() {
   const { id } = useParams<{ id: string }>();
@@ -20,6 +21,8 @@ export default function EditListing() {
     setBedroomRooms,
     otherRooms,
     setOtherRooms,
+    floorPlans,
+    setFloorPlans,
     saveProperty
   } = useEditListing(id);
 
@@ -54,9 +57,10 @@ export default function EditListing() {
         <Form {...form}>
           <form onSubmit={onSubmit} className="space-y-6">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid grid-cols-2 mb-4">
+              <TabsList className="grid grid-cols-3 mb-4">
                 <TabsTrigger value="basic">Basic Details</TabsTrigger>
                 <TabsTrigger value="rooms">Room Details</TabsTrigger>
+                <TabsTrigger value="floorPlans">Floor Plans</TabsTrigger>
               </TabsList>
               
               <TabsContent value="basic">
@@ -70,6 +74,14 @@ export default function EditListing() {
                   otherRooms={otherRooms}
                   setOtherRooms={setOtherRooms}
                   bedroomCount={form.watch("bedrooms")}
+                />
+              </TabsContent>
+
+              <TabsContent value="floorPlans">
+                <FloorPlanTab
+                  floorPlans={floorPlans}
+                  setFloorPlans={setFloorPlans}
+                  propertyId={id}
                 />
               </TabsContent>
             </Tabs>
