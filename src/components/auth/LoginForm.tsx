@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -8,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import SocialLoginButtons from "./SocialLoginButtons";
 import { Icons } from "@/components/Icons";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
+import PasswordInput from "./PasswordInput";
 
 interface LoginFormProps {
   onSubmit?: (e: React.FormEvent) => Promise<void>;
@@ -127,29 +127,13 @@ const LoginForm = ({
             disabled={isLoading}
           />
         </div>
-        <div className="relative">
-          <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
-            <Lock size={18} />
-          </div>
-          <Input
-            type={showPassword ? "text" : "password"}
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="pl-10 appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-            autoComplete="current-password"
-            disabled={isLoading}
-          />
-          <div 
-            className="absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer" 
-            onClick={togglePasswordVisibility}
-          >
-            {showPassword ? 
-              <EyeOff size={18} className="text-gray-400 hover:text-gray-500" /> : 
-              <Eye size={18} className="text-gray-400 hover:text-gray-500" />
-            }
-          </div>
-        </div>
+        <PasswordInput
+          id="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Password"
+          required
+        />
         <Button
           type="submit"
           className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"

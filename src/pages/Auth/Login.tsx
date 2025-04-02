@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
@@ -30,7 +29,6 @@ const Login = () => {
   
   console.log("Login page rendering with state:", { isInitialized, hasUser: !!user, sessionStatus });
 
-  // Email validation
   const validateEmail = (email: string) => {
     if (!email) {
       setEmailError("Email is required");
@@ -47,7 +45,6 @@ const Login = () => {
     return true;
   };
 
-  // Password validation
   const validatePassword = (password: string) => {
     if (!password) {
       setPasswordError("Password is required");
@@ -63,7 +60,6 @@ const Login = () => {
     return true;
   };
   
-  // Simulate auth progress
   useEffect(() => {
     let interval: NodeJS.Timeout;
     
@@ -75,7 +71,6 @@ const Login = () => {
         });
       }, 300);
     } else if (!isLoading && authProgress > 0) {
-      // Complete the progress bar when loading finishes
       interval = setInterval(() => {
         setAuthProgress((prev) => {
           if (prev < 100) {
@@ -96,21 +91,18 @@ const Login = () => {
       const from = location.state?.from?.pathname || "/dashboard";
       console.log("User authenticated, redirecting to:", from);
       
-      // Slight delay to ensure state updates complete
       setTimeout(() => {
         navigate(from, { replace: true });
       }, 300);
     }
   }, [user, navigate, location.state]);
   
-  // Handle redirect if user is already logged in
   useEffect(() => {
     if (isInitialized && user && !redirecting) {
       handleRedirect();
     }
   }, [user, isInitialized, handleRedirect, redirecting]);
   
-  // Handle session status changes
   useEffect(() => {
     if (sessionStatus === 'expired') {
       setFormError("Your previous session has expired. Please sign in again.");
@@ -121,7 +113,6 @@ const Login = () => {
     e.preventDefault();
     setFormError("");
     
-    // Validate form
     const isEmailValid = validateEmail(email);
     const isPasswordValid = validatePassword(password);
     
@@ -131,7 +122,7 @@ const Login = () => {
     
     try {
       setIsLoading(true);
-      setAuthProgress(10); // Start progress
+      setAuthProgress(10);
       console.log("Login form submitting with email:", email);
       
       const { error } = await signIn(email, password);
@@ -149,7 +140,6 @@ const Login = () => {
         description: "Logged in successfully!",
       });
       
-      // Explicit session refresh
       if (refreshSession) {
         await refreshSession();
       }
@@ -161,7 +151,6 @@ const Login = () => {
     }
   };
 
-  // Show loading indicator while auth is initializing
   if (!isInitialized) {
     console.log("Auth not initialized yet, showing loading state");
     return (
@@ -235,7 +224,7 @@ const Login = () => {
                   if (e.target.value) validatePassword(e.target.value);
                 }}
                 onBlur={(e) => validatePassword(e.target.value)}
-                className={`pl-10 appearance-none block w-full px-3 py-2 border ${
+                className={`pl-10 pr-10 appearance-none block w-full px-3 py-2 border ${
                   passwordError ? 'border-red-500' : 'border-gray-300'
                 } rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm`}
                 autoComplete="current-password"
