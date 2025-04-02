@@ -52,7 +52,7 @@ const ConversationSearch: React.FC<ConversationSearchProps> = ({
             <SelectValue placeholder="Category" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Categories</SelectItem>
+            <SelectItem value="all">All Categories</SelectItem>
             <SelectItem value={ConversationCategory.PROPERTY}>Property</SelectItem>
             <SelectItem value={ConversationCategory.OFFER}>Offer</SelectItem>
             <SelectItem value={ConversationCategory.DOCUMENT}>Document</SelectItem>
