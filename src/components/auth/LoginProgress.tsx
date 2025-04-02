@@ -5,7 +5,7 @@ import { Progress } from "@/components/ui/progress";
 interface LoginProgressProps {
   isLoading: boolean;
   authProgress: number;
-  setAuthProgress: (value: number) => void;
+  setAuthProgress: React.Dispatch<React.SetStateAction<number>>;
 }
 
 export const LoginProgress = ({ isLoading, authProgress, setAuthProgress }: LoginProgressProps) => {
