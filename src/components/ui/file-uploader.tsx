@@ -119,20 +119,25 @@ export function FileUploader({
   };
 
   const handleUpload = async (files = selectedFiles) => {
-    if (files.length > 0) {
-      console.log("FileUploader: Starting upload for", files.length, "files");
-      try {
-        const result = await onUpload(files);
-        console.log("FileUploader: Upload complete with result:", result);
-        
-        // Clear selected files on successful upload
-        if (result === true) {
-          setSelectedFiles([]);
-        }
-      } catch (error) {
-        console.error("FileUploader: Error during upload:", error);
-        setError("Upload failed. Please try again.");
+    if (files.length === 0) {
+      console.log("FileUploader: No files to upload");
+      return;
+    }
+    
+    console.log("FileUploader: Starting upload for", files.length, "files");
+    try {
+      // Ensure the upload function is properly awaited
+      const result = await Promise.resolve(onUpload(files));
+      console.log("FileUploader: Upload complete with result:", result);
+      
+      // Clear selected files on successful upload
+      if (result === true) {
+        setSelectedFiles([]);
+        setError(null);
       }
+    } catch (error) {
+      console.error("FileUploader: Error during upload:", error);
+      setError("Upload failed. Please try again.");
     }
   };
 
@@ -214,6 +219,7 @@ export function FileUploader({
                   type="button"
                   onClick={() => removeFile(index)}
                   className="text-muted-foreground hover:text-destructive"
+                  disabled={isUploading}
                 >
                   <X className="h-4 w-4" />
                 </button>

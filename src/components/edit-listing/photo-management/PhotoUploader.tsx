@@ -2,7 +2,9 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { FileUploader } from "@/components/ui/file-uploader";
-import { toast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 interface PhotoUploaderProps {
   onUploadPhotos: (files: File[]) => Promise<boolean>;
@@ -11,10 +13,13 @@ interface PhotoUploaderProps {
 
 export default function PhotoUploader({ onUploadPhotos, isUploading }: PhotoUploaderProps) {
   const [showUploader, setShowUploader] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const handleFileUpload = async (files: File[]): Promise<boolean> => {
     try {
       console.log("PhotoUploader: Starting file upload for", files.length, "files");
+      setUploadError(null);
       
       if (files.length === 0) {
         console.log("PhotoUploader: No files to upload");
@@ -26,26 +31,15 @@ export default function PhotoUploader({ onUploadPhotos, isUploading }: PhotoUplo
       
       if (success) {
         setShowUploader(false);
-        toast({
-          title: "Success",
-          description: `${files.length} photo${files.length > 1 ? 's' : ''} uploaded successfully!`,
-        });
+        // Toast notification now handled in the parent component to avoid duplication
+        return true;
       } else {
-        toast({
-          title: "Upload Failed",
-          description: "Failed to upload photos. Please try again.",
-          variant: "destructive",
-        });
+        setUploadError("Upload failed. This may be due to missing database tables.");
+        return false;
       }
-      
-      return success;
     } catch (error) {
       console.error("PhotoUploader: Error during file upload:", error);
-      toast({
-        title: "Error",
-        description: "Failed to upload photos. Please try again later.",
-        variant: "destructive",
-      });
+      setUploadError("An error occurred during upload. Please try again later.");
       return false;
     }
   };
@@ -64,6 +58,14 @@ export default function PhotoUploader({ onUploadPhotos, isUploading }: PhotoUplo
   return (
     <Card className="p-4">
       <h3 className="text-lg font-medium mb-2">Upload New Photos</h3>
+      
+      {uploadError && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{uploadError}</AlertDescription>
+        </Alert>
+      )}
+      
       <FileUploader
         accept="image/*"
         multiple
@@ -76,8 +78,12 @@ export default function PhotoUploader({ onUploadPhotos, isUploading }: PhotoUplo
         Supported formats: JPG, PNG, WebP. Max size: 5MB per image.
       </p>
       <button
-        onClick={() => setShowUploader(false)}
+        onClick={() => {
+          setShowUploader(false);
+          setUploadError(null);
+        }}
         className="mt-2 text-sm text-muted-foreground"
+        disabled={isUploading}
       >
         Cancel
       </button>

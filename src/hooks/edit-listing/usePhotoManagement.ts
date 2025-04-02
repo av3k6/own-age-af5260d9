@@ -35,7 +35,12 @@ export const usePhotoManagement = (propertyId: string | undefined) => {
         .order('display_order', { ascending: true });
       
       if (error) {
-        console.log('Property photos table may not exist:', error);
+        console.error('Error fetching photos:', error);
+        toast({
+          title: "Database Error",
+          description: "Could not load property photos. Please try refreshing the page.",
+          variant: "destructive",
+        });
         setPhotos([]);
       } else {
         console.log("Fetched photos:", data?.length || 0);
@@ -69,67 +74,77 @@ export const usePhotoManagement = (propertyId: string | undefined) => {
       
       // Process each file
       for (const file of files) {
-        // Create a unique file name
-        const fileExt = file.name.split('.').pop();
-        const fileName = `property-photos/${propertyId}/${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
-        
-        console.log(`Uploading file: ${fileName}`);
-        
-        // Upload to Supabase Storage using the safe upload method
-        const { data, error: uploadError } = await safeUpload(fileName, file);
-        
-        if (uploadError) {
-          console.error("Storage upload error:", uploadError);
-          throw uploadError;
-        }
-        
-        uploadedFiles.push(file);
-        console.log("File uploaded successfully, getting public URL");
-        
-        // Get public URL using the safe method
-        const { data: urlData } = safeGetPublicUrl(fileName);
-        if (!urlData?.publicUrl) {
-          console.error("Failed to get public URL");
-          throw new Error("Failed to get public URL for uploaded file");
-        }
-        
-        console.log("Public URL obtained:", urlData.publicUrl);
-        
-        // Add to database with next display order
-        const nextOrder = photos.length > 0 
-          ? Math.max(...photos.map(p => p.display_order)) + 1 
-          : 0;
-        
         try {
-          console.log("Inserting record into property_photos table");
-          const { error: dbError } = await supabase
-            .from('property_photos')
-            .insert({
-              property_id: propertyId,
-              url: urlData.publicUrl,
-              display_order: nextOrder,
-              is_primary: photos.length === 0 // First photo is primary by default
-            });
+          // Create a unique file name
+          const fileExt = file.name.split('.').pop();
+          const fileName = `property-photos/${propertyId}/${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
           
-          if (dbError) {
-            console.error('Database error:', dbError);
+          console.log(`Uploading file: ${fileName}`);
+          
+          // Upload to Supabase Storage using the safe upload method
+          const { data, error: uploadError } = await safeUpload(fileName, file);
+          
+          if (uploadError) {
+            console.error("Storage upload error:", uploadError);
+            throw uploadError;
+          }
+          
+          uploadedFiles.push(file);
+          console.log("File uploaded successfully, getting public URL");
+          
+          // Get public URL using the safe method
+          const { data: urlData } = safeGetPublicUrl(fileName);
+          if (!urlData?.publicUrl) {
+            console.error("Failed to get public URL");
+            throw new Error("Failed to get public URL for uploaded file");
+          }
+          
+          console.log("Public URL obtained:", urlData.publicUrl);
+          
+          // Add to database with next display order
+          const nextOrder = photos.length > 0 
+            ? Math.max(...photos.map(p => p.display_order)) + 1 
+            : 0;
+          
+          try {
+            console.log("Inserting record into property_photos table");
+            const { error: dbError } = await supabase
+              .from('property_photos')
+              .insert({
+                property_id: propertyId,
+                url: urlData.publicUrl,
+                display_order: nextOrder,
+                is_primary: photos.length === 0 // First photo is primary by default
+              });
+            
+            if (dbError) {
+              console.error('Database error:', dbError);
+              // Show warning but continue - upload succeeded even if metadata save failed
+              toast({
+                title: "Database Warning",
+                description: "Photo uploaded but metadata could not be saved. The property_photos table may not exist.",
+                variant: "default", // Changed from "warning" to "default"
+              });
+            } else {
+              console.log("Database record inserted successfully");
+            }
+          } catch (dbError) {
+            console.error('Error saving to database:', dbError);
             // Show warning but continue - upload succeeded even if metadata save failed
             toast({
               title: "Database Warning",
               description: "Photo uploaded but metadata could not be saved. The property_photos table may not exist.",
               variant: "default", // Changed from "warning" to "default"
             });
-          } else {
-            console.log("Database record inserted successfully");
           }
-        } catch (dbError) {
-          console.error('Error saving to database:', dbError);
-          // Show warning but continue - upload succeeded even if metadata save failed
+        } catch (fileError) {
+          console.error(`Error processing file ${file.name}:`, fileError);
           toast({
-            title: "Database Warning",
-            description: "Photo uploaded but metadata could not be saved. The property_photos table may not exist.",
-            variant: "default", // Changed from "warning" to "default"
+            title: "Upload Error",
+            description: `Failed to upload file ${file.name}. Please try again.`,
+            variant: "destructive",
           });
+          // Continue with next file
         }
       }
       
@@ -145,6 +160,12 @@ export const usePhotoManagement = (propertyId: string | undefined) => {
         toast({
           title: "Success",
           description: `${uploadedFiles.length} photo(s) uploaded successfully`,
+        });
+      } else if (files.length > 0 && uploadedFiles.length === 0) {
+        toast({
+          title: "Upload Failed",
+          description: "None of the photos could be uploaded. Please try again.",
+          variant: "destructive",
         });
       }
       
