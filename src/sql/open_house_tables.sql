@@ -2,7 +2,7 @@
 -- Create the property_open_houses table for storing open house schedule
 CREATE TABLE IF NOT EXISTS public.property_open_houses (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  property_id UUID NOT NULL REFERENCES properties(id) ON DELETE CASCADE,
+  property_id UUID NOT NULL REFERENCES property_listings(id) ON DELETE CASCADE,
   date DATE NOT NULL,
   start_time TEXT NOT NULL, -- HH:MM format
   end_time TEXT NOT NULL, -- HH:MM format
@@ -23,28 +23,28 @@ CREATE POLICY "Sellers can view their own property open houses"
   ON public.property_open_houses
   FOR SELECT
   USING (property_id IN (
-    SELECT id FROM properties WHERE seller_id = auth.uid()
+    SELECT id FROM property_listings WHERE seller_id = auth.uid()
   ));
 
 CREATE POLICY "Sellers can insert their own property open houses"
   ON public.property_open_houses
   FOR INSERT
   WITH CHECK (property_id IN (
-    SELECT id FROM properties WHERE seller_id = auth.uid()
+    SELECT id FROM property_listings WHERE seller_id = auth.uid()
   ));
 
 CREATE POLICY "Sellers can update their own property open houses"
   ON public.property_open_houses
   FOR UPDATE
   USING (property_id IN (
-    SELECT id FROM properties WHERE seller_id = auth.uid()
+    SELECT id FROM property_listings WHERE seller_id = auth.uid()
   ));
 
 CREATE POLICY "Sellers can delete their own property open houses"
   ON public.property_open_houses
   FOR DELETE
   USING (property_id IN (
-    SELECT id FROM properties WHERE seller_id = auth.uid()
+    SELECT id FROM property_listings WHERE seller_id = auth.uid()
   ));
 
 -- Buyers can view any property's open houses
