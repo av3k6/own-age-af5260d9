@@ -1,107 +1,30 @@
-import { useState, useEffect, useCallback } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+
+import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import AuthPageLayout from "@/components/auth/AuthPageLayout";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Icons } from "@/components/Icons";
-import { Eye, EyeOff, Mail, Lock, AlertCircle } from "lucide-react";
-import { Link } from "react-router-dom";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Progress } from "@/components/ui/progress";
+import { AlertCircle } from "lucide-react";
+import { useFormValidation } from "@/hooks/useFormValidation";
+import { LoginProgress } from "@/components/auth/LoginProgress";
+import { LoginFormFields } from "@/components/auth/LoginFormFields";
+import { FormErrorAlert } from "@/components/auth/FormErrorAlert";
+import { useLoginRedirect } from "@/hooks/useLoginRedirect";
 
 const Login = () => {
   const [email, setEmail] = useState("");
-  const [emailError, setEmailError] = useState("");
   const [password, setPassword] = useState("");
-  const [passwordError, setPasswordError] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [redirecting, setRedirecting] = useState(false);
   const [authProgress, setAuthProgress] = useState(0);
   const [formError, setFormError] = useState("");
   
   const { toast } = useToast();
   const { signIn, user, isInitialized, sessionStatus, refreshSession } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
+  const { validateEmail, validatePassword, errors } = useFormValidation();
+  const { redirecting, setRedirecting } = useLoginRedirect(user, isInitialized);
   
-  console.log("Login page rendering with state:", { isInitialized, hasUser: !!user, sessionStatus });
-
-  const validateEmail = (email: string) => {
-    if (!email) {
-      setEmailError("Email is required");
-      return false;
-    }
-    
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      setEmailError("Please enter a valid email address");
-      return false;
-    }
-    
-    setEmailError("");
-    return true;
-  };
-
-  const validatePassword = (password: string) => {
-    if (!password) {
-      setPasswordError("Password is required");
-      return false;
-    }
-    
-    if (password.length < 6) {
-      setPasswordError("Password must be at least 6 characters");
-      return false;
-    }
-    
-    setPasswordError("");
-    return true;
-  };
-  
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    
-    if (isLoading && authProgress < 90) {
-      interval = setInterval(() => {
-        setAuthProgress((prev) => {
-          const increment = Math.random() * 10;
-          return Math.min(prev + increment, 90);
-        });
-      }, 300);
-    } else if (!isLoading && authProgress > 0) {
-      interval = setInterval(() => {
-        setAuthProgress((prev) => {
-          if (prev < 100) {
-            return Math.min(prev + 10, 100);
-          }
-          return 0; // Reset after complete
-        });
-      }, 100);
-    }
-    
-    return () => clearInterval(interval);
-  }, [isLoading, authProgress]);
-  
-  const handleRedirect = useCallback(() => {
-    if (user) {
-      setRedirecting(true);
-      setAuthProgress(100);
-      const from = location.state?.from?.pathname || "/dashboard";
-      console.log("User authenticated, redirecting to:", from);
-      
-      setTimeout(() => {
-        navigate(from, { replace: true });
-      }, 300);
-    }
-  }, [user, navigate, location.state]);
-  
-  useEffect(() => {
-    if (isInitialized && user && !redirecting) {
-      handleRedirect();
-    }
-  }, [user, isInitialized, handleRedirect, redirecting]);
+  const emailError = errors.Email || "";
+  const passwordError = errors.Password || "";
   
   useEffect(() => {
     if (sessionStatus === 'expired') {
@@ -113,8 +36,8 @@ const Login = () => {
     e.preventDefault();
     setFormError("");
     
-    const isEmailValid = validateEmail(email);
-    const isPasswordValid = validatePassword(password);
+    const isEmailValid = validateEmail(email).isValid;
+    const isPasswordValid = validatePassword(password).isValid;
     
     if (!isEmailValid || !isPasswordValid) {
       return;
@@ -152,17 +75,19 @@ const Login = () => {
   };
 
   if (!isInitialized) {
-    console.log("Auth not initialized yet, showing loading state");
     return (
       <div className="flex flex-col justify-center items-center min-h-screen p-6 gap-4">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
         <p className="text-foreground">Preparing authentication system...</p>
-        <Progress value={30} className="w-64" />
+        <LoginProgress 
+          isLoading={true} 
+          authProgress={30} 
+          setAuthProgress={() => {}}
+        />
       </div>
     );
   }
 
-  console.log("Rendering login form");
   return (
     <AuthPageLayout
       title="Welcome back"
@@ -172,96 +97,27 @@ const Login = () => {
       footerLinkTo="/signup"
     >
       <div className="space-y-6">
-        {formError && (
-          <Alert variant="destructive" className="mb-4">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{formError}</AlertDescription>
-          </Alert>
-        )}
+        <FormErrorAlert error={formError} />
         
-        {authProgress > 0 && (
-          <Progress value={authProgress} className="h-1" />
-        )}
+        <LoginProgress
+          isLoading={isLoading}
+          authProgress={authProgress}
+          setAuthProgress={setAuthProgress}
+        />
         
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="space-y-1">
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
-                <Mail size={18} />
-              </div>
-              <Input
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  if (e.target.value) validateEmail(e.target.value);
-                }}
-                onBlur={(e) => validateEmail(e.target.value)}
-                className={`pl-10 ${
-                  emailError ? 'border-red-500' : 'border-gray-300'
-                }`}
-                autoComplete="email"
-                disabled={isLoading || redirecting}
-              />
-            </div>
-            {emailError && (
-              <p className="text-sm text-red-500 mt-1">{emailError}</p>
-            )}
-          </div>
-          
-          <div className="space-y-1">
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
-                <Lock size={18} />
-              </div>
-              <Input
-                type={showPassword ? "text" : "password"}
-                placeholder="Password"
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  if (e.target.value) validatePassword(e.target.value);
-                }}
-                onBlur={(e) => validatePassword(e.target.value)}
-                className={`pl-10 pr-10 ${
-                  passwordError ? 'border-red-500' : 'border-gray-300'
-                }`}
-                autoComplete="current-password"
-                disabled={isLoading || redirecting}
-              />
-              <div 
-                className="absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer" 
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? 
-                  <EyeOff size={18} className="text-gray-400 hover:text-gray-500" /> : 
-                  <Eye size={18} className="text-gray-400 hover:text-gray-500" />
-                }
-              </div>
-            </div>
-            {passwordError && (
-              <p className="text-sm text-red-500 mt-1">{passwordError}</p>
-            )}
-          </div>
-          
-          <div className="text-sm text-right">
-            <Link to="/forgot-password" className="hover:underline text-primary">
-              Forgot password?
-            </Link>
-          </div>
-          
-          <Button
-            type="submit"
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-            disabled={isLoading || redirecting}
-          >
-            {(isLoading || redirecting) && (
-              <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-            )}
-            {redirecting ? "Redirecting..." : isLoading ? "Signing in..." : "Sign In"}
-          </Button>
-        </form>
+        <LoginFormFields 
+          email={email}
+          setEmail={setEmail}
+          password={password}
+          setPassword={setPassword}
+          validateEmail={validateEmail}
+          validatePassword={validatePassword}
+          emailError={emailError}
+          passwordError={passwordError}
+          isLoading={isLoading}
+          redirecting={redirecting}
+          handleSubmit={handleSubmit}
+        />
       </div>
     </AuthPageLayout>
   );
