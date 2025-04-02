@@ -8,6 +8,7 @@ import { useEditListing } from "@/hooks/useEditListing";
 import BasicDetailsTab from "@/components/edit-listing/BasicDetailsTab";
 import RoomDetailsTab from "@/components/edit-listing/RoomDetailsTab";
 import FloorPlanTab from "@/components/edit-listing/floor-plan/FloorPlanTab";
+import ListingNumberDisplay from "@/components/property/ListingNumberDisplay";
 
 export default function EditListing() {
   const { id } = useParams<{ id: string }>();
@@ -23,7 +24,8 @@ export default function EditListing() {
     setOtherRooms,
     floorPlans,
     setFloorPlans,
-    saveProperty
+    saveProperty,
+    propertyDetails
   } = useEditListing(id);
 
   const onSubmit = form.handleSubmit(saveProperty);
@@ -52,7 +54,15 @@ export default function EditListing() {
           </Link>
         </div>
 
-        <h1 className="text-2xl font-bold mb-6">Edit Property Listing</h1>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">Edit Property Listing</h1>
+          {propertyDetails?.listingNumber && (
+            <ListingNumberDisplay 
+              listingNumber={propertyDetails.listingNumber} 
+              listingStatus={form.watch("status")}
+            />
+          )}
+        </div>
 
         <Form {...form}>
           <form onSubmit={onSubmit} className="space-y-6">

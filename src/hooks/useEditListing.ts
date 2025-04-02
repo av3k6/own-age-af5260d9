@@ -7,9 +7,11 @@ import { useRoomManagement } from "./edit-listing/useRoomManagement";
 import { usePropertyFetch } from "./edit-listing/usePropertyFetch";
 import { usePropertySave } from "./edit-listing/usePropertySave";
 import { editListingFormSchema, EditListingFormValues } from "@/types/edit-listing";
+import { PropertyRoomDetails } from "@/types";
 
 export const useEditListing = (propertyId: string | undefined) => {
   const [floorPlans, setFloorPlans] = useState<DocumentMetadata[]>([]);
+  const [propertyDetails, setPropertyDetails] = useState<PropertyRoomDetails | undefined>(undefined);
 
   const form = useForm<EditListingFormValues>({
     resolver: zodResolver(editListingFormSchema),
@@ -41,7 +43,8 @@ export const useEditListing = (propertyId: string | undefined) => {
     { reset: form.reset },
     setBedroomRooms,
     setOtherRooms,
-    setFloorPlans
+    setFloorPlans,
+    setPropertyDetails
   );
 
   const { isSaving, saveProperty } = usePropertySave(
@@ -61,7 +64,8 @@ export const useEditListing = (propertyId: string | undefined) => {
     setOtherRooms,
     floorPlans,
     setFloorPlans,
-    saveProperty
+    saveProperty,
+    propertyDetails
   };
 };
 

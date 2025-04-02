@@ -3,6 +3,7 @@ import React from "react";
 import { formatDate } from "@/lib/formatters";
 import { PropertyRoomDetails as PropertyRoomDetailsType } from "@/types";
 import PropertyDetailSection from "./PropertyDetailSection";
+import ListingNumberDisplay from "@/components/property/ListingNumberDisplay";
 
 interface KeyFactsTabProps {
   propertyTitle?: string;
@@ -12,15 +13,6 @@ interface KeyFactsTabProps {
 
 const KeyFactsTab = ({ propertyTitle, propertyDetails, listingStatus }: KeyFactsTabProps) => {
   const isPending = listingStatus === 'pending';
-  
-  // Format listing number based on status
-  const formatListingNumber = () => {
-    if (isPending) {
-      return 'TH' + (propertyDetails?.listingNumber?.substring(2) || 'TH########');
-    } else {
-      return propertyDetails?.listingNumber || 'TH########';
-    }
-  };
   
   return (
     <div>
@@ -61,10 +53,14 @@ const KeyFactsTab = ({ propertyTitle, propertyDetails, listingStatus }: KeyFacts
         </div>
         
         <div className="space-y-4">
-          <PropertyDetailSection 
-            label="Listing #"
-            value={formatListingNumber()}
-          />
+          <div className="flex justify-between border-b pb-2">
+            <span className="text-muted-foreground">Listing #:</span>
+            <ListingNumberDisplay 
+              listingNumber={propertyDetails?.listingNumber} 
+              listingStatus={listingStatus}
+              showLabel={false}
+            />
+          </div>
           
           <PropertyDetailSection 
             label="Days on Market"

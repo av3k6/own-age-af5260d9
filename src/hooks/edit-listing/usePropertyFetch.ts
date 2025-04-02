@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useSupabase } from "@/hooks/useSupabase";
 import { useAuth } from "@/contexts/AuthContext";
-import { Room } from "@/types";
+import { Room, PropertyRoomDetails } from "@/types";
 import { DocumentMetadata } from "@/types/document";
 import { UseFormReset } from "react-hook-form";
 import { EditListingFormValues } from "@/types/edit-listing";
@@ -14,7 +14,8 @@ export function usePropertyFetch(
   form: { reset: UseFormReset<EditListingFormValues> },
   setBedroomRooms: (rooms: Room[]) => void,
   setOtherRooms: (rooms: Room[]) => void,
-  setFloorPlans: (floorPlans: DocumentMetadata[]) => void
+  setFloorPlans: (floorPlans: DocumentMetadata[]) => void,
+  setPropertyDetails?: (details: PropertyRoomDetails) => void
 ) {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -52,6 +53,16 @@ export function usePropertyFetch(
         
         if (data.room_details?.otherRooms) {
           setOtherRooms(data.room_details.otherRooms);
+        }
+        
+        // Save room details for use elsewhere
+        if (setPropertyDetails && data.room_details) {
+          // Add listing number to room details if available
+          const details = {
+            ...data.room_details,
+            listingNumber: data.listing_number || undefined
+          };
+          setPropertyDetails(details);
         }
 
         try {
@@ -108,7 +119,7 @@ export function usePropertyFetch(
     };
     
     fetchProperty();
-  }, [propertyId, supabase, navigate, toast, user, form, setBedroomRooms, setOtherRooms, setFloorPlans]);
+  }, [propertyId, supabase, navigate, toast, user, form, setBedroomRooms, setOtherRooms, setFloorPlans, setPropertyDetails]);
 
   return { isLoading };
 }
