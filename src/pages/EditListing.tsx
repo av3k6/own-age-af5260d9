@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useEditListing } from "@/hooks/useEditListing";
 import BasicDetailsTab from "@/components/edit-listing/BasicDetailsTab";
 import RoomDetailsTab from "@/components/edit-listing/RoomDetailsTab";
-import FloorPlanTab from "@/components/edit-listing/FloorPlanTab";
+import FloorPlanTab from "@/components/edit-listing/floor-plan/FloorPlanTab";
 
 export default function EditListing() {
   const { id } = useParams<{ id: string }>();
