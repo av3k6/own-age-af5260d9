@@ -1,30 +1,31 @@
 
-import { useEffect, useState } from "react";
-import { OpenHouseSession } from "@/types/open-house";
-import { useOpenHouseSchedule } from "@/hooks/useOpenHouseSchedule";
+import { useEffect } from "react";
 import OpenHouseForm from "./OpenHouseForm";
 import OpenHouseList from "./OpenHouseList";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { useOpenHouseForm } from "./hooks/useOpenHouseForm";
 
 interface OpenHouseTabProps {
   propertyId?: string;
 }
 
 export default function OpenHouseTab({ propertyId }: OpenHouseTabProps) {
-  const { 
-    sessions, 
-    isLoading, 
-    isSaving,
+  const {
+    sessions,
+    isLoading,
+    showForm,
+    editingSession,
     fetchSessions,
-    addSession,
-    updateSession,
-    deleteSession
-  } = useOpenHouseSchedule(propertyId);
-  
-  const [showForm, setShowForm] = useState(false);
-  const [editingSession, setEditingSession] = useState<OpenHouseSession | null>(null);
+    handleAddSession,
+    handleUpdateSession,
+    handleEditClick,
+    handleDeleteClick,
+    handleCancelEdit,
+    handleCancelAdd,
+    handleShowAddForm
+  } = useOpenHouseForm(propertyId);
   
   useEffect(() => {
     if (propertyId) {
@@ -33,41 +34,7 @@ export default function OpenHouseTab({ propertyId }: OpenHouseTabProps) {
     } else {
       console.log("OpenHouseTab - No property ID provided");
     }
-  }, [propertyId]);
-  
-  const handleAddSession = async (data: any) => {
-    console.log("Adding session with data:", data);
-    const result = await addSession(data);
-    if (result) {
-      setShowForm(false);
-      console.log("Session added successfully:", result);
-    } else {
-      console.error("Failed to add session");
-    }
-  };
-  
-  const handleUpdateSession = async (data: any) => {
-    if (editingSession) {
-      await updateSession(editingSession.id, data);
-      setEditingSession(null);
-    }
-  };
-  
-  const handleEditClick = (session: OpenHouseSession) => {
-    setEditingSession(session);
-  };
-  
-  const handleDeleteClick = async (id: string) => {
-    await deleteSession(id);
-  };
-  
-  const handleCancelEdit = () => {
-    setEditingSession(null);
-  };
-  
-  const handleCancelAdd = () => {
-    setShowForm(false);
-  };
+  }, [propertyId, fetchSessions]);
   
   if (isLoading) {
     return (
@@ -88,7 +55,7 @@ export default function OpenHouseTab({ propertyId }: OpenHouseTabProps) {
         </div>
         
         {!showForm && !editingSession && (
-          <Button onClick={() => setShowForm(true)}>
+          <Button onClick={handleShowAddForm}>
             <PlusCircle className="h-4 w-4 mr-1" />
             Add Open House
           </Button>
