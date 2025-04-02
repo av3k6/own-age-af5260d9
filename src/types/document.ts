@@ -8,7 +8,10 @@ export interface DocumentMetadata {
   path: string;
   uploadedBy: string;
   createdAt: string;
+  updatedAt?: string;
   propertyId?: string;
+  category?: string;
+  description?: string;
 }
 
 export interface DocumentUploadOptions {
