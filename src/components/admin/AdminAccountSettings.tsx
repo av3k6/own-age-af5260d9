@@ -10,6 +10,7 @@ import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { Mail, User, Save } from "lucide-react";
+import { AdminProfile } from "@/types/admin";
 
 const formSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
@@ -37,7 +38,13 @@ const AdminAccountSettings = () => {
   const onSubmit = async (data: FormValues) => {
     setIsLoading(true);
     try {
-      const success = await updateAdminProfile(data);
+      // Ensure we pass complete AdminProfile object with required fields
+      const profileData: AdminProfile = {
+        username: data.username,
+        email: data.email,
+      };
+      
+      const success = await updateAdminProfile(profileData);
       
       if (success) {
         toast({
