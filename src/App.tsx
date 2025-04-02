@@ -29,10 +29,13 @@ import NotFound from './pages/NotFound';
 import DocumentManagement from './pages/DocumentManagement';
 import Messaging from './pages/Messaging';
 import Professionals from './pages/Professionals';
+import AdminLogin from './pages/Admin/AdminLogin';
+import AdminDashboard from './pages/Admin/AdminDashboard';
 
 // Professional components - lazy loaded
 const ProfessionalsList = React.lazy(() => import('./components/professionals/ProfessionalsList'));
 const ProfessionalDetail = React.lazy(() => import('./components/professionals/ProfessionalDetail'));
+const EditBusinessProfile = React.lazy(() => import('./components/professionals/EditBusinessProfile'));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -55,6 +58,7 @@ function App() {
                 {/* Auth routes without Layout */}
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<Signup />} />
+                <Route path="/admin/login" element={<AdminLogin />} />
                 
                 {/* Public routes with Layout */}
                 <Route element={<Layout />}>
@@ -106,6 +110,16 @@ function App() {
                   <Route path="/messages" element={
                     <ProtectedRoute>
                       <Messaging />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/business/edit" element={
+                    <ProtectedRoute requiredRole={UserRole.PROFESSIONAL}>
+                      <EditBusinessProfile />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin/dashboard" element={
+                    <ProtectedRoute>
+                      <AdminDashboard />
                     </ProtectedRoute>
                   } />
                 </Route>

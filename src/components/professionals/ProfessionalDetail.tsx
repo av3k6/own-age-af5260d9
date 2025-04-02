@@ -2,17 +2,31 @@
 import { useParams, Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Phone, Mail, MapPin, Building, Briefcase } from "lucide-react";
+import { ArrowLeft, Phone, Mail, MapPin, Building, Briefcase, Edit } from "lucide-react";
 import { professionalData } from "./data/professionalData";
+import { useAuth } from "@/contexts/AuthContext";
+
+// Mock database of user-to-business assignments
+// In a real app, this would be stored in a database
+const businessAssignments = [
+  { userId: "user123", businessId: "pillar-to-post", email: "john@example.com" },
+  { userId: "testuser", businessId: "pillar-to-post", email: "test@example.com" },
+];
 
 const ProfessionalDetail = () => {
   const { category, id } = useParams();
+  const { user } = useAuth();
   
   // Find the professional by ID
   const professional = professionalData.professionals.find(p => p.id === id && p.category === category);
   
   // Find the category
   const categoryInfo = professionalData.categories.find(c => c.type === category);
+
+  // Check if current user is assigned to this business
+  const isBusinessOwner = user && businessAssignments.some(
+    assignment => assignment.businessId === id && assignment.email === user.email
+  );
 
   if (!professional || !categoryInfo) {
     return (
@@ -32,14 +46,25 @@ const ProfessionalDetail = () => {
 
   return (
     <div className="container py-10">
-      <div className="flex items-center mb-8">
-        <Link to={`/professionals/${category}`} className="mr-4">
-          <Button variant="outline" size="sm">
-            <ArrowLeft className="h-4 w-4 mr-1" />
-            Back
-          </Button>
-        </Link>
-        <h1 className="text-3xl font-bold">{professional.name}</h1>
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center">
+          <Link to={`/professionals/${category}`} className="mr-4">
+            <Button variant="outline" size="sm">
+              <ArrowLeft className="h-4 w-4 mr-1" />
+              Back
+            </Button>
+          </Link>
+          <h1 className="text-3xl font-bold">{professional.name}</h1>
+        </div>
+        
+        {isBusinessOwner && (
+          <Link to="/business/edit">
+            <Button variant="default">
+              <Edit className="mr-2 h-4 w-4" />
+              Edit Business Profile
+            </Button>
+          </Link>
+        )}
       </div>
 
       <div className="grid md:grid-cols-3 gap-6">
