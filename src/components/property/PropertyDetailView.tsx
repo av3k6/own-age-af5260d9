@@ -27,7 +27,10 @@ const PropertyDetailView = ({ property }: PropertyDetailViewProps) => {
         <div className="lg:col-span-2 space-y-8">
           <PropertyInformation property={property} />
           <PropertyDescription description={property.description} />
+          
+          {/* Open house schedule is now prominently displayed higher in the layout */}
           <OpenHouseSchedule propertyId={property.id} />
+          
           <PropertyRoomDetails
             bedrooms={property.roomDetails?.bedrooms}
             otherRooms={property.roomDetails?.otherRooms}

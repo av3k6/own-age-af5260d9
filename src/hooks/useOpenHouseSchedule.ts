@@ -45,7 +45,7 @@ export const useOpenHouseSchedule = (propertyId?: string) => {
       console.error("Error fetching open house sessions:", error);
       toast({
         title: "Error",
-        description: "Failed to load open house sessions",
+        description: "Failed to load open house sessions: " + error.message,
         variant: "destructive",
       });
     } finally {
@@ -54,27 +54,23 @@ export const useOpenHouseSchedule = (propertyId?: string) => {
   };
 
   const addSession = async (session: OpenHouseSessionFormValues) => {
-    if (!propertyId) return;
+    if (!propertyId) return null;
     
     setIsSaving(true);
     try {
-      console.log("Adding open house session:", {
+      const sessionData = {
         property_id: propertyId,
         date: format(session.date, "yyyy-MM-dd"),
         start_time: session.startTime,
         end_time: session.endTime,
-        notes: session.notes,
-      });
+        notes: session.notes || null,
+      };
+
+      console.log("Adding open house session:", sessionData);
       
       const { data, error } = await supabase
         .from("property_open_houses")
-        .insert({
-          property_id: propertyId,
-          date: format(session.date, "yyyy-MM-dd"),
-          start_time: session.startTime,
-          end_time: session.endTime,
-          notes: session.notes,
-        })
+        .insert(sessionData)
         .select();
 
       if (error) {

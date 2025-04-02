@@ -28,13 +28,22 @@ export default function OpenHouseTab({ propertyId }: OpenHouseTabProps) {
   
   useEffect(() => {
     if (propertyId) {
+      console.log("OpenHouseTab - Fetching sessions for property:", propertyId);
       fetchSessions();
+    } else {
+      console.log("OpenHouseTab - No property ID provided");
     }
   }, [propertyId]);
   
   const handleAddSession = async (data: any) => {
-    await addSession(data);
-    setShowForm(false);
+    console.log("Adding session with data:", data);
+    const result = await addSession(data);
+    if (result) {
+      setShowForm(false);
+      console.log("Session added successfully:", result);
+    } else {
+      console.error("Failed to add session");
+    }
   };
   
   const handleUpdateSession = async (data: any) => {

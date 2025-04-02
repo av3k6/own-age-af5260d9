@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
-import { Calendar, Clock, MapPin } from "lucide-react";
+import { Calendar, Clock } from "lucide-react";
 import { useSupabase } from "@/hooks/useSupabase";
 import { OpenHouseSession } from "@/types/open-house";
 import { useToast } from "@/hooks/use-toast";
@@ -25,6 +25,8 @@ export default function OpenHouseSchedule({ propertyId }: OpenHouseScheduleProps
       try {
         setIsLoading(true);
         
+        console.log("Fetching open houses for property:", propertyId);
+        
         const { data, error } = await supabase
           .from("property_open_houses")
           .select("*")
@@ -32,8 +34,11 @@ export default function OpenHouseSchedule({ propertyId }: OpenHouseScheduleProps
           .order("date", { ascending: true });
         
         if (error) {
+          console.error("Supabase error fetching open houses:", error);
           throw error;
         }
+        
+        console.log("Open house sessions raw data:", data);
         
         // Only show future open houses
         const now = new Date();
@@ -52,12 +57,13 @@ export default function OpenHouseSchedule({ propertyId }: OpenHouseScheduleProps
           }))
           .filter(session => session.date >= now);
           
+        console.log("Formatted open house sessions:", formattedSessions);
         setSessions(formattedSessions);
       } catch (error: any) {
         console.error("Error fetching open house sessions:", error);
         toast({
           title: "Error",
-          description: "Failed to load open house schedule",
+          description: "Failed to load open house schedule: " + error.message,
           variant: "destructive",
         });
       } finally {
