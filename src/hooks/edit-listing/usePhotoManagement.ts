@@ -117,7 +117,7 @@ export const usePhotoManagement = (propertyId: string | undefined) => {
             toast({
               title: "Database Warning",
               description: "Photo uploaded but metadata could not be saved. The property_photos table may not exist.",
-              variant: "warning",
+              variant: "default", // Changed from "warning" to "default"
             });
           } else {
             console.log("Database record inserted successfully");
@@ -128,7 +128,7 @@ export const usePhotoManagement = (propertyId: string | undefined) => {
           toast({
             title: "Database Warning",
             description: "Photo uploaded but metadata could not be saved. The property_photos table may not exist.",
-            variant: "warning",
+            variant: "default", // Changed from "warning" to "default"
           });
         }
       }
