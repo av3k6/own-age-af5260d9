@@ -40,6 +40,7 @@ export function usePropertySave(
 
       console.log("Updating listing status to:", values.status);
 
+      // Create base update data without floor_plans to avoid errors
       const updateData = {
         title: values.title,
         description: values.description,
@@ -61,11 +62,11 @@ export function usePropertySave(
           bedrooms: bedroomRooms,
           otherRooms: otherRooms
         },
-        floor_plans: floorPlans,
         updated_at: new Date().toISOString(),
       };
       
       try {
+        // Update property listing without including floor_plans field
         const { error } = await supabase
           .from("property_listings")
           .update(updateData)
@@ -74,45 +75,49 @@ export function usePropertySave(
           
         if (error) throw error;
 
+        // Handle floor plans in a separate table if they exist
         try {
-          for (const floorPlan of floorPlans) {
-            if (!floorPlan.id || !floorPlan.id.includes('/')) continue;
-            
-            const documentData = {
-              id: floorPlan.id.replace(/\//g, '_'),
-              name: floorPlan.name,
-              url: floorPlan.url,
-              type: floorPlan.type,
-              size: floorPlan.size,
-              property_id: propertyId,
-              uploaded_by: user.id,
-              document_type: "floor_plan",
-              path: floorPlan.path,
-              created_at: floorPlan.createdAt
-            };
+          if (floorPlans.length > 0) {
+            for (const floorPlan of floorPlans) {
+              if (!floorPlan.id || !floorPlan.id.includes('/')) continue;
+              
+              const documentData = {
+                id: floorPlan.id.replace(/\//g, '_'),
+                name: floorPlan.name,
+                url: floorPlan.url,
+                type: floorPlan.type,
+                size: floorPlan.size,
+                property_id: propertyId,
+                uploaded_by: user.id,
+                document_type: "floor_plan",
+                path: floorPlan.path,
+                created_at: floorPlan.createdAt
+              };
 
-            const { data: existingDoc, error: checkError } = await supabase
-              .from("property_documents")
-              .select("id")
-              .eq("property_id", propertyId)
-              .eq("path", floorPlan.path)
-              .maybeSingle();
+              const { data: existingDoc, error: checkError } = await supabase
+                .from("property_documents")
+                .select("id")
+                .eq("property_id", propertyId)
+                .eq("path", floorPlan.path)
+                .maybeSingle();
 
-            if (!checkError) {
-              if (existingDoc) {
-                await supabase
-                  .from("property_documents")
-                  .update(documentData)
-                  .eq("id", existingDoc.id);
-              } else {
-                await supabase
-                  .from("property_documents")
-                  .insert(documentData);
+              if (!checkError) {
+                if (existingDoc) {
+                  await supabase
+                    .from("property_documents")
+                    .update(documentData)
+                    .eq("id", existingDoc.id);
+                } else {
+                  await supabase
+                    .from("property_documents")
+                    .insert(documentData);
+                }
               }
             }
           }
         } catch (documentError) {
           console.warn("Could not save to property_documents table:", documentError);
+          // Don't throw error here, just log warning - allow update to succeed even if documents fail
         }
           
         toast({
