@@ -8,6 +8,7 @@ import { useEditListing } from "@/hooks/useEditListing";
 import BasicDetailsTab from "@/components/edit-listing/BasicDetailsTab";
 import RoomDetailsTab from "@/components/edit-listing/RoomDetailsTab";
 import FloorPlanTab from "@/components/edit-listing/floor-plan/FloorPlanTab";
+import OpenHouseTab from "@/components/edit-listing/open-house/OpenHouseTab";
 import ListingNumberDisplay from "@/components/property/ListingNumberDisplay";
 
 export default function EditListing() {
@@ -67,10 +68,11 @@ export default function EditListing() {
         <Form {...form}>
           <form onSubmit={onSubmit} className="space-y-6">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid grid-cols-3 mb-4">
+              <TabsList className="grid grid-cols-4 mb-4">
                 <TabsTrigger value="basic">Basic Details</TabsTrigger>
                 <TabsTrigger value="rooms">Room Details</TabsTrigger>
                 <TabsTrigger value="floorPlans">Floor Plans</TabsTrigger>
+                <TabsTrigger value="openHouse">Open House</TabsTrigger>
               </TabsList>
               
               <TabsContent value="basic">
@@ -93,6 +95,10 @@ export default function EditListing() {
                   setFloorPlans={setFloorPlans}
                   propertyId={id}
                 />
+              </TabsContent>
+
+              <TabsContent value="openHouse">
+                <OpenHouseTab propertyId={id} />
               </TabsContent>
             </Tabs>
 
