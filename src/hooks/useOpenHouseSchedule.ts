@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useSupabase } from "@/hooks/useSupabase";
 import { useToast } from "@/hooks/use-toast";
@@ -17,16 +16,22 @@ export const useOpenHouseSchedule = (propertyId?: string) => {
     
     setIsLoading(true);
     try {
+      console.log("Fetching open house sessions for property:", propertyId);
       const { data, error } = await supabase
         .from("property_open_houses")
         .select("*")
         .eq("property_id", propertyId)
         .order("date", { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error response from Supabase:", error);
+        throw error;
+      }
       
+      console.log("Fetched sessions:", data);
+      
+      // Convert the response to our internal type
       setSessions(data.map(session => ({
-        ...session,
         id: session.id,
         propertyId: session.property_id,
         date: new Date(session.date),
@@ -53,6 +58,14 @@ export const useOpenHouseSchedule = (propertyId?: string) => {
     
     setIsSaving(true);
     try {
+      console.log("Adding open house session:", {
+        property_id: propertyId,
+        date: format(session.date, "yyyy-MM-dd"),
+        start_time: session.startTime,
+        end_time: session.endTime,
+        notes: session.notes,
+      });
+      
       const { data, error } = await supabase
         .from("property_open_houses")
         .insert({
@@ -64,7 +77,16 @@ export const useOpenHouseSchedule = (propertyId?: string) => {
         })
         .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error response from Supabase:", error);
+        throw error;
+      }
+      
+      console.log("Added session response:", data);
+      
+      if (!data || data.length === 0) {
+        throw new Error("No data returned after insert");
+      }
       
       // Convert the response to our internal type
       const newSession: OpenHouseSession = {
@@ -90,7 +112,7 @@ export const useOpenHouseSchedule = (propertyId?: string) => {
       console.error("Error adding open house session:", error);
       toast({
         title: "Error",
-        description: "Failed to add open house session",
+        description: "Failed to add open house session: " + error.message,
         variant: "destructive",
       });
       return null;

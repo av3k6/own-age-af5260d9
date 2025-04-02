@@ -9,6 +9,7 @@ import PropertyLocation from "./PropertyLocation";
 import PropertyRoomDetails from "./room-details/PropertyRoomDetails";
 import PropertySimilar from "./PropertySimilar";
 import PropertyProfessionals from "./PropertyProfessionals";
+import OpenHouseSchedule from "./OpenHouseSchedule";
 
 interface PropertyDetailViewProps {
   property: PropertyListing;
@@ -26,6 +27,7 @@ const PropertyDetailView = ({ property }: PropertyDetailViewProps) => {
         <div className="lg:col-span-2 space-y-8">
           <PropertyInformation property={property} />
           <PropertyDescription description={property.description} />
+          <OpenHouseSchedule propertyId={property.id} />
           <PropertyRoomDetails
             bedrooms={property.roomDetails?.bedrooms}
             otherRooms={property.roomDetails?.otherRooms}
