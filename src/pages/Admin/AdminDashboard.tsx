@@ -7,7 +7,7 @@ import AssignBusinessOwners from "@/components/admin/AssignBusinessOwners";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import AdminAccountSettings from "@/components/admin/AdminAccountSettings";
+import AdminAccountSettings from "@/components/admin/account/AdminAccountSettings";
 import AdminSecuritySettings from "@/components/admin/AdminSecuritySettings";
 
 const AdminDashboard = () => {
