@@ -55,7 +55,7 @@ const ProfessionalDetail = () => {
               <div>
                 <h3 className="font-semibold text-lg">About</h3>
                 <p className="text-muted-foreground mt-1">
-                  {professional.description || `${professional.name} specializes in providing professional ${categoryInfo.label.toLowerCase()} services throughout the area.`}
+                  {`${professional.name} specializes in providing professional ${categoryInfo.label.toLowerCase()} services throughout the area.`}
                 </p>
               </div>
               

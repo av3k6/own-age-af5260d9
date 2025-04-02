@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Home, Building2, Roof, Zap, Pipette, Thermometer, Flame, Bug, Droplet, FlaskRound, Radiation, Water, Oil, SwimmingPool, Hammer } from "lucide-react";
+import { Search, Home, Building2, Construction, Zap, Pipette, Thermometer, Flame, Bug, Droplet, FlaskRound, Radiation, Waves, Fuel, Bike, Hammer } from "lucide-react";
 import { ProfessionalType } from "@/types";
 import { Link } from "react-router-dom";
 
@@ -13,7 +13,7 @@ import { Link } from "react-router-dom";
 const professionalCategories = [
   { type: "inspector", label: "Home Inspectors", icon: Home },
   { type: "structural", label: "Structural Engineers", icon: Building2 },
-  { type: "roofing", label: "Roof Inspectors", icon: Roof },
+  { type: "roofing", label: "Roof Inspectors", icon: Construction },
   { type: "electrical", label: "Electricians", icon: Zap },
   { type: "plumbing", label: "Plumbers", icon: Pipette },
   { type: "hvac", label: "HVAC Technicians", icon: Thermometer },
@@ -22,10 +22,10 @@ const professionalCategories = [
   { type: "mold", label: "Mold Specialists", icon: Droplet },
   { type: "asbestos", label: "Asbestos & Lead", icon: FlaskRound },
   { type: "radon", label: "Radon Testing", icon: Radiation },
-  { type: "septic", label: "Septic Inspectors", icon: Water },
-  { type: "well", label: "Well Water Testing", icon: Water },
-  { type: "oil", label: "Oil Tank Inspectors", icon: Oil },
-  { type: "pool", label: "Pool Inspectors", icon: SwimmingPool },
+  { type: "septic", label: "Septic Inspectors", icon: Pipette },
+  { type: "well", label: "Well Water Testing", icon: Waves },
+  { type: "oil", label: "Oil Tank Inspectors", icon: Fuel },
+  { type: "pool", label: "Pool Inspectors", icon: Bike },
   { type: "contractor", label: "General Contractors", icon: Hammer },
 ];
 
