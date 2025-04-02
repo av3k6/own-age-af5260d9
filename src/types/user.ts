@@ -10,6 +10,7 @@ export interface User {
   profileImage?: string;
   bio?: string;
   createdAt: Date;
+  isAdmin?: boolean; // Add the isAdmin property
   user_metadata?: {
     full_name?: string;
     name?: string;

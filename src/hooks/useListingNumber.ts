@@ -19,14 +19,9 @@ export const useListingNumber = (): UseListingNumberReturn => {
    * For pending listings, replaces TH prefix with 'TH'
    */
   const formatListingNumber = (listingNumber?: string, listingStatus?: string): string => {
-    if (!listingNumber) return 'TH########';
+    if (!listingNumber || listingNumber.trim() === '') return 'TH########';
     
-    const isPending = listingStatus?.toLowerCase() === 'pending';
-    
-    if (isPending) {
-      return 'TH' + (listingNumber.substring(2) || '########');
-    } 
-    
+    // Always return the actual listing number regardless of status
     return listingNumber;
   };
 
