@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Navigate, useLocation, Outlet } from 'react-router-dom';
 import AuthVerificationLoader from './AuthVerificationLoader';
 import AccessDeniedAlert from './AccessDeniedAlert';
@@ -10,13 +10,15 @@ interface ProtectedRouteProps {
   requiredRole?: string | string[];
   fallbackPath?: string; // Custom fallback path
   outlet?: boolean; // Whether to render an Outlet instead of children
+  adminRoute?: boolean; // New prop to identify admin routes
 }
 
 const ProtectedRoute = ({
   children,
   requiredRole,
   fallbackPath = "/login",
-  outlet = false
+  outlet = false,
+  adminRoute = false
 }: ProtectedRouteProps) => {
   const location = useLocation();
   const {
@@ -29,13 +31,37 @@ const ProtectedRoute = ({
     requiredRoles
   } = useAuthVerification({ requiredRole });
   
-  // Show loading state while checking authentication
-  if (!sessionCheckComplete || isVerifying) {
+  // Admin route check
+  const checkAdminAuth = () => {
+    try {
+      const adminSessionStr = localStorage.getItem("admin_session");
+      if (!adminSessionStr) return false;
+      
+      const adminSession = JSON.parse(adminSessionStr);
+      const now = new Date();
+      const expiresAt = new Date(adminSession.expiresAt);
+      
+      // Check if session has expired
+      if (now > expiresAt) {
+        localStorage.removeItem("admin_session");
+        return false;
+      }
+      
+      return adminSession.authenticated && adminSession.isAdmin;
+    } catch (error) {
+      return false;
+    }
+  };
+
+  const isAdminAuthenticated = adminRoute ? checkAdminAuth() : false;
+  
+  // Show loading state while checking authentication (for non-admin routes)
+  if (!adminRoute && (!sessionCheckComplete || isVerifying)) {
     return <AuthVerificationLoader isVerifying={isVerifying} />;
   }
   
-  // Handle expired sessions
-  if (sessionStatus === 'expired' && sessionCheckComplete) {
+  // Handle expired sessions for non-admin routes
+  if (!adminRoute && sessionStatus === 'expired' && sessionCheckComplete) {
     console.log("ProtectedRoute: Session expired, redirecting to login");
     return <Navigate 
       to={fallbackPath} 
@@ -48,7 +74,21 @@ const ProtectedRoute = ({
     />;
   }
   
-  // Check if user is authenticated
+  // For admin routes, check admin authentication
+  if (adminRoute) {
+    if (!isAdminAuthenticated) {
+      console.log("ProtectedRoute: Admin not authenticated, redirecting to admin login");
+      return <Navigate to="/admin/login" state={{ from: location }} replace />;
+    }
+    
+    // Admin is authenticated, render children or outlet
+    if (outlet) {
+      return <Outlet />;
+    }
+    return <>{children}</>;
+  }
+  
+  // For non-admin routes, check regular authentication
   const hasAuth = user !== null || isAuthenticated;
   
   if (!hasAuth && sessionCheckComplete) {

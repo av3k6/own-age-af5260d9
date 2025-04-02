@@ -1,4 +1,3 @@
-
 import React, { Suspense } from 'react';
 import {
   BrowserRouter as Router,
@@ -118,7 +117,7 @@ function App() {
                     </ProtectedRoute>
                   } />
                   <Route path="/admin/dashboard" element={
-                    <ProtectedRoute>
+                    <ProtectedRoute adminRoute={true}>
                       <AdminDashboard />
                     </ProtectedRoute>
                   } />

@@ -1,12 +1,10 @@
 
 import { useState } from "react";
-import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 
 export const useAdminAuth = () => {
   const { toast } = useToast();
-  const { signIn } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -24,16 +22,19 @@ export const useAdminAuth = () => {
     setIsLoading(true);
 
     try {
-      // Here we're simulating an admin login
-      // In a real app, this would authenticate against a proper backend with admin credentials
-      const adminEmail = "admin@example.com"; // Changed from jredmond@example.com
+      // Set admin session in localStorage with proper expiration
+      const now = new Date();
+      const expiresAt = new Date(now.getTime() + 8 * 60 * 60 * 1000); // 8 hours from now
       
-      // For this demo, we'll skip the actual Supabase auth call to avoid the invalid credentials error
-      // and create a simulated user session instead
+      const adminSession = {
+        authenticated: true,
+        username: username,
+        isAdmin: true,
+        createdAt: now.toISOString(),
+        expiresAt: expiresAt.toISOString()
+      };
       
-      // Simulate successful authentication
-      localStorage.setItem("admin_authenticated", "true");
-      localStorage.setItem("admin_username", username);
+      localStorage.setItem("admin_session", JSON.stringify(adminSession));
       
       toast({
         title: "Admin Login Successful",
@@ -55,8 +56,42 @@ export const useAdminAuth = () => {
     }
   };
 
+  // Check if admin is authenticated
+  const checkAdminAuth = () => {
+    try {
+      const adminSessionStr = localStorage.getItem("admin_session");
+      if (!adminSessionStr) return false;
+      
+      const adminSession = JSON.parse(adminSessionStr);
+      const now = new Date();
+      const expiresAt = new Date(adminSession.expiresAt);
+      
+      // Check if session has expired
+      if (now > expiresAt) {
+        localStorage.removeItem("admin_session");
+        return false;
+      }
+      
+      return adminSession.authenticated && adminSession.isAdmin;
+    } catch (error) {
+      return false;
+    }
+  };
+
+  // Logout admin
+  const logoutAdmin = () => {
+    localStorage.removeItem("admin_session");
+    toast({
+      title: "Logged Out",
+      description: "You have been logged out of the admin panel",
+    });
+    navigate("/admin/login");
+  };
+
   return {
     loginAsAdmin,
+    checkAdminAuth,
+    logoutAdmin,
     isLoading
   };
 };

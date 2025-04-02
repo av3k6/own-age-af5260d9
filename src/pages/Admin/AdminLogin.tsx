@@ -1,16 +1,25 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Lock, User } from "lucide-react";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
+import { useNavigate } from "react-router-dom";
 
 const AdminLogin = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const { loginAsAdmin, isLoading } = useAdminAuth();
+  const { loginAsAdmin, isLoading, checkAdminAuth } = useAdminAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check if already authenticated
+    if (checkAdminAuth()) {
+      navigate("/admin/dashboard");
+    }
+  }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
