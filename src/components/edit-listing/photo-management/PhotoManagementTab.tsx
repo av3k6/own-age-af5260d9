@@ -5,6 +5,7 @@ import { Loader2, Plus } from "lucide-react";
 import PhotoList from "./PhotoList";
 import { useState } from "react";
 import PhotoUploader from "./PhotoUploader";
+import { toast } from "@/hooks/use-toast";
 
 interface PhotoManagementTabProps {
   propertyId: string | undefined;
@@ -24,14 +25,42 @@ export default function PhotoManagementTab({ propertyId }: PhotoManagementTabPro
   
   const [showUploader, setShowUploader] = useState(false);
 
-  const handleFileUpload = async (files: File[]) => {
+  const handleFileUpload = async (files: File[]): Promise<boolean> => {
     console.log("PhotoManagementTab: Handling file upload for", files.length, "files");
-    const success = await uploadPhotos(files);
-    console.log("PhotoManagementTab: Upload result:", success);
-    if (success) {
-      setShowUploader(false);
+    
+    if (!propertyId) {
+      console.error("PhotoManagementTab: No propertyId provided");
+      toast({
+        title: "Error",
+        description: "Property ID is missing. Please try again later.",
+        variant: "destructive",
+      });
+      return false;
     }
-    return success;
+
+    if (files.length === 0) {
+      console.log("PhotoManagementTab: No files to upload");
+      return false;
+    }
+    
+    try {
+      const success = await uploadPhotos(files);
+      console.log("PhotoManagementTab: Upload result:", success);
+      
+      if (success) {
+        setShowUploader(false);
+      }
+      
+      return success;
+    } catch (error) {
+      console.error("PhotoManagementTab: Error handling upload:", error);
+      toast({
+        title: "Upload Error",
+        description: "Failed to process photos. Please try again.",
+        variant: "destructive",
+      });
+      return false;
+    }
   };
 
   if (isLoading) {

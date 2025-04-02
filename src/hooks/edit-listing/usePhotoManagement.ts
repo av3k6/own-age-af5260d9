@@ -19,7 +19,11 @@ export const usePhotoManagement = (propertyId: string | undefined) => {
 
   // Fetch existing photos
   const fetchPhotos = async () => {
-    if (!propertyId) return;
+    if (!propertyId) {
+      console.log("usePhotoManagement: No propertyId provided for fetching photos");
+      setIsLoading(false);
+      return;
+    }
     
     setIsLoading(true);
     try {
@@ -50,14 +54,15 @@ export const usePhotoManagement = (propertyId: string | undefined) => {
   };
 
   // Handle file upload
-  const uploadPhotos = async (files: File[]) => {
+  const uploadPhotos = async (files: File[]): Promise<boolean> => {
     if (!files.length || !propertyId) {
-      console.log("No files or propertyId provided");
+      console.log("usePhotoManagement: No files or propertyId provided");
       return false;
     }
     
     setIsUploading(true);
     let uploadSuccess = false;
+    const uploadedFiles: File[] = [];
     
     try {
       console.log("Starting upload for", files.length, "files for property:", propertyId);
@@ -66,7 +71,7 @@ export const usePhotoManagement = (propertyId: string | undefined) => {
       for (const file of files) {
         // Create a unique file name
         const fileExt = file.name.split('.').pop();
-        const fileName = `property-photos/${propertyId}/${Date.now()}.${fileExt}`;
+        const fileName = `property-photos/${propertyId}/${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
         
         console.log(`Uploading file: ${fileName}`);
         
@@ -78,6 +83,7 @@ export const usePhotoManagement = (propertyId: string | undefined) => {
           throw uploadError;
         }
         
+        uploadedFiles.push(file);
         console.log("File uploaded successfully, getting public URL");
         
         // Get public URL using the safe method
@@ -107,35 +113,42 @@ export const usePhotoManagement = (propertyId: string | undefined) => {
           
           if (dbError) {
             console.error('Database error:', dbError);
-            // Show warning but continue
+            // Show warning but continue - upload succeeded even if metadata save failed
             toast({
               title: "Database Warning",
               description: "Photo uploaded but metadata could not be saved. The property_photos table may not exist.",
-              variant: "destructive",
+              variant: "warning",
             });
           } else {
             console.log("Database record inserted successfully");
           }
         } catch (dbError) {
           console.error('Error saving to database:', dbError);
-          // Show warning but continue
+          // Show warning but continue - upload succeeded even if metadata save failed
           toast({
             title: "Database Warning",
             description: "Photo uploaded but metadata could not be saved. The property_photos table may not exist.",
-            variant: "destructive",
+            variant: "warning",
           });
         }
       }
       
+      // If we've made it here, at least some files uploaded successfully
+      if (uploadedFiles.length > 0) {
+        uploadSuccess = true;
+      }
+      
       // Refresh photos
       await fetchPhotos();
-      toast({
-        title: "Success",
-        description: `${files.length} photo(s) uploaded successfully`,
-      });
       
-      uploadSuccess = true;
-      return true;
+      if (uploadSuccess) {
+        toast({
+          title: "Success",
+          description: `${uploadedFiles.length} photo(s) uploaded successfully`,
+        });
+      }
+      
+      return uploadSuccess;
     } catch (error) {
       console.error('Error uploading photos:', error);
       toast({

@@ -8,8 +8,9 @@ interface FileUploaderProps {
   multiple?: boolean;
   maxFiles?: number;
   maxSize?: number; // in bytes
-  onUpload: (files: File[]) => void;
+  onUpload: (files: File[]) => Promise<boolean> | void;
   isUploading?: boolean;
+  autoUpload?: boolean;
 }
 
 export function FileUploader({
@@ -19,6 +20,7 @@ export function FileUploader({
   maxSize = 5 * 1024 * 1024, // 5MB default
   onUpload,
   isUploading = false,
+  autoUpload = false,
 }: FileUploaderProps) {
   const [dragActive, setDragActive] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -90,6 +92,11 @@ export function FileUploader({
       const droppedFiles = Array.from(e.dataTransfer.files);
       if (validateFiles(droppedFiles)) {
         setSelectedFiles(droppedFiles);
+        
+        // Auto upload if enabled
+        if (autoUpload) {
+          handleUpload(droppedFiles);
+        }
       }
     }
   };
@@ -102,18 +109,36 @@ export function FileUploader({
       const selectedFiles = Array.from(e.target.files);
       if (validateFiles(selectedFiles)) {
         setSelectedFiles(selectedFiles);
+        
+        // Auto upload if enabled
+        if (autoUpload) {
+          handleUpload(selectedFiles);
+        }
       }
     }
   };
 
-  const handleUpload = () => {
-    if (selectedFiles.length > 0) {
-      onUpload(selectedFiles);
+  const handleUpload = async (files = selectedFiles) => {
+    if (files.length > 0) {
+      console.log("FileUploader: Starting upload for", files.length, "files");
+      try {
+        const result = await onUpload(files);
+        console.log("FileUploader: Upload complete with result:", result);
+        
+        // Clear selected files on successful upload
+        if (result === true) {
+          setSelectedFiles([]);
+        }
+      } catch (error) {
+        console.error("FileUploader: Error during upload:", error);
+        setError("Upload failed. Please try again.");
+      }
     }
   };
 
   const removeFile = (index: number) => {
     setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+    setError(null);
   };
 
   const openFileDialog = () => {
@@ -198,7 +223,7 @@ export function FileUploader({
           
           <Button
             type="button"
-            onClick={handleUpload}
+            onClick={() => handleUpload()}
             disabled={isUploading}
             className="mt-2"
           >

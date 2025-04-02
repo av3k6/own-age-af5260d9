@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { FileUploader } from "@/components/ui/file-uploader";
+import { toast } from "@/hooks/use-toast";
 
 interface PhotoUploaderProps {
   onUploadPhotos: (files: File[]) => Promise<boolean>;
@@ -11,17 +12,40 @@ interface PhotoUploaderProps {
 export default function PhotoUploader({ onUploadPhotos, isUploading }: PhotoUploaderProps) {
   const [showUploader, setShowUploader] = useState(false);
 
-  const handleFileUpload = async (files: File[]) => {
+  const handleFileUpload = async (files: File[]): Promise<boolean> => {
     try {
       console.log("PhotoUploader: Starting file upload for", files.length, "files");
+      
+      if (files.length === 0) {
+        console.log("PhotoUploader: No files to upload");
+        return false;
+      }
+      
       const success = await onUploadPhotos(files);
       console.log("PhotoUploader: Upload completed with success:", success);
+      
       if (success) {
         setShowUploader(false);
+        toast({
+          title: "Success",
+          description: `${files.length} photo${files.length > 1 ? 's' : ''} uploaded successfully!`,
+        });
+      } else {
+        toast({
+          title: "Upload Failed",
+          description: "Failed to upload photos. Please try again.",
+          variant: "destructive",
+        });
       }
+      
       return success;
     } catch (error) {
       console.error("PhotoUploader: Error during file upload:", error);
+      toast({
+        title: "Error",
+        description: "Failed to upload photos. Please try again later.",
+        variant: "destructive",
+      });
       return false;
     }
   };
