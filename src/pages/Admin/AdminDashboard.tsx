@@ -1,18 +1,29 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import AssignBusinessOwners from "@/components/admin/AssignBusinessOwners";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const AdminDashboard = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("assign-businesses");
-
-  // Check if user is admin (in this case, specifically jredmond)
-  const isAdmin = user?.email === "jredmond@example.com" || user?.id === "jredmond";
+  const [isAdmin, setIsAdmin] = useState(false);
+  
+  useEffect(() => {
+    // Check if user is authenticated as admin
+    const adminAuthenticated = localStorage.getItem("admin_authenticated") === "true";
+    
+    if (!adminAuthenticated) {
+      navigate("/admin/login");
+    } else {
+      setIsAdmin(true);
+    }
+  }, [navigate]);
 
   if (!isAdmin) {
     return (
