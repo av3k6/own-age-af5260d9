@@ -9,7 +9,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { PropertyType, ListingStatus, Room } from "@/types";
 import { DocumentMetadata } from "@/types/document";
 
-// Form schema definition
 const formSchema = z.object({
   title: z.string().min(5, {
     message: "Title must be at least 5 characters.",
@@ -67,7 +66,6 @@ export const useEditListing = (propertyId: string | undefined) => {
     },
   });
 
-  // Watch for changes in bedroom count to update room details
   useEffect(() => {
     const bedroomCount = form.watch("bedrooms");
     
@@ -76,7 +74,6 @@ export const useEditListing = (propertyId: string | undefined) => {
     }
   }, [form.watch("bedrooms"), bedroomRooms.length]);
 
-  // Fetch property data when component mounts
   useEffect(() => {
     const fetchProperty = async () => {
       if (!propertyId || !user) return;
@@ -115,7 +112,13 @@ export const useEditListing = (propertyId: string | undefined) => {
             .eq("property_id", propertyId)
             .eq("document_type", "floor_plan");
           
-          if (!documentsError && documentsData) {
+          if (documentsError) {
+            console.log("Property documents table may not exist:", documentsError);
+            
+            if (data.floor_plans && Array.isArray(data.floor_plans)) {
+              setFloorPlans(data.floor_plans);
+            }
+          } else if (documentsData && documentsData.length > 0) {
             setFloorPlans(documentsData as unknown as DocumentMetadata[]);
           }
         } catch (docError) {
@@ -198,6 +201,7 @@ export const useEditListing = (propertyId: string | undefined) => {
           bedrooms: bedroomRooms,
           otherRooms: otherRooms
         },
+        floor_plans: floorPlans,
         updated_at: new Date().toISOString(),
       };
       
@@ -210,36 +214,45 @@ export const useEditListing = (propertyId: string | undefined) => {
           
         if (error) throw error;
 
-        for (const floorPlan of floorPlans) {
-          const { data: existingDoc } = await supabase
-            .from("property_documents")
-            .select("id")
-            .eq("id", floorPlan.id)
-            .single();
+        try {
+          for (const floorPlan of floorPlans) {
+            if (!floorPlan.id || !floorPlan.id.includes('/')) continue;
+            
+            const documentData = {
+              id: floorPlan.id.replace(/\//g, '_'),
+              name: floorPlan.name,
+              url: floorPlan.url,
+              type: floorPlan.type,
+              size: floorPlan.size,
+              property_id: propertyId,
+              uploaded_by: user.id,
+              document_type: "floor_plan",
+              path: floorPlan.path,
+              created_at: floorPlan.createdAt
+            };
 
-          const documentData = {
-            id: floorPlan.id,
-            name: floorPlan.name,
-            url: floorPlan.url,
-            type: floorPlan.type,
-            size: floorPlan.size,
-            property_id: propertyId,
-            uploaded_by: user.id,
-            document_type: "floor_plan",
-            path: floorPlan.path,
-            created_at: floorPlan.createdAt
-          };
+            const { data: existingDoc, error: checkError } = await supabase
+              .from("property_documents")
+              .select("id")
+              .eq("property_id", propertyId)
+              .eq("path", floorPlan.path)
+              .maybeSingle();
 
-          if (existingDoc) {
-            await supabase
-              .from("property_documents")
-              .update(documentData)
-              .eq("id", floorPlan.id);
-          } else {
-            await supabase
-              .from("property_documents")
-              .insert(documentData);
+            if (!checkError) {
+              if (existingDoc) {
+                await supabase
+                  .from("property_documents")
+                  .update(documentData)
+                  .eq("id", existingDoc.id);
+              } else {
+                await supabase
+                  .from("property_documents")
+                  .insert(documentData);
+              }
+            }
           }
+        } catch (documentError) {
+          console.warn("Could not save to property_documents table:", documentError);
         }
           
         toast({
@@ -249,7 +262,7 @@ export const useEditListing = (propertyId: string | undefined) => {
         
         navigate(`/property/${propertyId}`);
       } catch (initialError: any) {
-        if (initialError.message.includes("room_details")) {
+        if (initialError.message && initialError.message.includes("room_details")) {
           const { room_details, ...dataWithoutRoomDetails } = updateData;
           
           console.log("Retrying update without room_details field");

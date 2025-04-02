@@ -1,9 +1,8 @@
-
 import { supabase } from '@/lib/supabase';
 import { useEffect, useState } from 'react';
 
 export const useSupabase = () => {
-  const [buckets, setBuckets] = useState<string[]>([]);
+  const [buckets, setBuckets] = useState<string[]>(['storage']); // Default to 'storage' bucket
   
   // Get available buckets on component mount
   useEffect(() => {
@@ -12,26 +11,21 @@ export const useSupabase = () => {
         const { data, error } = await supabase.storage.listBuckets();
         if (error) {
           console.error('Error fetching buckets:', error);
-          // Set default "storage" bucket which is available in all Supabase projects
-          setBuckets(['storage']);
+          // Keep default "storage" bucket which is available in all Supabase projects
           return;
         }
         
-        if (data) {
+        if (data && data.length > 0) {
           const bucketNames = data.map(bucket => bucket.name);
           // Make sure we always include the "storage" bucket as a fallback
           if (!bucketNames.includes('storage')) {
             bucketNames.push('storage');
           }
           setBuckets(bucketNames);
-        } else {
-          // If no data returned, default to "storage" bucket
-          setBuckets(['storage']);
         }
       } catch (err) {
         console.error('Failed to fetch buckets:', err);
-        // Set default "storage" bucket as fallback
-        setBuckets(['storage']);
+        // Keep default "storage" bucket as fallback
       }
     };
     

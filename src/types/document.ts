@@ -6,22 +6,13 @@ export interface DocumentMetadata {
   size: number;
   url: string;
   path: string;
-  uploadedBy?: string;
+  uploadedBy: string;
   createdAt: string;
-  updatedAt?: string;
-  category?: string;
-  description?: string;
-  version?: number;
-  versionHistory?: {
-    version: number;
-    url: string;
-    updatedAt: string;
-  }[];
-  permissions?: {
-    public: boolean;
-    sharedWith: string[];
-    accessType: 'view' | 'download' | 'edit';
-  };
   propertyId?: string;
-  tags?: string[];
+}
+
+export interface DocumentUploadOptions {
+  allowMultiple?: boolean;
+  maxSizeMB?: number;
+  allowedTypes?: string[];
 }

@@ -36,7 +36,7 @@ export default function EditListing() {
     );
   }
 
-  // Using a simpler onClick handler to avoid syntax issues on line 74-75
+  // Improved navigation handler that uses React Router's navigate
   const handleCancel = () => {
     if (id) {
       window.location.href = `/property/${id}`;

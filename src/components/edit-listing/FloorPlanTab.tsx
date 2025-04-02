@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -8,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DocumentMetadata } from "@/types/document";
 import { File, Upload, X, Download } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface FloorPlanTabProps {
   floorPlans: DocumentMetadata[];
@@ -18,9 +18,10 @@ interface FloorPlanTabProps {
 const FloorPlanTab = ({ floorPlans, setFloorPlans, propertyId }: FloorPlanTabProps) => {
   const { toast } = useToast();
   const { user } = useAuth();
-  const { supabase } = useSupabase();
+  const { supabase, buckets } = useSupabase();
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Format file size for display
@@ -49,11 +50,28 @@ const FloorPlanTab = ({ floorPlans, setFloorPlans, propertyId }: FloorPlanTabPro
     }
   };
 
+  // Try to ensure storage bucket exists
+  const ensureStorageBucket = async (bucketName: string) => {
+    try {
+      // Check if buckets array contains our bucket
+      if (!buckets.includes(bucketName)) {
+        console.log(`Bucket ${bucketName} not found in available buckets, using 'storage' bucket`);
+        return 'storage'; // Default to 'storage' bucket which should exist by default
+      }
+      return bucketName;
+    } catch (error) {
+      console.error("Error checking bucket:", error);
+      return 'storage'; // Default to 'storage' bucket on error
+    }
+  };
+
   // Handle file selection
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
+    setUploadError(null);
+    
     const allowedTypes = [
       'application/pdf', 
       'image/jpeg', 
@@ -89,29 +107,35 @@ const FloorPlanTab = ({ floorPlans, setFloorPlans, propertyId }: FloorPlanTabPro
 
     try {
       for (const file of validFiles) {
-        // Create a unique file path for each upload
-        const filePath = `floor_plans/${propertyId}/${Date.now()}-${file.name}`;
+        // Determine bucket and path
+        const bucketName = await ensureStorageBucket('floor_plans');
+        const folderPath = propertyId ? `floor_plans/${propertyId}` : `floor_plans/temp_${Date.now()}`;
+        const filePath = `${folderPath}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+        
+        // Set intermediate progress
+        setUploadProgress(30);
 
         // Upload the file
         const { data, error } = await supabase.storage
-          .from('storage')
+          .from(bucketName)
           .upload(filePath, file, {
             cacheControl: '3600',
             upsert: false,
           });
 
         if (error) {
+          console.error("Upload error details:", error);
           throw error;
         }
 
         // Get the public URL for the uploaded file
         const { data: urlData } = supabase.storage
-          .from('storage')
+          .from(bucketName)
           .getPublicUrl(filePath);
 
         // Create metadata for the new floor plan
         const newFloorPlan: DocumentMetadata = {
-          id: data.path,
+          id: data.path || `${Date.now()}-${file.name}`,
           name: file.name,
           type: file.type,
           size: file.size,
@@ -125,7 +149,7 @@ const FloorPlanTab = ({ floorPlans, setFloorPlans, propertyId }: FloorPlanTabPro
         // Add the new floor plan to the list
         setFloorPlans([...floorPlans, newFloorPlan]);
         
-        // Simulating progress for better UX
+        // Simulate upload completed
         setUploadProgress(100);
       }
 
@@ -136,9 +160,17 @@ const FloorPlanTab = ({ floorPlans, setFloorPlans, propertyId }: FloorPlanTabPro
 
     } catch (error: any) {
       console.error("Error uploading floor plan:", error);
+      
+      let errorMessage = "Failed to upload floor plan. Please try again.";
+      if (error?.message?.includes("Bucket not found")) {
+        errorMessage = "Storage bucket not found. Please contact support.";
+      }
+      
+      setUploadError(errorMessage);
+      
       toast({
         title: "Upload failed",
-        description: error.message || "Failed to upload floor plan. Please try again.",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
@@ -154,13 +186,25 @@ const FloorPlanTab = ({ floorPlans, setFloorPlans, propertyId }: FloorPlanTabPro
   // Handle floor plan deletion
   const handleDelete = async (floorPlan: DocumentMetadata) => {
     try {
+      const bucketName = floorPlan.path.split('/')[0] || 'storage';
+      
       // Delete the file from storage
       const { error } = await supabase.storage
-        .from('storage')
+        .from(bucketName)
         .remove([floorPlan.path]);
 
       if (error) {
-        throw error;
+        // If error occurs because we're using the wrong bucket, try with 'storage' bucket
+        if (error.message.includes("Bucket not found")) {
+          const filePath = floorPlan.path.split('/').slice(1).join('/');
+          const { error: fallbackError } = await supabase.storage
+            .from('storage')
+            .remove([filePath]);
+            
+          if (fallbackError) throw fallbackError;
+        } else {
+          throw error;
+        }
       }
 
       // Remove from local state
@@ -197,6 +241,12 @@ const FloorPlanTab = ({ floorPlans, setFloorPlans, propertyId }: FloorPlanTabPro
         <p className="text-sm text-muted-foreground mb-4">
           Upload floor plans in PDF, JPG, PNG, DWG, or DXF format. Buyers will be able to download these documents.
         </p>
+
+        {uploadError && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertDescription>{uploadError}</AlertDescription>
+          </Alert>
+        )}
 
         <div className="space-y-4">
           <div 
