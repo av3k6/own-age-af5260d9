@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 
 interface UseListingNumberReturn {
   formatListingNumber: (listingNumber?: string, listingStatus?: string) => string;
+  generateListingNumber: () => Promise<string>;
   isLoading: boolean;
 }
 
@@ -29,8 +30,45 @@ export const useListingNumber = (): UseListingNumberReturn => {
     return listingNumber;
   };
 
+  /**
+   * Generates a unique listing number
+   * Format: TH + 8 random digits
+   */
+  const generateListingNumber = async (): Promise<string> => {
+    setIsLoading(true);
+    try {
+      // Generate random 8-digit number
+      const randomDigits = Math.floor(10000000 + Math.random() * 90000000).toString();
+      const listingNumber = `TH${randomDigits}`;
+      
+      // Check if this number already exists in the database to ensure uniqueness
+      const { data, error } = await supabase
+        .from('property_listings')
+        .select('id')
+        .eq('listing_number', listingNumber)
+        .single();
+      
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error checking listing number:', error);
+      }
+      
+      // If the number already exists, generate a new one recursively
+      if (data) {
+        return generateListingNumber();
+      }
+      
+      return listingNumber;
+    } catch (error) {
+      console.error('Error generating listing number:', error);
+      return `TH${Date.now().toString().substring(3, 11)}`;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return {
     formatListingNumber,
+    generateListingNumber,
     isLoading
   };
 };

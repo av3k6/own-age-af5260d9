@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useSupabase } from "@/hooks/useSupabase";
 import { useToast } from "@/hooks/use-toast";
 import { ListingFormData } from "../context/FormContext";
+import { useListingNumber } from "@/hooks/useListingNumber";
 
 export const usePublishListing = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -12,6 +13,7 @@ export const usePublishListing = () => {
   const { supabase } = useSupabase();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { generateListingNumber } = useListingNumber();
 
   const publishListing = async (formData: ListingFormData) => {
     if (!user) {
@@ -35,6 +37,9 @@ export const usePublishListing = () => {
     setIsSubmitting(true);
 
     try {
+      // Generate a unique listing number
+      const listingNumber = await generateListingNumber();
+      
       // 1. Upload images to storage
       const imageUrls = [];
       
@@ -127,6 +132,7 @@ export const usePublishListing = () => {
           seller_email: user.email, // Add user email for more robust querying
           seller_name: user.name,   // Add user name for display purposes
           status: formData.status,
+          listing_number: listingNumber, // Add the unique listing number
           // Optional fields
           property_condition: formData.propertyCondition,
           recent_upgrades: formData.recentUpgrades,

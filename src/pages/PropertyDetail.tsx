@@ -2,12 +2,13 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { mockListings } from "@/data/mockData";
-import { PropertyListing } from "@/types";
+import { PropertyListing, ListingStatus } from "@/types";
 import { Button } from "@/components/ui/button";
 import PropertyNotFound from "@/components/property/PropertyNotFound";
 import PropertyDetailView from "@/components/property/PropertyDetailView";
 import { useSupabase } from "@/hooks/useSupabase";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 const PropertyDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -15,6 +16,7 @@ const PropertyDetail = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { supabase } = useSupabase();
   const { toast } = useToast();
+  const { user } = useAuth();
 
   useEffect(() => {
     const fetchProperty = async () => {
@@ -24,6 +26,15 @@ const PropertyDetail = () => {
       const mockProperty = mockListings.find((listing) => listing.id === id);
       
       if (mockProperty) {
+        // If listing is pending and user is not the owner, don't display it
+        if (mockProperty.status === ListingStatus.PENDING && 
+            mockProperty.sellerId !== user?.id && 
+            !user?.isAdmin) {
+          setProperty(null);
+          setIsLoading(false);
+          return;
+        }
+        
         setProperty(mockProperty);
         setIsLoading(false);
         return;
@@ -45,6 +56,15 @@ const PropertyDetail = () => {
         }
         
         if (data) {
+          // Check if listing is pending and user is not the owner
+          if (data.status === ListingStatus.PENDING && 
+              data.seller_id !== user?.id && 
+              !user?.isAdmin) {
+            setProperty(null);
+            setIsLoading(false);
+            return;
+          }
+          
           // Transform the raw data to match PropertyListing type
           const formattedProperty: PropertyListing = {
             id: data.id,
@@ -63,6 +83,10 @@ const PropertyDetail = () => {
             status: data.status,
             createdAt: new Date(data.created_at),
             updatedAt: new Date(data.updated_at),
+            roomDetails: {
+              ...data.room_details,
+              listingNumber: data.listing_number
+            }
           };
           
           setProperty(formattedProperty);
@@ -83,7 +107,7 @@ const PropertyDetail = () => {
     };
     
     fetchProperty();
-  }, [id, supabase, toast]);
+  }, [id, supabase, toast, user]);
 
   if (isLoading) {
     return (
