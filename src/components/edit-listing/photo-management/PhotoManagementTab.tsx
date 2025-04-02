@@ -39,8 +39,13 @@ export default function PhotoManagementTab({ propertyId }: PhotoManagementTabPro
         .eq('property_id', propertyId)
         .order('display_order', { ascending: true });
       
-      if (error) throw error;
-      setPhotos(data || []);
+      if (error) {
+        // Log error but don't throw - table might not exist yet
+        console.log('Property photos table may not exist:', error);
+        setPhotos([]);
+      } else {
+        setPhotos(data || []);
+      }
     } catch (error) {
       console.error('Error fetching photos:', error);
       toast({
@@ -71,12 +76,12 @@ export default function PhotoManagementTab({ propertyId }: PhotoManagementTabPro
         const fileExt = file.name.split('.').pop();
         const fileName = `property-photos/${propertyId}/${Date.now()}.${fileExt}`;
         
-        // Upload to Supabase Storage
+        // Upload to Supabase Storage using the safe upload method
         const { data, error: uploadError } = await safeUpload(fileName, file);
         
         if (uploadError) throw uploadError;
         
-        // Get public URL
+        // Get public URL using the safe method
         const { data: urlData } = safeGetPublicUrl(fileName);
         
         // Add to database with next display order
@@ -84,16 +89,34 @@ export default function PhotoManagementTab({ propertyId }: PhotoManagementTabPro
           ? Math.max(...photos.map(p => p.display_order)) + 1 
           : 0;
         
-        const { error: dbError } = await supabase
-          .from('property_photos')
-          .insert({
-            property_id: propertyId,
-            url: urlData.publicUrl,
-            display_order: nextOrder,
-            is_primary: photos.length === 0 // First photo is primary by default
+        try {
+          const { error: dbError } = await supabase
+            .from('property_photos')
+            .insert({
+              property_id: propertyId,
+              url: urlData.publicUrl,
+              display_order: nextOrder,
+              is_primary: photos.length === 0 // First photo is primary by default
+            });
+          
+          if (dbError) {
+            console.error('Database error:', dbError);
+            // Show warning but continue
+            toast({
+              title: "Database Warning",
+              description: "Photo uploaded but metadata could not be saved. The property_photos table may not exist.",
+              variant: "destructive",
+            });
+          }
+        } catch (dbError) {
+          console.error('Error saving to database:', dbError);
+          // Show warning but continue
+          toast({
+            title: "Database Warning",
+            description: "Photo uploaded but metadata could not be saved. The property_photos table may not exist.",
+            variant: "destructive",
           });
-        
-        if (dbError) throw dbError;
+        }
       }
       
       // Refresh photos
@@ -107,7 +130,7 @@ export default function PhotoManagementTab({ propertyId }: PhotoManagementTabPro
       console.error('Error uploading photos:', error);
       toast({
         title: "Error",
-        description: "Failed to upload photos",
+        description: "Failed to upload photos. Please try again.",
         variant: "destructive",
       });
     } finally {
