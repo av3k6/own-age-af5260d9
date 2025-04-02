@@ -23,6 +23,7 @@ export const usePhotoManagement = (propertyId: string | undefined) => {
     
     setIsLoading(true);
     try {
+      console.log("Fetching photos for property:", propertyId);
       const { data, error } = await supabase
         .from('property_photos')
         .select('*')
@@ -30,10 +31,10 @@ export const usePhotoManagement = (propertyId: string | undefined) => {
         .order('display_order', { ascending: true });
       
       if (error) {
-        // Log error but don't throw - table might not exist yet
         console.log('Property photos table may not exist:', error);
         setPhotos([]);
       } else {
+        console.log("Fetched photos:", data?.length || 0);
         setPhotos(data || []);
       }
     } catch (error) {
@@ -50,23 +51,43 @@ export const usePhotoManagement = (propertyId: string | undefined) => {
 
   // Handle file upload
   const uploadPhotos = async (files: File[]) => {
-    if (!files.length || !propertyId) return;
+    if (!files.length || !propertyId) {
+      console.log("No files or propertyId provided");
+      return false;
+    }
     
     setIsUploading(true);
+    let uploadSuccess = false;
+    
     try {
+      console.log("Starting upload for", files.length, "files for property:", propertyId);
+      
       // Process each file
       for (const file of files) {
         // Create a unique file name
         const fileExt = file.name.split('.').pop();
         const fileName = `property-photos/${propertyId}/${Date.now()}.${fileExt}`;
         
+        console.log(`Uploading file: ${fileName}`);
+        
         // Upload to Supabase Storage using the safe upload method
         const { data, error: uploadError } = await safeUpload(fileName, file);
         
-        if (uploadError) throw uploadError;
+        if (uploadError) {
+          console.error("Storage upload error:", uploadError);
+          throw uploadError;
+        }
+        
+        console.log("File uploaded successfully, getting public URL");
         
         // Get public URL using the safe method
         const { data: urlData } = safeGetPublicUrl(fileName);
+        if (!urlData?.publicUrl) {
+          console.error("Failed to get public URL");
+          throw new Error("Failed to get public URL for uploaded file");
+        }
+        
+        console.log("Public URL obtained:", urlData.publicUrl);
         
         // Add to database with next display order
         const nextOrder = photos.length > 0 
@@ -74,6 +95,7 @@ export const usePhotoManagement = (propertyId: string | undefined) => {
           : 0;
         
         try {
+          console.log("Inserting record into property_photos table");
           const { error: dbError } = await supabase
             .from('property_photos')
             .insert({
@@ -91,6 +113,8 @@ export const usePhotoManagement = (propertyId: string | undefined) => {
               description: "Photo uploaded but metadata could not be saved. The property_photos table may not exist.",
               variant: "destructive",
             });
+          } else {
+            console.log("Database record inserted successfully");
           }
         } catch (dbError) {
           console.error('Error saving to database:', dbError);
@@ -110,17 +134,19 @@ export const usePhotoManagement = (propertyId: string | undefined) => {
         description: `${files.length} photo(s) uploaded successfully`,
       });
       
+      uploadSuccess = true;
       return true;
     } catch (error) {
       console.error('Error uploading photos:', error);
       toast({
         title: "Error",
-        description: "Failed to upload photos. Please try again.",
+        description: "Failed to upload photos. Please try again later.",
         variant: "destructive",
       });
       return false;
     } finally {
       setIsUploading(false);
+      console.log("Upload process completed with success:", uploadSuccess);
     }
   };
 

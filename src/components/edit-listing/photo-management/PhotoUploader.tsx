@@ -12,9 +12,17 @@ export default function PhotoUploader({ onUploadPhotos, isUploading }: PhotoUplo
   const [showUploader, setShowUploader] = useState(false);
 
   const handleFileUpload = async (files: File[]) => {
-    const success = await onUploadPhotos(files);
-    if (success) {
-      setShowUploader(false);
+    try {
+      console.log("PhotoUploader: Starting file upload for", files.length, "files");
+      const success = await onUploadPhotos(files);
+      console.log("PhotoUploader: Upload completed with success:", success);
+      if (success) {
+        setShowUploader(false);
+      }
+      return success;
+    } catch (error) {
+      console.error("PhotoUploader: Error during file upload:", error);
+      return false;
     }
   };
 
