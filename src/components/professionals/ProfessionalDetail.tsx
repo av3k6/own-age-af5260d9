@@ -5,17 +5,12 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Phone, Mail, MapPin, Building, Briefcase, Edit } from "lucide-react";
 import { professionalData } from "./data/professionalData";
 import { useAuth } from "@/contexts/AuthContext";
-
-// Mock database of user-to-business assignments
-// In a real app, this would be stored in a database
-const businessAssignments = [
-  { userId: "user123", businessId: "pillar-to-post", email: "john@example.com" },
-  { userId: "testuser", businessId: "pillar-to-post", email: "test@example.com" },
-];
+import { useState, useEffect } from "react";
 
 const ProfessionalDetail = () => {
   const { category, id } = useParams();
   const { user } = useAuth();
+  const [isBusinessOwner, setIsBusinessOwner] = useState(false);
   
   // Find the professional by ID
   const professional = professionalData.professionals.find(p => p.id === id && p.category === category);
@@ -23,10 +18,26 @@ const ProfessionalDetail = () => {
   // Find the category
   const categoryInfo = professionalData.categories.find(c => c.type === category);
 
-  // Check if current user is assigned to this business
-  const isBusinessOwner = user && businessAssignments.some(
-    assignment => assignment.businessId === id && assignment.email === user.email
-  );
+  // Check if current user is assigned to this business using localStorage
+  useEffect(() => {
+    if (!user || !id) return;
+
+    try {
+      // Get the business assignments from localStorage
+      const savedAssignments = localStorage.getItem("businessAssignments");
+      const businessAssignments = savedAssignments ? JSON.parse(savedAssignments) : [];
+      
+      // Check if the current user's email matches any business assignment for this business ID
+      const isOwner = businessAssignments.some(
+        (assignment) => assignment.businessId === id && assignment.email === user.email
+      );
+      
+      setIsBusinessOwner(isOwner);
+    } catch (error) {
+      console.error("Error checking business ownership:", error);
+      setIsBusinessOwner(false);
+    }
+  }, [user, id]);
 
   if (!professional || !categoryInfo) {
     return (

@@ -9,10 +9,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { professionalData } from "./data/professionalData";
 import { Building2, Phone, Mail, MapPin, Save } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const EditBusinessProfile = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [assignedBusiness, setAssignedBusiness] = useState<any | null>(null);
   
@@ -23,6 +25,7 @@ const EditBusinessProfile = () => {
   const [email, setEmail] = useState("");
   const [address, setAddress] = useState("");
   const [serviceArea, setServiceArea] = useState("");
+  const [businessId, setBusinessId] = useState("");
   
   // Find if the current user is assigned to any business
   useEffect(() => {
@@ -31,8 +34,7 @@ const EditBusinessProfile = () => {
       return;
     }
     
-    // In a real app, we would query the database for this information
-    // Here we're loading from localStorage if available
+    // Load from localStorage
     try {
       const savedAssignments = localStorage.getItem("businessAssignments");
       const businessAssignments = savedAssignments ? JSON.parse(savedAssignments) : [];
@@ -54,6 +56,7 @@ const EditBusinessProfile = () => {
           setEmail(business.email);
           setAddress(business.address);
           setServiceArea(business.serviceArea || "");
+          setBusinessId(business.id);
         }
       }
     } catch (e) {
@@ -68,14 +71,57 @@ const EditBusinessProfile = () => {
     setIsLoading(true);
     
     // In a real app, this would send the data to the backend to update the business
-    // For now, we'll just simulate a successful update
-    setTimeout(() => {
+    // For now, we'll update our local storage to simulate persistence
+    try {
+      // Create a copy of the updated business data
+      const updatedBusiness = {
+        ...assignedBusiness,
+        name: businessName,
+        expertise: expertise,
+        phone: phone,
+        email: email,
+        address: address,
+        serviceArea: serviceArea
+      };
+      
+      // Find and update the business in the local copy of professionals data
+      const localBusinessData = localStorage.getItem("localBusinessData");
+      let businessData = localBusinessData ? JSON.parse(localBusinessData) : [...professionalData.professionals];
+      
+      // Find the index of the business to update
+      const businessIndex = businessData.findIndex((b: any) => b.id === businessId);
+      
+      // Update the business if found, otherwise add it
+      if (businessIndex !== -1) {
+        businessData[businessIndex] = updatedBusiness;
+      } else {
+        businessData.push(updatedBusiness);
+      }
+      
+      // Save back to localStorage
+      localStorage.setItem("localBusinessData", JSON.stringify(businessData));
+      
+      setTimeout(() => {
+        setIsLoading(false);
+        toast({
+          title: "Changes saved",
+          description: "Your business profile has been updated successfully",
+        });
+        
+        // Redirect back to the professional detail page
+        if (assignedBusiness) {
+          navigate(`/professionals/${assignedBusiness.category}/${assignedBusiness.id}`);
+        }
+      }, 800);
+    } catch (error) {
+      console.error("Error saving business data:", error);
       setIsLoading(false);
       toast({
-        title: "Changes saved",
-        description: "Your business profile has been updated successfully",
+        title: "Error saving changes",
+        description: "There was a problem updating your business profile",
+        variant: "destructive",
       });
-    }, 1000);
+    }
   };
 
   if (isLoading) {
@@ -185,9 +231,16 @@ const EditBusinessProfile = () => {
             />
           </div>
         </CardContent>
-        <CardFooter>
-          <Button onClick={handleSaveChanges} disabled={isLoading} className="w-full">
+        <CardFooter className="flex justify-between">
+          <Button 
+            variant="outline" 
+            onClick={() => navigate(`/professionals/${assignedBusiness.category}/${assignedBusiness.id}`)}
+          >
+            Cancel
+          </Button>
+          <Button onClick={handleSaveChanges} disabled={isLoading}>
             {isLoading ? "Saving..." : "Save Changes"}
+            {!isLoading && <Save className="ml-2 h-4 w-4" />}
           </Button>
         </CardFooter>
       </Card>
