@@ -1,6 +1,6 @@
 
 import { Link, useNavigate } from "react-router-dom";
-import { User, LogOut, Settings, MessageSquare } from "lucide-react";
+import { User, LogOut, Settings, MessageSquare, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -91,6 +91,11 @@ const UserMenu = ({ isMobile = false }: UserMenuProps) => {
           <User className="h-4 w-4" />
           Profile
         </Link>
+
+        <Link to="/dashboard" className="text-foreground hover:text-primary py-2 transition-colors flex items-center gap-2">
+          <LayoutDashboard className="h-4 w-4" />
+          Dashboard
+        </Link>
         
         <Link to="/messages" className="text-foreground hover:text-primary py-2 transition-colors flex items-center gap-2">
           <MessageSquare className="h-4 w-4" />
@@ -126,6 +131,13 @@ const UserMenu = ({ isMobile = false }: UserMenuProps) => {
           <Link to="/profile" className="flex items-center gap-2 cursor-pointer">
             <User className="h-4 w-4" />
             <span>Profile</span>
+          </Link>
+        </DropdownMenuItem>
+        
+        <DropdownMenuItem asChild>
+          <Link to="/dashboard" className="flex items-center gap-2 cursor-pointer">
+            <LayoutDashboard className="h-4 w-4" />
+            <span>Dashboard</span>
           </Link>
         </DropdownMenuItem>
         

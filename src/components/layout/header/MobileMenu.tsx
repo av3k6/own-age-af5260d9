@@ -1,5 +1,6 @@
+
 import { useState } from "react";
-import { Menu, X, Home, Search, User, Settings, LogOut, MessageSquare } from "lucide-react";
+import { Menu, X, Home, Search, User, Settings, LogOut, MessageSquare, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -78,6 +79,17 @@ const MobileMenu = ({ isAuthenticated, unreadMessageCount = 0 }: MobileMenuProps
                 <>
                   <Button
                     variant="ghost"
+                    className="w-full justify-start"
+                    asChild
+                    onClick={handleLinkClick}
+                  >
+                    <Link to="/dashboard">
+                      <LayoutDashboard className="mr-2 h-4 w-4" />
+                      Dashboard
+                    </Link>
+                  </Button>
+                  <Button
+                    variant="ghost"
                     className="w-full justify-start relative"
                     asChild
                     onClick={handleLinkClick}
@@ -93,17 +105,6 @@ const MobileMenu = ({ isAuthenticated, unreadMessageCount = 0 }: MobileMenuProps
                           {unreadMessageCount > 99 ? '99+' : unreadMessageCount}
                         </Badge>
                       )}
-                    </Link>
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start"
-                    asChild
-                    onClick={handleLinkClick}
-                  >
-                    <Link to="/dashboard">
-                      <User className="mr-2 h-4 w-4" />
-                      Dashboard
                     </Link>
                   </Button>
                   <Button
