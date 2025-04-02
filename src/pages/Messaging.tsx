@@ -28,13 +28,23 @@ const Messaging = () => {
     fetchMessages,
     sendMessage,
     createConversation,
-    setCurrentConversation
+    setCurrentConversation,
+    error: messagingError
   } = useMessaging();
   
   // State to control the mobile view
   const [showConversations, setShowConversations] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(messagingError?.message || null);
   const [newConversationOpen, setNewConversationOpen] = useState(false);
+  
+  // Update error state when messaging error changes
+  useEffect(() => {
+    if (messagingError) {
+      setError(messagingError.message || "Could not load your conversations. Please check your connection.");
+    } else {
+      setError(null);
+    }
+  }, [messagingError]);
   
   // Use the message search hook
   const {
@@ -59,7 +69,7 @@ const Messaging = () => {
         console.error("Error fetching conversations:", err);
         setError("Could not load your conversations. Please try again later.");
         toast.error("Could not load conversations", {
-          description: "Please try again later"
+          description: "Please check your connection and try again later"
         });
       });
     }
@@ -86,10 +96,10 @@ const Messaging = () => {
     try {
       await sendMessage(currentConversation.id, content, attachments);
       setError(null);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error sending message:", error);
       toast.error("Failed to send message", {
-        description: "Please try again later"
+        description: error.message || "Please try again later"
       });
     }
   };
@@ -120,9 +130,11 @@ const Messaging = () => {
         handleSelectConversation(newConversation);
         toast.success("Conversation created successfully");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating conversation:", error);
-      toast.error("Failed to create conversation");
+      toast.error("Failed to create conversation", {
+        description: error.message || "Please check your connection and try again"
+      });
     }
   };
 

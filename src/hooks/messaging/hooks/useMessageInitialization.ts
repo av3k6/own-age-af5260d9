@@ -1,42 +1,40 @@
 
 import { useState, useEffect } from "react";
-import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/components/ui/use-toast";
 import { toast } from "sonner";
 
-export function useMessageInitialization(fetchConversations: () => Promise<void>) {
-  const [isInitialized, setIsInitialized] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const { user } = useAuth();
+interface MessageInitializationState {
+  isInitialized: boolean;
+  error: Error | null;
+}
 
-  // Initialize conversations list on component mount
+export function useMessageInitialization(
+  fetchConversations: () => Promise<void>
+) {
+  const [state, setState] = useState<MessageInitializationState>({
+    isInitialized: false,
+    error: null,
+  });
+
   useEffect(() => {
-    const initializeMessages = async () => {
-      if (!user) {
-        console.log("User not available for message initialization");
-        return;
-      }
-      
+    const initialize = async () => {
       try {
-        console.log("Initializing messages system for user:", user.id);
+        console.log("Initializing messages...");
         await fetchConversations();
-        setIsInitialized(true);
-        setError(null);
+        setState({ isInitialized: true, error: null });
       } catch (error) {
-        console.error("Error initializing conversations:", error);
-        toast.error("Error loading messages", {
-          description: "Please try refreshing the page"
+        console.error("Error initializing messages:", error);
+        setState({ isInitialized: true, error: error as Error });
+        
+        // Show toast with error message
+        toast.error("Unable to load messages", {
+          description: "Please check your connection and try again later",
+          duration: 5000,
         });
-        // Still mark as initialized to prevent infinite loading state
-        setIsInitialized(true);
-        setError("Could not load your conversations. Please try again later.");
       }
     };
-    
-    if (user) {
-      initializeMessages();
-    }
-  }, [user?.id, fetchConversations]);
 
-  return { isInitialized, error, setError };
+    initialize();
+  }, [fetchConversations]);
+
+  return state;
 }

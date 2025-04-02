@@ -2,71 +2,70 @@
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSupabase } from "@/hooks/useSupabase";
-import { Conversation } from "@/types/message";
+import { toast } from "sonner";
 import { ConversationsState } from "./types";
 
 export function useFetchConversations() {
   const { supabase } = useSupabase();
   const { user } = useAuth();
-  const { toast } = useToast();
-
+  
   const fetchConversations = async (
-    setState?: React.Dispatch<React.SetStateAction<ConversationsState>>
+    setState: React.Dispatch<React.SetStateAction<ConversationsState>>
   ) => {
     if (!user) return;
     
-    if (setState) {
-      setState(prev => ({ ...prev, loading: true }));
-    }
-    
+    setState(prev => ({ ...prev, loading: true }));
     try {
       console.log("Fetching conversations for user:", user.id);
       
+      // Check supabase connection first
+      try {
+        const { data: connectionTest, error: connectionError } = await supabase.from('health_check').select('*').limit(1);
+        if (connectionError) {
+          throw new Error(`Supabase connection error: ${connectionError.message}`);
+        }
+      } catch (connError) {
+        console.error("Database connection test failed:", connError);
+        throw new Error("Unable to connect to the database. Please check your connection.");
+      }
+      
+      // Fetch conversations
       const { data, error } = await supabase
         .from('conversations')
         .select('*')
-        .contains('participants', [user.id])
-        .order('last_message_at', { ascending: false });
+        .contains('participants', [user.id]);
         
       if (error) {
-        console.error("Error fetching conversations:", error);
+        console.error("Error in supabase query:", error);
         throw error;
       }
       
-      console.log("Conversations fetched:", data.length);
+      console.log("Conversations fetched:", data?.length || 0);
       
-      // Convert from snake_case to camelCase for frontend use
-      const conversations: Conversation[] = data.map(conv => ({
+      // Map database column names to our client-side property names
+      const mappedConversations = data?.map(conv => ({
         id: conv.id,
-        participants: conv.participants,
+        participants: conv.participants || [],
         lastMessageAt: conv.last_message_at,
-        subject: conv.subject || '',
-        propertyId: conv.property_id || null,
-        unreadCount: conv.unread_count || 0
+        subject: conv.subject || "",
+        propertyId: conv.property_id,
+        unreadCount: conv.unread_count || 0,
+        category: conv.category || "GENERAL",
+        isEncrypted: conv.is_encrypted
+      })) || [];
+      
+      setState(prev => ({
+        ...prev,
+        loading: false,
+        conversations: mappedConversations,
+        filteredConversations: mappedConversations
       }));
-      
-      if (setState) {
-        setState(prev => ({
-          ...prev,
-          conversations,
-          loading: false
-        }));
-      }
-      
-      return conversations;
     } catch (error: any) {
       console.error('Error fetching conversations:', error);
-      toast({
-        title: "Error loading conversations",
-        description: error.message || "Please try again later",
-        variant: "destructive",
-      });
+      setState(prev => ({ ...prev, loading: false }));
       
-      if (setState) {
-        setState(prev => ({ ...prev, loading: false }));
-      }
-      
-      return [];
+      // Re-throw the error so it can be caught by the initialization hook
+      throw error;
     }
   };
 

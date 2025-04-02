@@ -5,6 +5,7 @@ import { ConversationCategory } from "@/types/encryption";
 import MessageArea from "@/components/messaging/MessageArea";
 import ConversationListSection from "@/components/messaging/ConversationListSection";
 import ErrorState from "@/components/messaging/ErrorState";
+import { AlertCircle } from "lucide-react";
 
 interface MessagingContainerProps {
   error: string | null;
@@ -54,6 +55,24 @@ const MessagingContainer: React.FC<MessagingContainerProps> = ({
 }) => {
   if (error) {
     return <ErrorState message={error} onRetry={onRetry} />;
+  }
+  
+  if (!loading && conversations.length === 0) {
+    return (
+      <div className="border rounded-lg overflow-hidden h-[70vh] bg-background shadow-sm flex flex-col items-center justify-center p-6 text-center">
+        <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
+        <h3 className="text-lg font-medium mb-2">No messages yet</h3>
+        <p className="text-muted-foreground mb-4">
+          Start a conversation to connect with other users
+        </p>
+        <button 
+          onClick={onNewConversation}
+          className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+        >
+          Start a new conversation
+        </button>
+      </div>
+    );
   }
 
   return (
