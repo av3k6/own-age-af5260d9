@@ -27,6 +27,7 @@ export default function OpenHouseTab({ propertyId }: OpenHouseTabProps) {
     handleShowAddForm
   } = useOpenHouseForm(propertyId);
   
+  // Use an effect with proper dependency array to prevent infinite loops
   useEffect(() => {
     if (propertyId) {
       console.log("OpenHouseTab - Fetching sessions for property:", propertyId);

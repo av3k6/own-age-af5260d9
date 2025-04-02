@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useSupabase } from "@/hooks/useSupabase";
 import { useToast } from "@/hooks/use-toast";
 import { OpenHouseSession, OpenHouseSessionFormValues } from "@/types/open-house";
@@ -18,7 +18,7 @@ export const useOpenHouseSchedule = (propertyId?: string) => {
   const { supabase } = useSupabase();
   const { toast } = useToast();
 
-  const fetchSessions = async () => {
+  const fetchSessions = useCallback(async () => {
     if (!propertyId) return;
     
     setIsLoading(true);
@@ -44,7 +44,7 @@ export const useOpenHouseSchedule = (propertyId?: string) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [propertyId, supabase, toast]);
 
   const addSession = async (session: OpenHouseSessionFormValues) => {
     if (!propertyId) return null;

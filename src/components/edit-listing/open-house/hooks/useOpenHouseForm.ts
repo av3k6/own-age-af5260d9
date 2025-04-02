@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { OpenHouseSession, OpenHouseSessionFormValues } from "@/types/open-house";
 import { useOpenHouseSchedule } from "@/hooks/useOpenHouseSchedule";
 
@@ -17,7 +17,8 @@ export const useOpenHouseForm = (propertyId?: string) => {
     deleteSession
   } = useOpenHouseSchedule(propertyId);
   
-  const handleAddSession = async (data: OpenHouseSessionFormValues) => {
+  // Wrap the handlers in useCallback to prevent re-renders
+  const handleAddSession = useCallback(async (data: OpenHouseSessionFormValues) => {
     console.log("Adding session with data:", data);
     const result = await addSession(data);
     if (result) {
@@ -28,9 +29,9 @@ export const useOpenHouseForm = (propertyId?: string) => {
       console.error("Failed to add session");
       return false;
     }
-  };
+  }, [addSession]);
   
-  const handleUpdateSession = async (data: OpenHouseSessionFormValues) => {
+  const handleUpdateSession = useCallback(async (data: OpenHouseSessionFormValues) => {
     if (editingSession) {
       const result = await updateSession(editingSession.id, data);
       if (result) {
@@ -40,27 +41,27 @@ export const useOpenHouseForm = (propertyId?: string) => {
       return false;
     }
     return false;
-  };
+  }, [editingSession, updateSession]);
   
-  const handleEditClick = (session: OpenHouseSession) => {
+  const handleEditClick = useCallback((session: OpenHouseSession) => {
     setEditingSession(session);
-  };
+  }, []);
   
-  const handleDeleteClick = async (id: string) => {
+  const handleDeleteClick = useCallback(async (id: string) => {
     return await deleteSession(id);
-  };
+  }, [deleteSession]);
   
-  const handleCancelEdit = () => {
+  const handleCancelEdit = useCallback(() => {
     setEditingSession(null);
-  };
+  }, []);
   
-  const handleCancelAdd = () => {
+  const handleCancelAdd = useCallback(() => {
     setShowForm(false);
-  };
+  }, []);
   
-  const handleShowAddForm = () => {
+  const handleShowAddForm = useCallback(() => {
     setShowForm(true);
-  };
+  }, []);
 
   return {
     sessions,
