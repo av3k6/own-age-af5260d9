@@ -9,6 +9,7 @@ import BasicDetailsTab from "@/components/edit-listing/BasicDetailsTab";
 import RoomDetailsTab from "@/components/edit-listing/RoomDetailsTab";
 import FloorPlanTab from "@/components/edit-listing/floor-plan/FloorPlanTab";
 import OpenHouseTab from "@/components/edit-listing/open-house/OpenHouseTab";
+import PhotoManagementTab from "@/components/edit-listing/photo-management/PhotoManagementTab";
 import ListingNumberDisplay from "@/components/property/ListingNumberDisplay";
 import { OpenHouseProvider } from "@/contexts/OpenHouseContext";
 
@@ -90,15 +91,16 @@ export default function EditListing() {
         </div>
 
         <Tabs value={activeTab} onValueChange={handleTabChange}>
-          <TabsList className="grid grid-cols-4 mb-4">
+          <TabsList className="grid grid-cols-5 mb-4">
             <TabsTrigger value="basic">Basic Details</TabsTrigger>
             <TabsTrigger value="rooms">Room Details</TabsTrigger>
+            <TabsTrigger value="photos">Photos</TabsTrigger>
             <TabsTrigger value="floorPlans">Floor Plans</TabsTrigger>
             <TabsTrigger value="openHouse">Open House</TabsTrigger>
           </TabsList>
           
           {/* Conditional rendering based on active tab */}
-          {activeTab !== "openHouse" ? (
+          {activeTab !== "openHouse" && activeTab !== "photos" ? (
             <Form {...form}>
               <form onSubmit={(e) => {
                 e.preventDefault();
@@ -140,6 +142,26 @@ export default function EditListing() {
                 </div>
               </form>
             </Form>
+          ) : activeTab === "photos" ? (
+            <TabsContent value="photos">
+              <PhotoManagementTab propertyId={id} />
+              
+              <div className="flex justify-end space-x-4 pt-4 mt-6">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleCancel}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="button" 
+                  onClick={() => handleTabChange("basic")}
+                >
+                  Back to Basic Details
+                </Button>
+              </div>
+            </TabsContent>
           ) : (
             <TabsContent value="openHouse">
               <OpenHouseProvider propertyId={id}>
