@@ -73,7 +73,7 @@ export const usePhotoUpload = (propertyId: string | undefined) => {
                 toast({
                   title: "Database Setup Required",
                   description: "Photos were uploaded to storage but couldn't be saved to the database. The property_photos table needs to be created.",
-                  variant: "warning",
+                  variant: "destructive",
                 });
               } else {
                 toast({
