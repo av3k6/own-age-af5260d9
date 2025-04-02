@@ -1,3 +1,3 @@
 
-import { FileUploader } from "./file-uploader";
-export { FileUploader };
+// Re-export the FileUploader component from the directory
+export { FileUploader } from "./file-uploader";
