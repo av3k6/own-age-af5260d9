@@ -11,27 +11,43 @@ const ProfessionalDetail = () => {
   const { category, id } = useParams();
   const { user } = useAuth();
   const [isBusinessOwner, setIsBusinessOwner] = useState(false);
+  const [professional, setProfessional] = useState(null);
+  const [categoryInfo, setCategoryInfo] = useState(null);
   
-  // Find the professional by ID
-  const professional = professionalData.professionals.find(p => p.id === id && p.category === category);
+  // Find the professional data - first check localStorage, then fallback to static data
+  useEffect(() => {
+    // Try to get updated data from localStorage first
+    const localBusinessData = localStorage.getItem("localBusinessData");
+    let businessData = localBusinessData ? JSON.parse(localBusinessData) : [...professionalData.professionals];
+    
+    // Find the business by ID and category
+    const foundProfessional = businessData.find(p => p.id === id && p.category === category);
+    setProfessional(foundProfessional || null);
+    
+    // Find the category info
+    const foundCategory = professionalData.categories.find(c => c.type === category);
+    setCategoryInfo(foundCategory || null);
+  }, [category, id]);
   
-  // Find the category
-  const categoryInfo = professionalData.categories.find(c => c.type === category);
-
   // Check if current user is assigned to this business using localStorage
   useEffect(() => {
     if (!user || !id) return;
 
+    console.log("ProfessionalDetail: checking business ownership for:", user.email);
+    
     try {
       // Get the business assignments from localStorage
       const savedAssignments = localStorage.getItem("businessAssignments");
       const businessAssignments = savedAssignments ? JSON.parse(savedAssignments) : [];
+      
+      console.log("Business assignments:", businessAssignments);
       
       // Check if the current user's email matches any business assignment for this business ID
       const isOwner = businessAssignments.some(
         (assignment) => assignment.businessId === id && assignment.email === user.email
       );
       
+      console.log("Is business owner:", isOwner);
       setIsBusinessOwner(isOwner);
     } catch (error) {
       console.error("Error checking business ownership:", error);

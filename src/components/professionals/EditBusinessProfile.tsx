@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { professionalData } from "./data/professionalData";
-import { Building2, Phone, Mail, MapPin, Save } from "lucide-react";
+import { Building2, Phone, Mail, MapPin, Save, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const EditBusinessProfile = () => {
@@ -16,6 +16,7 @@ const EditBusinessProfile = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [assignedBusiness, setAssignedBusiness] = useState<any | null>(null);
   
   // Form state
@@ -29,46 +30,76 @@ const EditBusinessProfile = () => {
   
   // Find if the current user is assigned to any business
   useEffect(() => {
-    if (!user) {
-      setIsLoading(false);
-      return;
-    }
+    console.log("EditBusinessProfile: User check:", user?.email);
     
-    // Load from localStorage
+    // Set a timeout to prevent infinite loading
+    const timeoutId = setTimeout(() => {
+      if (isLoading) {
+        setIsLoading(false);
+        toast({
+          title: "Loading timeout",
+          description: "Could not verify business ownership. Please try again later.",
+          variant: "destructive",
+        });
+      }
+    }, 5000);
+    
+    // Load from localStorage without waiting for user
     try {
       const savedAssignments = localStorage.getItem("businessAssignments");
       const businessAssignments = savedAssignments ? JSON.parse(savedAssignments) : [];
       
-      const userAssignment = businessAssignments.find(
-        (assignment: any) => assignment.email === user.email
-      );
-      
-      if (userAssignment) {
-        const business = professionalData.professionals.find(
-          pro => pro.id === userAssignment.businessId
+      // If we have a user, find their assignment
+      if (user && user.email) {
+        console.log("Checking business assignments for:", user.email);
+        
+        const userAssignment = businessAssignments.find(
+          (assignment: any) => assignment.email === user.email
         );
         
-        if (business) {
-          setAssignedBusiness(business);
-          setBusinessName(business.name);
-          setExpertise(business.expertise);
-          setPhone(business.phone);
-          setEmail(business.email);
-          setAddress(business.address);
-          setServiceArea(business.serviceArea || "");
-          setBusinessId(business.id);
+        if (userAssignment) {
+          console.log("Found business assignment:", userAssignment);
+          // Look in localStorage first for the business data
+          const localBusinessData = localStorage.getItem("localBusinessData");
+          let businessData = localBusinessData ? JSON.parse(localBusinessData) : [...professionalData.professionals];
+          
+          const business = businessData.find(
+            (pro: any) => pro.id === userAssignment.businessId
+          );
+          
+          if (business) {
+            console.log("Found business data:", business);
+            setAssignedBusiness(business);
+            setBusinessName(business.name || "");
+            setExpertise(business.expertise || "");
+            setPhone(business.phone || "");
+            setEmail(business.email || "");
+            setAddress(business.address || "");
+            setServiceArea(business.serviceArea || "");
+            setBusinessId(business.id);
+          }
+        } else {
+          console.log("No business assignment found for user");
         }
+      } else {
+        console.log("User not available yet");
       }
     } catch (e) {
       console.error("Error loading business assignments:", e);
     }
     
-    setIsLoading(false);
-  }, [user]);
+    // Clear loading state regardless of result after a short delay
+    setTimeout(() => {
+      setIsLoading(false);
+      clearTimeout(timeoutId);
+    }, 1000);
+    
+    return () => clearTimeout(timeoutId);
+  }, [user, toast]);
 
   // Handle form submission
   const handleSaveChanges = () => {
-    setIsLoading(true);
+    setIsSaving(true);
     
     // In a real app, this would send the data to the backend to update the business
     // For now, we'll update our local storage to simulate persistence
@@ -102,7 +133,7 @@ const EditBusinessProfile = () => {
       localStorage.setItem("localBusinessData", JSON.stringify(businessData));
       
       setTimeout(() => {
-        setIsLoading(false);
+        setIsSaving(false);
         toast({
           title: "Changes saved",
           description: "Your business profile has been updated successfully",
@@ -115,7 +146,7 @@ const EditBusinessProfile = () => {
       }, 800);
     } catch (error) {
       console.error("Error saving business data:", error);
-      setIsLoading(false);
+      setIsSaving(false);
       toast({
         title: "Error saving changes",
         description: "There was a problem updating your business profile",
@@ -127,7 +158,15 @@ const EditBusinessProfile = () => {
   if (isLoading) {
     return (
       <div className="container py-10">
-        <h1 className="text-3xl font-bold mb-8">Loading...</h1>
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-10 space-y-4">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <div className="text-center">
+              <h2 className="text-lg font-medium">Loading your business profile</h2>
+              <p className="text-muted-foreground">Please wait while we retrieve your business information</p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -147,6 +186,11 @@ const EditBusinessProfile = () => {
               Please contact an administrator to be assigned to your business listing.
             </p>
           </CardContent>
+          <CardFooter>
+            <Button variant="outline" onClick={() => navigate('/professionals')}>
+              Return to Professionals
+            </Button>
+          </CardFooter>
         </Card>
       </div>
     );
@@ -238,9 +282,16 @@ const EditBusinessProfile = () => {
           >
             Cancel
           </Button>
-          <Button onClick={handleSaveChanges} disabled={isLoading}>
-            {isLoading ? "Saving..." : "Save Changes"}
-            {!isLoading && <Save className="ml-2 h-4 w-4" />}
+          <Button onClick={handleSaveChanges} disabled={isSaving}>
+            {isSaving ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...
+              </>
+            ) : (
+              <>
+                <Save className="mr-2 h-4 w-4" /> Save Changes
+              </>
+            )}
           </Button>
         </CardFooter>
       </Card>
