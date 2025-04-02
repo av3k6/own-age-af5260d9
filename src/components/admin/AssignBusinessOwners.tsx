@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { professionalData } from "@/components/professionals/data/professionalData";
+import { professionalData } from "@/components/professionals/data";
 import { Search, Check, X, Loader2 } from "lucide-react";
 
 // Mock database of user-to-business assignments

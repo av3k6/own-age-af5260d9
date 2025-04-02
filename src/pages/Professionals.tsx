@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Search, Home, Building2, Construction, Zap, Pipette, Thermometer, Flame, Bug, Droplet, FlaskRound, Radiation, Waves, Fuel, Bike, Hammer } from "lucide-react";
 import { ProfessionalType } from "@/types";
 import { Link } from "react-router-dom";
-import { professionalData } from "@/components/professionals/data/professionalData";
+import { professionalData } from "@/components/professionals/data";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 // Define the categories and their icons

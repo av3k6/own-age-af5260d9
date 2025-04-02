@@ -3,7 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Phone, Mail, MapPin, Building, Briefcase, Edit } from "lucide-react";
-import { professionalData } from "./data/professionalData";
+import { professionalData } from "./data";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState, useEffect } from "react";
 

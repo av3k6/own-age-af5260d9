@@ -1,9 +1,8 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
-import { professionalData } from "@/components/professionals/data/professionalData";
+import { professionalData } from "@/components/professionals/data";
 
 export interface BusinessFormData {
   businessName: string;
@@ -23,7 +22,6 @@ export const useBusinessProfileForm = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [assignedBusiness, setAssignedBusiness] = useState<any | null>(null);
   
-  // Form state
   const [formData, setFormData] = useState<BusinessFormData>({
     businessName: "",
     expertise: "",
@@ -34,11 +32,9 @@ export const useBusinessProfileForm = () => {
     businessId: "",
   });
   
-  // Find if the current user is assigned to any business
   useEffect(() => {
     console.log("useBusinessProfileForm: User check:", user?.email);
     
-    // Set a timeout to prevent infinite loading
     const timeoutId = setTimeout(() => {
       if (isLoading) {
         setIsLoading(false);
@@ -50,12 +46,10 @@ export const useBusinessProfileForm = () => {
       }
     }, 5000);
     
-    // Load from localStorage without waiting for user
     try {
       const savedAssignments = localStorage.getItem("businessAssignments");
       const businessAssignments = savedAssignments ? JSON.parse(savedAssignments) : [];
       
-      // If we have a user, find their assignment
       if (user && user.email) {
         console.log("Checking business assignments for:", user.email);
         
@@ -65,7 +59,6 @@ export const useBusinessProfileForm = () => {
         
         if (userAssignment) {
           console.log("Found business assignment:", userAssignment);
-          // Look in localStorage first for the business data
           const localBusinessData = localStorage.getItem("localBusinessData");
           let businessData = localBusinessData ? JSON.parse(localBusinessData) : [...professionalData.professionals];
           
@@ -96,7 +89,6 @@ export const useBusinessProfileForm = () => {
       console.error("Error loading business assignments:", e);
     }
     
-    // Clear loading state regardless of result after a short delay
     setTimeout(() => {
       setIsLoading(false);
       clearTimeout(timeoutId);
@@ -105,17 +97,14 @@ export const useBusinessProfileForm = () => {
     return () => clearTimeout(timeoutId);
   }, [user, toast]);
 
-  // Handle form field changes
   const handleInputChange = (field: keyof BusinessFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
   
-  // Handle form submission
   const handleSaveChanges = () => {
     setIsSaving(true);
     
     try {
-      // Create a copy of the updated business data
       const updatedBusiness = {
         ...assignedBusiness,
         name: formData.businessName,
@@ -126,21 +115,17 @@ export const useBusinessProfileForm = () => {
         serviceArea: formData.serviceArea
       };
       
-      // Find and update the business in the local copy of professionals data
       const localBusinessData = localStorage.getItem("localBusinessData");
       let businessData = localBusinessData ? JSON.parse(localBusinessData) : [...professionalData.professionals];
       
-      // Find the index of the business to update
       const businessIndex = businessData.findIndex((b: any) => b.id === formData.businessId);
       
-      // Update the business if found, otherwise add it
       if (businessIndex !== -1) {
         businessData[businessIndex] = updatedBusiness;
       } else {
         businessData.push(updatedBusiness);
       }
       
-      // Save back to localStorage
       localStorage.setItem("localBusinessData", JSON.stringify(businessData));
       
       setTimeout(() => {
@@ -150,7 +135,6 @@ export const useBusinessProfileForm = () => {
           description: "Your business profile has been updated successfully",
         });
         
-        // Redirect back to the professional detail page
         if (assignedBusiness) {
           navigate(`/professionals/${assignedBusiness.category}/${assignedBusiness.id}`);
         }
