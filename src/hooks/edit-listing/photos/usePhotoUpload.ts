@@ -67,11 +67,21 @@ export const usePhotoUpload = (propertyId: string | undefined) => {
             
             if (dbError) {
               console.error('Database error:', dbError);
-              toast({
-                title: "Database Warning",
-                description: "Photo uploaded but metadata could not be saved. The property_photos table may not exist.",
-                variant: "default",
-              });
+              
+              // Check if error is related to missing table
+              if (dbError.code === '42P01' || dbError.message.includes('relation') || dbError.message.includes('does not exist')) {
+                toast({
+                  title: "Database Setup Required",
+                  description: "Photos were uploaded to storage but couldn't be saved to the database. The property_photos table needs to be created.",
+                  variant: "warning",
+                });
+              } else {
+                toast({
+                  title: "Database Warning",
+                  description: "Photo uploaded but metadata could not be saved.",
+                  variant: "default",
+                });
+              }
             } else {
               console.log("Database record inserted successfully");
             }

@@ -1,10 +1,9 @@
 
 import { usePhotoManagement } from "@/hooks/edit-listing/usePhotoManagement";
 import { Button } from "@/components/ui/button";
-import { Loader2, Plus } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import PhotoList from "./PhotoList";
-import { useState } from "react";
-import PhotoUploader from "./PhotoUploader";
+import { FileUploader } from "@/components/ui/file-uploader";
 import { toast } from "@/hooks/use-toast";
 
 interface PhotoManagementTabProps {
@@ -22,8 +21,6 @@ export default function PhotoManagementTab({ propertyId }: PhotoManagementTabPro
     movePhotoDown,
     setPrimaryPhoto
   } = usePhotoManagement(propertyId);
-  
-  const [showUploader, setShowUploader] = useState(false);
 
   const handleFileUpload = async (files: File[]): Promise<boolean> => {
     console.log("PhotoManagementTab: Handling file upload for", files.length, "files");
@@ -46,11 +43,6 @@ export default function PhotoManagementTab({ propertyId }: PhotoManagementTabPro
     try {
       const success = await uploadPhotos(files);
       console.log("PhotoManagementTab: Upload result:", success);
-      
-      if (success) {
-        setShowUploader(false);
-      }
-      
       return success;
     } catch (error) {
       console.error("PhotoManagementTab: Error handling upload:", error);
@@ -80,18 +72,20 @@ export default function PhotoManagementTab({ propertyId }: PhotoManagementTabPro
             Add, remove, or reorder photos of your property
           </p>
         </div>
-        <Button onClick={() => setShowUploader(!showUploader)}>
-          <Plus className="h-4 w-4 mr-1" />
-          Add Photos
-        </Button>
       </div>
 
-      {showUploader && (
-        <PhotoUploader
-          onUploadPhotos={handleFileUpload}
-          isUploading={isUploading}
-        />
-      )}
+      <FileUploader
+        accept="image/*"
+        multiple
+        maxFiles={10}
+        maxSize={5 * 1024 * 1024} // 5MB
+        onUpload={handleFileUpload}
+        isUploading={isUploading}
+      />
+      
+      <p className="text-xs text-muted-foreground mt-2">
+        Supported formats: JPG, PNG, WebP. Max size: 5MB per image.
+      </p>
 
       <PhotoList
         photos={photos}
