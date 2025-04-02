@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -18,7 +19,7 @@ interface FloorPlanTabProps {
 const FloorPlanTab = ({ floorPlans, setFloorPlans, propertyId }: FloorPlanTabProps) => {
   const { toast } = useToast();
   const { user } = useAuth();
-  const { supabase, buckets } = useSupabase();
+  const { supabase, buckets, safeUpload, safeGetPublicUrl } = useSupabase();
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -47,21 +48,6 @@ const FloorPlanTab = ({ floorPlans, setFloorPlans, propertyId }: FloorPlanTabPro
         return <File className="h-10 w-10 text-green-500" />;
       default:
         return <File className="h-10 w-10 text-gray-500" />;
-    }
-  };
-
-  // Try to ensure storage bucket exists
-  const ensureStorageBucket = async (bucketName: string) => {
-    try {
-      // Check if buckets array contains our bucket
-      if (!buckets.includes(bucketName)) {
-        console.log(`Bucket ${bucketName} not found in available buckets, using 'storage' bucket`);
-        return 'storage'; // Default to 'storage' bucket which should exist by default
-      }
-      return bucketName;
-    } catch (error) {
-      console.error("Error checking bucket:", error);
-      return 'storage'; // Default to 'storage' bucket on error
     }
   };
 
@@ -107,31 +93,26 @@ const FloorPlanTab = ({ floorPlans, setFloorPlans, propertyId }: FloorPlanTabPro
 
     try {
       for (const file of validFiles) {
-        // Determine bucket and path
-        const bucketName = await ensureStorageBucket('floor_plans');
+        // Always use storage folder
         const folderPath = propertyId ? `floor_plans/${propertyId}` : `floor_plans/temp_${Date.now()}`;
         const filePath = `${folderPath}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
         
         // Set intermediate progress
         setUploadProgress(30);
 
-        // Upload the file
-        const { data, error } = await supabase.storage
-          .from(bucketName)
-          .upload(filePath, file, {
-            cacheControl: '3600',
-            upsert: false,
-          });
+        // Use our safe upload function
+        const { data, error } = await safeUpload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false,
+        });
 
         if (error) {
           console.error("Upload error details:", error);
           throw error;
         }
 
-        // Get the public URL for the uploaded file
-        const { data: urlData } = supabase.storage
-          .from(bucketName)
-          .getPublicUrl(filePath);
+        // Get the public URL for the uploaded file using safe function
+        const { data: urlData } = safeGetPublicUrl(filePath);
 
         // Create metadata for the new floor plan
         const newFloorPlan: DocumentMetadata = {
@@ -162,8 +143,9 @@ const FloorPlanTab = ({ floorPlans, setFloorPlans, propertyId }: FloorPlanTabPro
       console.error("Error uploading floor plan:", error);
       
       let errorMessage = "Failed to upload floor plan. Please try again.";
+      
       if (error?.message?.includes("Bucket not found")) {
-        errorMessage = "Storage bucket not found. Please contact support.";
+        errorMessage = "There was an issue with the storage system. Please try again later or contact support.";
       }
       
       setUploadError(errorMessage);
@@ -186,26 +168,12 @@ const FloorPlanTab = ({ floorPlans, setFloorPlans, propertyId }: FloorPlanTabPro
   // Handle floor plan deletion
   const handleDelete = async (floorPlan: DocumentMetadata) => {
     try {
-      const bucketName = floorPlan.path.split('/')[0] || 'storage';
-      
-      // Delete the file from storage
+      // Always use storage bucket
       const { error } = await supabase.storage
-        .from(bucketName)
+        .from('storage')
         .remove([floorPlan.path]);
 
-      if (error) {
-        // If error occurs because we're using the wrong bucket, try with 'storage' bucket
-        if (error.message.includes("Bucket not found")) {
-          const filePath = floorPlan.path.split('/').slice(1).join('/');
-          const { error: fallbackError } = await supabase.storage
-            .from('storage')
-            .remove([filePath]);
-            
-          if (fallbackError) throw fallbackError;
-        } else {
-          throw error;
-        }
-      }
+      if (error) throw error;
 
       // Remove from local state
       setFloorPlans(floorPlans.filter(fp => fp.id !== floorPlan.id));
