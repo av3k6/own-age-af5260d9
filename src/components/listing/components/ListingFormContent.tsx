@@ -2,8 +2,8 @@
 import React from "react";
 import { useFormContext } from "../context/FormContext";
 import FormProgress from "./FormProgress";
-import { usePublishListing } from "../hooks/usePublishListing";
 import StepContent from "./StepContent";
+import { usePublishListing } from "@/hooks/listing/usePublishListing";
 import { formSteps } from "../constants/formSteps";
 
 const ListingFormContent = () => {
