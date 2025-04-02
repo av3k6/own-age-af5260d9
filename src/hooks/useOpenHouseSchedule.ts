@@ -1,8 +1,15 @@
+
 import { useState } from "react";
 import { useSupabase } from "@/hooks/useSupabase";
 import { useToast } from "@/hooks/use-toast";
 import { OpenHouseSession, OpenHouseSessionFormValues } from "@/types/open-house";
-import { format } from "date-fns";
+import { 
+  fetchOpenHouseSessions, 
+  addOpenHouseSession, 
+  updateOpenHouseSession, 
+  deleteOpenHouseSession 
+} from "@/services/openHouse/openHouseService";
+import { filterFutureOpenHouses } from "@/utils/openHouse/openHouseUtils";
 
 export const useOpenHouseSchedule = (propertyId?: string) => {
   const [sessions, setSessions] = useState<OpenHouseSession[]>([]);
@@ -16,31 +23,17 @@ export const useOpenHouseSchedule = (propertyId?: string) => {
     
     setIsLoading(true);
     try {
-      console.log("Fetching open house sessions for property:", propertyId);
-      const { data, error } = await supabase
-        .from("property_open_houses")
-        .select("*")
-        .eq("property_id", propertyId)
-        .order("date", { ascending: true });
+      const { data, error } = await fetchOpenHouseSessions(supabase, propertyId);
 
       if (error) {
-        console.error("Error response from Supabase:", error);
         throw error;
       }
       
-      console.log("Fetched sessions:", data);
-      
-      // Convert the response to our internal type
-      setSessions(data.map(session => ({
-        id: session.id,
-        propertyId: session.property_id,
-        date: new Date(session.date),
-        startTime: session.start_time,
-        endTime: session.end_time,
-        notes: session.notes,
-        createdAt: new Date(session.created_at),
-        updatedAt: new Date(session.updated_at)
-      })));
+      if (data) {
+        // Filter to show only future open houses
+        const futureOpenHouses = filterFutureOpenHouses(data as OpenHouseSession[]);
+        setSessions(futureOpenHouses);
+      }
     } catch (error: any) {
       console.error("Error fetching open house sessions:", error);
       toast({
@@ -58,52 +51,23 @@ export const useOpenHouseSchedule = (propertyId?: string) => {
     
     setIsSaving(true);
     try {
-      const sessionData = {
-        property_id: propertyId,
-        date: format(session.date, "yyyy-MM-dd"),
-        start_time: session.startTime,
-        end_time: session.endTime,
-        notes: session.notes || null,
-      };
-
-      console.log("Adding open house session:", sessionData);
-      
-      const { data, error } = await supabase
-        .from("property_open_houses")
-        .insert(sessionData)
-        .select();
+      const { data, error } = await addOpenHouseSession(supabase, propertyId, session);
 
       if (error) {
-        console.error("Error response from Supabase:", error);
         throw error;
       }
       
-      console.log("Added session response:", data);
-      
-      if (!data || data.length === 0) {
-        throw new Error("No data returned after insert");
+      if (data) {
+        setSessions([...sessions, data as OpenHouseSession]);
+        
+        toast({
+          title: "Success",
+          description: "Open house session added",
+        });
+        
+        return data;
       }
-      
-      // Convert the response to our internal type
-      const newSession: OpenHouseSession = {
-        id: data[0].id,
-        propertyId: data[0].property_id,
-        date: new Date(data[0].date),
-        startTime: data[0].start_time,
-        endTime: data[0].end_time,
-        notes: data[0].notes,
-        createdAt: new Date(data[0].created_at),
-        updatedAt: new Date(data[0].updated_at),
-      };
-      
-      setSessions([...sessions, newSession]);
-      
-      toast({
-        title: "Success",
-        description: "Open house session added",
-      });
-      
-      return newSession;
+      return null;
     } catch (error: any) {
       console.error("Error adding open house session:", error);
       toast({
@@ -122,39 +86,23 @@ export const useOpenHouseSchedule = (propertyId?: string) => {
     
     setIsSaving(true);
     try {
-      const { data, error } = await supabase
-        .from("property_open_houses")
-        .update({
-          date: format(session.date, "yyyy-MM-dd"),
-          start_time: session.startTime,
-          end_time: session.endTime,
-          notes: session.notes,
-        })
-        .eq("id", id)
-        .select();
+      const { data, error } = await updateOpenHouseSession(supabase, id, session);
 
-      if (error) throw error;
+      if (error) {
+        throw error;
+      }
       
-      // Convert the response to our internal type
-      const updatedSession: OpenHouseSession = {
-        id: data[0].id,
-        propertyId: data[0].property_id,
-        date: new Date(data[0].date),
-        startTime: data[0].start_time,
-        endTime: data[0].end_time,
-        notes: data[0].notes,
-        createdAt: new Date(data[0].created_at),
-        updatedAt: new Date(data[0].updated_at),
-      };
-      
-      setSessions(sessions.map(s => s.id === id ? updatedSession : s));
-      
-      toast({
-        title: "Success",
-        description: "Open house session updated",
-      });
-      
-      return updatedSession;
+      if (data) {
+        setSessions(sessions.map(s => s.id === id ? data as OpenHouseSession : s));
+        
+        toast({
+          title: "Success",
+          description: "Open house session updated",
+        });
+        
+        return data;
+      }
+      return null;
     } catch (error: any) {
       console.error("Error updating open house session:", error);
       toast({
@@ -173,21 +121,23 @@ export const useOpenHouseSchedule = (propertyId?: string) => {
     
     setIsSaving(true);
     try {
-      const { error } = await supabase
-        .from("property_open_houses")
-        .delete()
-        .eq("id", id);
+      const { success, error } = await deleteOpenHouseSession(supabase, id);
 
-      if (error) throw error;
+      if (error) {
+        throw error;
+      }
       
-      setSessions(sessions.filter(s => s.id !== id));
-      
-      toast({
-        title: "Success",
-        description: "Open house session removed",
-      });
-      
-      return true;
+      if (success) {
+        setSessions(sessions.filter(s => s.id !== id));
+        
+        toast({
+          title: "Success",
+          description: "Open house session removed",
+        });
+        
+        return true;
+      }
+      return false;
     } catch (error: any) {
       console.error("Error deleting open house session:", error);
       toast({
