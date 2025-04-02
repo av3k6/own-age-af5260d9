@@ -28,6 +28,11 @@ import Layout from './pages/Layout';
 import NotFound from './pages/NotFound';
 import DocumentManagement from './pages/DocumentManagement';
 import Messaging from './pages/Messaging';
+import Professionals from './pages/Professionals';
+
+// Professional components - lazy loaded
+const ProfessionalsList = React.lazy(() => import('./components/professionals/ProfessionalsList'));
+const ProfessionalDetail = React.lazy(() => import('./components/professionals/ProfessionalDetail'));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -56,6 +61,9 @@ function App() {
                   <Route path="/" element={<Home />} />
                   <Route path="/buy" element={<Buy />} />
                   <Route path="/property/:id" element={<PropertyDetail />} />
+                  <Route path="/professionals" element={<Professionals />} />
+                  <Route path="/professionals/:category" element={<ProfessionalsList />} />
+                  <Route path="/professionals/:category/:id" element={<ProfessionalDetail />} />
                 </Route>
                 
                 {/* Protected routes with Layout */}
