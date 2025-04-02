@@ -1,7 +1,7 @@
 
 import React from "react";
 import { useListingNumber } from "@/hooks/useListingNumber";
-import { InfoCircle } from "lucide-react";
+import { Info } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -32,7 +32,7 @@ const ListingNumberDisplay: React.FC<ListingNumberDisplayProps> = ({
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <InfoCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+            <Info className="h-4 w-4 text-muted-foreground cursor-help" />
           </TooltipTrigger>
           <TooltipContent>
             <p className="text-xs">Unique identifier for this property listing</p>
