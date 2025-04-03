@@ -22,7 +22,7 @@ const Dashboard = () => {
   // Check if user is a professional
   const isProfessional = user?.role === "professional";
   
-  // Check if user is assigned to any business (in a real app, we'd fetch this from the database)
+  // Check if user has business assignment (in a real app, we'd fetch this from the database)
   const hasBusinessAssignment = isProfessional; // For simplicity, assume all professionals have a business
 
   return (
@@ -33,14 +33,14 @@ const Dashboard = () => {
       </p>
       
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <Link to="/dashboard">
+        <Link to="/dashboard/listings">
           <Card className="h-full transition-all hover:shadow-md">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">My Properties</CardTitle>
               <Home className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold">3</p>
+              <p className="text-2xl font-bold">1</p>
               <p className="text-xs text-muted-foreground">Properties you're managing</p>
             </CardContent>
           </Card>
@@ -53,7 +53,7 @@ const Dashboard = () => {
               <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold">5</p>
+              <p className="text-2xl font-bold">0</p>
               <p className="text-xs text-muted-foreground">Upcoming property showings</p>
             </CardContent>
           </Card>
@@ -66,7 +66,7 @@ const Dashboard = () => {
               <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold">12</p>
+              <p className="text-2xl font-bold">1</p>
               <p className="text-xs text-muted-foreground">Documents requiring attention</p>
             </CardContent>
           </Card>
@@ -79,7 +79,7 @@ const Dashboard = () => {
               <MessageSquare className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold">3</p>
+              <p className="text-2xl font-bold">0</p>
               <p className="text-xs text-muted-foreground">Unread messages</p>
             </CardContent>
           </Card>

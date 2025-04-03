@@ -1,3 +1,4 @@
+
 import React, { Suspense } from 'react';
 import {
   BrowserRouter as Router,
@@ -30,6 +31,7 @@ import Messaging from './pages/Messaging';
 import Professionals from './pages/Professionals';
 import AdminLogin from './pages/Admin/AdminLogin';
 import AdminDashboard from './pages/Admin/AdminDashboard';
+import UserListings from './components/user/UserListings';
 
 // Professional components - lazy loaded
 const ProfessionalsList = React.lazy(() => import('./components/professionals/ProfessionalsList'));
@@ -74,6 +76,11 @@ function App() {
                   <Route path="/dashboard" element={
                     <ProtectedRoute>
                       <Dashboard />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/dashboard/listings" element={
+                    <ProtectedRoute>
+                      <UserListings />
                     </ProtectedRoute>
                   } />
                   <Route path="/profile" element={
