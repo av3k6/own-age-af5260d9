@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -216,7 +215,7 @@ const UserListings = () => {
             )}
             
             {/* Data source info */}
-            <Alert variant="outline" className="mb-4">
+            <Alert className="mb-4">
               <Info className="h-4 w-4" />
               <AlertTitle>Data Source: {dataSource === 'both' ? 'Supabase & Mock Data' : dataSource === 'supabase' ? 'Supabase' : 'Mock Data'}</AlertTitle>
               <AlertDescription className="whitespace-pre-line text-xs font-mono">
