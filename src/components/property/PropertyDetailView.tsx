@@ -1,4 +1,3 @@
-
 import React from "react";
 import { PropertyListing, ListingStatus } from "@/types";
 import PropertyImageGallery from "./PropertyImageGallery";
@@ -71,11 +70,10 @@ const PropertyDetailView = ({ property }: PropertyDetailViewProps) => {
   
   return (
     <div className="max-w-7xl mx-auto px-4 pb-12 space-y-8">
-      {/* Expired banner */}
+      {/* Expired banner - Updated to remove the bold EXPIRED text */}
       {isExpired && (
         <div className="bg-[#ea384c] text-white p-4 rounded-md mb-4 flex items-center justify-between shadow-md">
           <div className="flex items-center">
-            <span className="font-bold text-lg mr-2">EXPIRED</span>
             <span>This listing is no longer active</span>
           </div>
           <Badge className="bg-white text-[#222] border-none">Expired</Badge>
