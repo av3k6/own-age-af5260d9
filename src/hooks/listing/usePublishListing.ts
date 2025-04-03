@@ -59,21 +59,23 @@ export const usePublishListing = () => {
       const listingId = uuidv4();
       
       // Prepare data for insertion
+      // Remove roomDetails from the data we send to Supabase since the column doesn't exist
+      const { roomDetails, ...formDataWithoutRoomDetails } = formData;
+      
       const listingData = {
         id: listingId,
-        title: formData.title,
-        description: formData.description,
-        price: formData.price,
-        property_type: formData.propertyType,
-        address: formData.address,
-        bedrooms: formData.bedrooms,
-        bathrooms: formData.bathrooms,
-        square_feet: formData.squareFeet,
-        year_built: formData.yearBuilt,
-        features: formData.features,
-        status: formData.status,
-        images: formData.images || [],
-        room_details: formData.roomDetails || {},
+        title: formDataWithoutRoomDetails.title,
+        description: formDataWithoutRoomDetails.description,
+        price: formDataWithoutRoomDetails.price,
+        property_type: formDataWithoutRoomDetails.propertyType,
+        address: formDataWithoutRoomDetails.address,
+        bedrooms: formDataWithoutRoomDetails.bedrooms,
+        bathrooms: formDataWithoutRoomDetails.bathrooms,
+        square_feet: formDataWithoutRoomDetails.squareFeet,
+        year_built: formDataWithoutRoomDetails.yearBuilt,
+        features: formDataWithoutRoomDetails.features,
+        status: formDataWithoutRoomDetails.status,
+        images: formDataWithoutRoomDetails.images || [],
         seller_id: user.id,            // Store the seller's ID
         seller_email: user.email,      // Also store seller's email as backup
         created_at: new Date().toISOString(),

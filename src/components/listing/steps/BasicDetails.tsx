@@ -1,3 +1,4 @@
+
 import { PropertyType } from "@/types";
 import { provinces } from "@/utils/provinceData";
 import { Input } from "@/components/ui/input";
@@ -133,7 +134,7 @@ const BasicDetails = () => {
                 <SelectValue placeholder="Select province" />
               </SelectTrigger>
               <SelectContent>
-                {provinces.slice(1).map((province) => (
+                {provinces.map((province) => (
                   <SelectItem key={province.value} value={province.value}>
                     {province.label}
                   </SelectItem>

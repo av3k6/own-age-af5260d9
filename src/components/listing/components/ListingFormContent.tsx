@@ -30,18 +30,13 @@ export const ListingFormContent = () => {
     const publishData = {
       ...formData,
       images: imageUrls,
-      features: (() => {
-        // Handle all possible types of features input
-        if (Array.isArray(formData.features)) {
-          return formData.features;
-        } else if (typeof formData.features === 'string') {
-          return formData.features.trim() !== ''
-            ? formData.features.split(',').map(f => f.trim())
-            : [];
-        } else {
-          return [];
-        }
-      })()
+      features: Array.isArray(formData.features) 
+        ? formData.features 
+        : typeof formData.features === 'string'
+          ? (formData.features as string).trim() !== ''
+            ? (formData.features as string).split(',').map(f => f.trim())
+            : []
+          : []
     };
     
     const listingId = await publishListing(publishData);
