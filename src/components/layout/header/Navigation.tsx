@@ -1,52 +1,66 @@
 
-import { Link } from "react-router-dom"
-import { Home, ShoppingBag, Store, User } from "lucide-react"
+import { NavLink } from "react-router-dom";
 
 interface NavigationProps {
-  isAuthenticated?: boolean;
+  isAuthenticated: boolean;
   className?: string;
-  onClick?: () => void;
 }
 
-export function Navigation({ isAuthenticated, className = "", onClick }: NavigationProps) {
-  const handleClick = () => {
-    if (onClick) onClick();
-  };
-
+export const Navigation = ({ isAuthenticated, className = "" }: NavigationProps) => {
   return (
-    <nav className={className || "hidden md:flex items-center space-x-6"}>
-      <Link
+    <nav className={className}>
+      <NavLink
         to="/"
-        className="text-base font-medium transition-colors hover:text-primary flex items-center gap-1.5"
-        onClick={handleClick}
+        className={({ isActive }) =>
+          isActive
+            ? "font-medium text-foreground"
+            : "text-muted-foreground hover:text-foreground transition-colors"
+        }
       >
-        <Home className="h-4 w-4" />
         Home
-      </Link>
-      <Link
+      </NavLink>
+      <NavLink
         to="/buy"
-        className="text-base font-medium transition-colors hover:text-primary flex items-center gap-1.5"
-        onClick={handleClick}
+        className={({ isActive }) =>
+          isActive
+            ? "font-medium text-foreground"
+            : "text-muted-foreground hover:text-foreground transition-colors"
+        }
       >
-        <ShoppingBag className="h-4 w-4" />
         Buy
-      </Link>
-      <Link
-        to="/sell"
-        className="text-base font-medium transition-colors hover:text-primary flex items-center gap-1.5"
-        onClick={handleClick}
-      >
-        <Store className="h-4 w-4" />
-        Sell
-      </Link>
-      <Link
+      </NavLink>
+      {isAuthenticated && (
+        <NavLink
+          to="/sell"
+          className={({ isActive }) =>
+            isActive
+              ? "font-medium text-foreground"
+              : "text-muted-foreground hover:text-foreground transition-colors"
+          }
+        >
+          Sell
+        </NavLink>
+      )}
+      <NavLink
         to="/professionals"
-        className="text-base font-medium transition-colors hover:text-primary flex items-center gap-1.5"
-        onClick={handleClick}
+        className={({ isActive }) =>
+          isActive
+            ? "font-medium text-foreground"
+            : "text-muted-foreground hover:text-foreground transition-colors"
+        }
       >
-        <User className="h-4 w-4" />
         Professionals
-      </Link>
+      </NavLink>
+      <NavLink
+        to="/contact"
+        className={({ isActive }) =>
+          isActive
+            ? "font-medium text-foreground"
+            : "text-muted-foreground hover:text-foreground transition-colors"
+        }
+      >
+        Contact
+      </NavLink>
     </nav>
   );
-}
+};

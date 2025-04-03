@@ -32,6 +32,7 @@ import Professionals from './pages/Professionals';
 import AdminLogin from './pages/Admin/AdminLogin';
 import AdminDashboard from './pages/Admin/AdminDashboard';
 import UserListings from './components/user/UserListings';
+import Contact from './pages/Contact'; // Add import for Contact page
 
 // Professional components - lazy loaded
 const ProfessionalsList = React.lazy(() => import('./components/professionals/ProfessionalsList'));
@@ -69,6 +70,7 @@ function App() {
                   <Route path="/professionals" element={<Professionals />} />
                   <Route path="/professionals/:category" element={<ProfessionalsList />} />
                   <Route path="/professionals/:category/:id" element={<ProfessionalDetail />} />
+                  <Route path="/contact" element={<Contact />} /> {/* Add Contact page route */}
                 </Route>
                 
                 {/* Protected routes with Layout */}
