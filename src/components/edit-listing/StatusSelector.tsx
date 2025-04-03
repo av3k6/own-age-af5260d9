@@ -7,6 +7,9 @@ import { UseFormReturn } from "react-hook-form";
 import { EditListingFormValues } from "@/types/edit-listing";
 import { useToast } from "@/hooks/use-toast";
 import { LockIcon } from "lucide-react";
+import { createLogger } from "@/utils/logger";
+
+const logger = createLogger("StatusSelector");
 
 interface StatusSelectorProps {
   form: UseFormReturn<EditListingFormValues>;
@@ -31,16 +34,22 @@ export const StatusSelector: React.FC<StatusSelectorProps> = ({ form, isStatusLo
   
   useEffect(() => {
     if (!initialRender) {
+      logger.debug("Setting up status watch subscription");
+      
       const subscription = form.watch((value, { name }) => {
-        if (name === "status" && preventStatusChange) {
-          toast({
-            title: "Status Locked",
-            description: "This listing has expired and its status can only be changed by admin staff.",
-            variant: "destructive"
-          });
+        if (name === "status") {
+          logger.debug("Status changed to:", value.status);
           
-          // Reset to "EXPIRED" status
-          form.setValue("status", ListingStatus.EXPIRED);
+          if (preventStatusChange) {
+            toast({
+              title: "Status Locked",
+              description: "This listing has expired and its status can only be changed by admin staff.",
+              variant: "destructive"
+            });
+            
+            // Reset to "EXPIRED" status
+            form.setValue("status", ListingStatus.EXPIRED);
+          }
         }
       });
       
@@ -52,40 +61,47 @@ export const StatusSelector: React.FC<StatusSelectorProps> = ({ form, isStatusLo
     <FormField
       control={form.control}
       name="status"
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>Listing Status</FormLabel>
-          <FormControl>
-            <div className="relative">
-              <Select
-                disabled={preventStatusChange}
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-                value={field.value}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectItem value={ListingStatus.ACTIVE}>Active</SelectItem>
-                    <SelectItem value={ListingStatus.PENDING}>Pending</SelectItem>
-                    <SelectItem value={ListingStatus.SOLD}>Sold</SelectItem>
-                    <SelectItem value={ListingStatus.EXPIRED}>Expired</SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-              
-              {preventStatusChange && (
-                <div className="absolute right-10 top-1/2 -translate-y-1/2">
-                  <LockIcon size={16} className="text-muted-foreground" />
-                </div>
-              )}
-            </div>
-          </FormControl>
-          <FormMessage />
-        </FormItem>
-      )}
+      render={({ field }) => {
+        // Add debug logging for field value
+        logger.debug("Rendering status field with value:", field.value);
+        
+        return (
+          <FormItem>
+            <FormLabel>Listing Status</FormLabel>
+            <FormControl>
+              <div className="relative">
+                <Select
+                  disabled={preventStatusChange}
+                  onValueChange={(value) => {
+                    logger.debug("Status selected:", value);
+                    field.onChange(value);
+                  }}
+                  value={field.value}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectItem value={ListingStatus.ACTIVE}>Active</SelectItem>
+                      <SelectItem value={ListingStatus.PENDING}>Pending</SelectItem>
+                      <SelectItem value={ListingStatus.SOLD}>Sold</SelectItem>
+                      <SelectItem value={ListingStatus.EXPIRED}>Expired</SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+                
+                {preventStatusChange && (
+                  <div className="absolute right-10 top-1/2 -translate-y-1/2">
+                    <LockIcon size={16} className="text-muted-foreground" />
+                  </div>
+                )}
+              </div>
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        );
+      }}
     />
   );
 };

@@ -8,6 +8,9 @@ import { Room, PropertyRoomDetails } from "@/types";
 import { DocumentMetadata } from "@/types/document";
 import { UseFormReset } from "react-hook-form";
 import { EditListingFormValues } from "@/types/edit-listing";
+import { createLogger } from "@/utils/logger";
+
+const logger = createLogger("usePropertyFetch");
 
 export function usePropertyFetch(
   propertyId: string | undefined,
@@ -23,12 +26,15 @@ export function usePropertyFetch(
   const { user } = useAuth();
   
   const [isLoading, setIsLoading] = useState(true);
+  const [hasInitialized, setHasInitialized] = useState(false);
   
   useEffect(() => {
     const fetchProperty = async () => {
       if (!propertyId || !user) return;
 
       try {
+        logger.debug("Fetching property data for ID:", propertyId);
+        
         const { data, error } = await supabase
           .from("property_listings")
           .select("*")
@@ -85,7 +91,9 @@ export function usePropertyFetch(
           console.error("Error fetching floor plans:", docError);
         }
 
-        if (data) {
+        if (data && !hasInitialized) {
+          logger.debug("Initializing form with data. Status:", data.status);
+          
           form.reset({
             title: data.title,
             description: data.description,
@@ -102,8 +110,8 @@ export function usePropertyFetch(
             features: data.features?.join(", ") || "",
             status: data.status,
           });
-        } else {
-          navigate("/property-not-found");
+          
+          setHasInitialized(true);
         }
       } catch (error) {
         console.error("Error fetching property:", error);
@@ -119,7 +127,7 @@ export function usePropertyFetch(
     };
     
     fetchProperty();
-  }, [propertyId, supabase, navigate, toast, user, form, setBedroomRooms, setOtherRooms, setFloorPlans, setPropertyDetails]);
+  }, [propertyId, supabase, navigate, toast, user, form, setBedroomRooms, setOtherRooms, setFloorPlans, setPropertyDetails, hasInitialized]);
 
   return { isLoading };
 }
