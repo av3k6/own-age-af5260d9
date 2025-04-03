@@ -9,17 +9,32 @@ import PropertyDetailView from "@/components/property/PropertyDetailView";
 import { useSupabase } from "@/hooks/useSupabase";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { createLogger } from "@/utils/logger";
+
+const logger = createLogger("PropertyDetail");
+
+const isValidUUID = (id: string): boolean => {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(id);
+};
 
 const PropertyDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [property, setProperty] = useState<PropertyListing | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [errorType, setErrorType] = useState<'not-found' | 'invalid-id' | 'no-permission' | null>(null);
   const { supabase } = useSupabase();
   const { toast } = useToast();
   const { user } = useAuth();
 
   useEffect(() => {
     const fetchProperty = async () => {
+      if (!id) {
+        setErrorType('not-found');
+        setIsLoading(false);
+        return;
+      }
+
       setIsLoading(true);
       
       // First check mock data (for demo purposes)
@@ -31,10 +46,12 @@ const PropertyDetail = () => {
             mockProperty.sellerId !== user?.id && 
             !user?.isAdmin) {
           setProperty(null);
+          setErrorType('no-permission');
           setIsLoading(false);
           return;
         }
         
+        logger.info("Found property in mock data:", { id, title: mockProperty.title });
         setProperty(mockProperty);
         setIsLoading(false);
         return;
@@ -42,6 +59,14 @@ const PropertyDetail = () => {
       
       // If not found in mock data, try to fetch from Supabase
       try {
+        // Check if the ID is a valid UUID
+        if (!isValidUUID(id)) {
+          logger.error("Invalid UUID format for property ID:", id);
+          setErrorType('invalid-id');
+          setIsLoading(false);
+          return;
+        }
+        
         const { data, error } = await supabase
           .from("property_listings")
           .select("*")
@@ -49,18 +74,22 @@ const PropertyDetail = () => {
           .single();
           
         if (error) {
-          console.error("Error fetching property:", error);
+          logger.error("Error fetching property:", error);
           setProperty(null);
+          setErrorType('not-found');
           setIsLoading(false);
           return;
         }
         
         if (data) {
+          logger.info("Found property in database:", { id, title: data.title });
+          
           // Check if listing is pending and user is not the owner
           if (data.status === ListingStatus.PENDING && 
               data.seller_id !== user?.id && 
               !user?.isAdmin) {
             setProperty(null);
+            setErrorType('no-permission');
             setIsLoading(false);
             return;
           }
@@ -92,15 +121,17 @@ const PropertyDetail = () => {
           setProperty(formattedProperty);
         } else {
           setProperty(null);
+          setErrorType('not-found');
         }
       } catch (err) {
-        console.error("Failed to fetch property:", err);
+        logger.error("Failed to fetch property:", err);
         toast({
           title: "Error",
           description: "Failed to load property details",
           variant: "destructive",
         });
         setProperty(null);
+        setErrorType('not-found');
       } finally {
         setIsLoading(false);
       }
@@ -120,7 +151,7 @@ const PropertyDetail = () => {
   }
 
   if (!property) {
-    return <PropertyNotFound />;
+    return <PropertyNotFound errorType={errorType} propertyId={id} />;
   }
 
   return <PropertyDetailView property={property} />;
