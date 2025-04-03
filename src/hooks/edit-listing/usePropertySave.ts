@@ -62,7 +62,8 @@ export function usePropertySave(
       // Check if the status is locked (was previously expired)
       const isStatusLocked = originalStatusValue === ListingStatus.EXPIRED;
       
-      // If status is locked and the user is trying to change it, prevent the save
+      // Only prevent changes FROM expired TO something else
+      // Allow changing status TO expired from any other status
       if (isStatusLocked && values.status !== ListingStatus.EXPIRED) {
         toast({
           title: "Status Locked",

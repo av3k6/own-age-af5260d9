@@ -15,11 +15,15 @@ interface StatusSelectorProps {
 
 export const StatusSelector: React.FC<StatusSelectorProps> = ({ form, isStatusLocked }) => {
   const { toast } = useToast();
+  const currentStatus = form.watch("status");
+  
+  // Only block changes if we're trying to change FROM expired TO something else
+  const preventStatusChange = isStatusLocked && currentStatus !== ListingStatus.EXPIRED;
   
   // If status is locked, show a toast when user tries to change it
   useEffect(() => {
     const subscription = form.watch((value, { name }) => {
-      if (name === "status" && isStatusLocked) {
+      if (name === "status" && preventStatusChange) {
         toast({
           title: "Status Locked",
           description: "This listing has expired and its status can only be changed by admin staff.",
@@ -32,7 +36,7 @@ export const StatusSelector: React.FC<StatusSelectorProps> = ({ form, isStatusLo
     });
     
     return () => subscription.unsubscribe();
-  }, [form, isStatusLocked, toast]);
+  }, [form, preventStatusChange, toast]);
 
   return (
     <FormField
@@ -44,7 +48,7 @@ export const StatusSelector: React.FC<StatusSelectorProps> = ({ form, isStatusLo
           <FormControl>
             <div className="relative">
               <Select
-                disabled={isStatusLocked}
+                disabled={preventStatusChange}
                 onValueChange={field.onChange}
                 defaultValue={field.value}
                 value={field.value}
@@ -62,7 +66,7 @@ export const StatusSelector: React.FC<StatusSelectorProps> = ({ form, isStatusLo
                 </SelectContent>
               </Select>
               
-              {isStatusLocked && (
+              {preventStatusChange && (
                 <div className="absolute right-10 top-1/2 -translate-y-1/2">
                   <LockIcon size={16} className="text-muted-foreground" />
                 </div>
