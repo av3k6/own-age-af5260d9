@@ -1,35 +1,70 @@
 
-import React from "react";
-import { useFormContext } from "../context/FormContext";
-import FormProgress from "./FormProgress";
-import StepContent from "./StepContent";
-import { usePublishListing } from "@/hooks/listing/usePublishListing";
-import { formSteps } from "../constants/formSteps";
+import React, { useContext } from 'react';
+import { FormContext } from '../context/FormContext';
+import { BasicDetails } from '../steps/BasicDetails';
+import { PropertyFeatures } from '../steps/property-features';
+import { MediaUpload } from '../steps/MediaUpload';
+import { DocumentUpload } from '../steps/DocumentUpload';
+import { ReviewAndPublish } from '../steps/review/ReviewAndPublish';
+import { usePublishListing } from '@/hooks/listing/usePublishListing';
+import { useNavigate } from 'react-router-dom';
+import { ListingFormData } from '@/types/edit-listing';
+import { toast } from '@/hooks/use-toast';
 
-const ListingFormContent = () => {
-  const { currentStep, setIsSubmitting, formData } = useFormContext();
-  const { isSubmitting, publishListing } = usePublishListing();
-
-  // Update the form context with the submission state from our hook
-  React.useEffect(() => {
-    setIsSubmitting(isSubmitting);
-  }, [isSubmitting, setIsSubmitting]);
+export const ListingFormContent = () => {
+  const { currentStep, formData } = useContext(FormContext);
+  const { publishListing, isSubmitting } = usePublishListing();
+  const navigate = useNavigate();
 
   const handlePublish = async () => {
-    // Instead of calling useFormContext inside the function,
-    // we use the formData that we've already accessed at the component level
-    await publishListing(formData);
+    if (!formData) return;
+
+    // Convert File[] to string[] for backend storage
+    // This ensures compatibility with the PublishListing function's expected type
+    const imageUrls: string[] = formData.images 
+      ? Array.isArray(formData.images) 
+        ? formData.images.map(img => typeof img === 'string' ? img : URL.createObjectURL(img))
+        : []
+      : [];
+
+    // Create a copy of the form data with converted image URLs
+    const publishData = {
+      ...formData,
+      images: imageUrls,
+      features: formData.features ? formData.features.split(',').map(f => f.trim()) : []
+    };
+    
+    const listingId = await publishListing(publishData);
+    
+    if (listingId) {
+      toast({
+        title: "Success",
+        description: "Your property has been published successfully!",
+      });
+      navigate(`/property/${listingId}`);
+    }
+  };
+
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case 0:
+        return <BasicDetails />;
+      case 1:
+        return <PropertyFeatures />;
+      case 2:
+        return <MediaUpload />;
+      case 3:
+        return <DocumentUpload />;
+      case 4:
+        return <ReviewAndPublish onPublish={handlePublish} isSubmitting={isSubmitting} />;
+      default:
+        return <BasicDetails />;
+    }
   };
 
   return (
-    <div className="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
-      <FormProgress currentStep={currentStep} steps={formSteps} />
-      
-      <div className="p-6">
-        <StepContent currentStep={currentStep} onPublish={handlePublish} />
-      </div>
+    <div className="w-full">
+      {renderStepContent()}
     </div>
   );
 };
-
-export default ListingFormContent;

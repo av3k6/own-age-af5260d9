@@ -1,9 +1,8 @@
 
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { mockListings } from "@/data/mockData";
 import { PropertyListing, ListingStatus } from "@/types";
-import { Button } from "@/components/ui/button";
 import PropertyNotFound from "@/components/property/PropertyNotFound";
 import PropertyDetailView from "@/components/property/PropertyDetailView";
 import { useSupabase } from "@/hooks/useSupabase";
