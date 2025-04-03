@@ -9,6 +9,7 @@ import ReviewAndPublish from '../steps/review/ReviewAndPublish';
 import { usePublishListing } from '@/hooks/listing/usePublishListing';
 import { useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
+import { v4 as uuidv4 } from 'uuid';
 
 export const ListingFormContent = () => {
   const { currentStep, formData } = useFormContext();
@@ -17,6 +18,9 @@ export const ListingFormContent = () => {
 
   const handlePublish = async () => {
     if (!formData) return;
+    
+    // Generate a property ID ahead of time to ensure consistency
+    const propertyId = uuidv4();
 
     // Convert File[] to string[] for backend storage
     // This ensures compatibility with the PublishListing function's expected type
@@ -32,10 +36,8 @@ export const ListingFormContent = () => {
       images: imageUrls,
       features: Array.isArray(formData.features) 
         ? formData.features 
-        : typeof formData.features === 'string'
-          ? (formData.features as string).trim() !== ''
-            ? (formData.features as string).split(',').map(f => f.trim())
-            : []
+        : typeof formData.features === 'string' && (formData.features as string).trim() !== ''
+          ? (formData.features as string).split(',').map(f => f.trim())
           : []
     };
     

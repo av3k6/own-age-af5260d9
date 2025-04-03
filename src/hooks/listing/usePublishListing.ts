@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { v4 as uuidv4 } from 'uuid';
 import { createLogger } from "@/utils/logger";
+import { useListingNumber } from "@/hooks/useListingNumber";
 
 const logger = createLogger("usePublishListing");
 
@@ -38,6 +39,7 @@ export const usePublishListing = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
+  const { generateListingNumber } = useListingNumber();
 
   const publishListing = async (formData: FormData) => {
     if (!user) {
@@ -57,6 +59,10 @@ export const usePublishListing = () => {
 
       // Generate a new UUID for the listing
       const listingId = uuidv4();
+      
+      // Generate a listing number 
+      const listingNumber = await generateListingNumber();
+      logger.info("Generated listing number:", listingNumber);
       
       // Prepare data for insertion
       // Remove roomDetails from the data we send to Supabase since the column doesn't exist
@@ -78,13 +84,15 @@ export const usePublishListing = () => {
         images: formDataWithoutRoomDetails.images || [],
         seller_id: user.id,            // Store the seller's ID
         // Removing seller_email because it doesn't exist in the database table
+        listing_number: listingNumber, // Add the generated listing number
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
 
       logger.info("Prepared listing data:", {
         id: listingId, 
-        seller_id: user.id
+        seller_id: user.id,
+        listing_number: listingNumber
       });
 
       // Insert the listing into Supabase

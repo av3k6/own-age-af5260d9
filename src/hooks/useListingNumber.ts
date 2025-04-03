@@ -28,13 +28,33 @@ export const useListingNumber = (): UseListingNumberReturn => {
   /**
    * Generates a unique listing number
    * Format: TH + 8 random digits
+   * If a propertyId is provided, it will use part of that for uniqueness
    */
-  const generateListingNumber = async (): Promise<string> => {
+  const generateListingNumber = async (propertyId?: string): Promise<string> => {
     setIsLoading(true);
     try {
-      // Generate random 8-digit number
-      const randomDigits = Math.floor(10000000 + Math.random() * 90000000).toString();
-      const listingNumber = `TH${randomDigits}`;
+      let uniqueDigits: string;
+      
+      // If we have a property ID, extract some digits from it for uniqueness
+      if (propertyId) {
+        // Remove hyphens and take the last 8 characters of the UUID
+        const idDigits = propertyId.replace(/-/g, '').slice(-8);
+        uniqueDigits = idDigits;
+      } else {
+        // Generate 8 random digits
+        uniqueDigits = Math.floor(10000000 + Math.random() * 90000000).toString();
+      }
+      
+      // Ensure we have exactly 8 digits
+      if (uniqueDigits.length > 8) {
+        uniqueDigits = uniqueDigits.substring(0, 8);
+      } else if (uniqueDigits.length < 8) {
+        // Pad with random digits if needed
+        const padding = Math.random().toString().substring(2, 10 - uniqueDigits.length);
+        uniqueDigits = uniqueDigits + padding;
+      }
+      
+      const listingNumber = `TH${uniqueDigits}`;
       
       // Check if this number already exists in the database to ensure uniqueness
       const { data, error } = await supabase
@@ -55,6 +75,7 @@ export const useListingNumber = (): UseListingNumberReturn => {
       return listingNumber;
     } catch (error) {
       console.error('Error generating listing number:', error);
+      // Fallback to timestamp-based listing number
       return `TH${Date.now().toString().substring(3, 11)}`;
     } finally {
       setIsLoading(false);

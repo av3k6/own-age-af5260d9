@@ -26,13 +26,22 @@ const PropertyDetailView = ({ property }: PropertyDetailViewProps) => {
   const isOwner = user?.id === property.sellerId;
   const isPending = property.status === ListingStatus.PENDING;
   
+  // Extract listing number - check different possible locations
+  let listingNumber = property.roomDetails?.listingNumber;
+  
+  // If it doesn't exist in the roomDetails, check if it's directly on the property
+  if (!listingNumber && (property as any).listingNumber) {
+    listingNumber = (property as any).listingNumber;
+  }
+  
   logger.info("Property detail view", { 
     propertyId: property.id, 
     status: property.status, 
     sellerId: property.sellerId,
     currentUserId: user?.id,
     isOwner,
-    isPending
+    isPending,
+    listingNumber
   });
   
   // If property is pending and user is not the owner, show restricted access
@@ -86,7 +95,10 @@ const PropertyDetailView = ({ property }: PropertyDetailViewProps) => {
           <PropertyRoomDetails
             bedrooms={property.roomDetails?.bedrooms}
             otherRooms={property.roomDetails?.otherRooms}
-            propertyDetails={property.roomDetails}
+            propertyDetails={{
+              ...property.roomDetails,
+              listingNumber: listingNumber // Ensure listing number is passed down
+            }}
             propertyTitle={property.title}
             propertyPrice={property.price}
             listingStatus={property.status}

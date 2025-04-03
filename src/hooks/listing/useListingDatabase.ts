@@ -3,10 +3,12 @@ import { useToast } from "@/hooks/use-toast";
 import { useSupabase } from "@/hooks/useSupabase";
 import { ListingFormData } from "@/components/listing/context/FormContext";
 import { DocumentMetadata } from "./useDocumentUpload";
+import { useListingNumber } from "@/hooks/useListingNumber";
 
 export const useListingDatabase = () => {
   const { supabase } = useSupabase();
   const { toast } = useToast();
+  const { generateListingNumber } = useListingNumber();
 
   const insertListing = async (
     formData: ListingFormData, 
@@ -15,9 +17,12 @@ export const useListingDatabase = () => {
     userName: string | undefined,
     imageUrls: string[],
     documentData: DocumentMetadata[],
-    listingNumber: string
+    listingNumber?: string
   ) => {
     try {
+      // Generate a listing number if not provided
+      const finalListingNumber = listingNumber || await generateListingNumber();
+      
       const { data, error } = await supabase
         .from('property_listings')
         .insert({
@@ -36,7 +41,7 @@ export const useListingDatabase = () => {
           seller_id: userId,
           // Removing seller_email and seller_name fields
           status: formData.status,
-          listing_number: listingNumber, // Add the unique listing number
+          listing_number: finalListingNumber, // Use the generated listing number
           // Optional fields
           property_condition: formData.propertyCondition,
           recent_upgrades: formData.recentUpgrades,
