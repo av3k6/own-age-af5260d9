@@ -33,7 +33,7 @@ export const ListingFormContent = () => {
       // Check if features is already an array; if so, use it directly
       features: Array.isArray(formData.features) 
         ? formData.features 
-        : (typeof formData.features === 'string' && formData.features)
+        : (typeof formData.features === 'string' && formData.features.length > 0)
           ? formData.features.split(',').map((f: string) => f.trim())
           : []
     };
