@@ -30,12 +30,18 @@ export const ListingFormContent = () => {
     const publishData = {
       ...formData,
       images: imageUrls,
-      // Fix the TypeScript error by properly checking the type of features
-      features: Array.isArray(formData.features) 
-        ? formData.features 
-        : typeof formData.features === 'string' && formData.features.trim() !== ''
-          ? formData.features.split(',').map(f => f.trim())
-          : []
+      features: (() => {
+        // Handle all possible types of features input
+        if (Array.isArray(formData.features)) {
+          return formData.features;
+        } else if (typeof formData.features === 'string') {
+          return formData.features.trim() !== ''
+            ? formData.features.split(',').map(f => f.trim())
+            : [];
+        } else {
+          return [];
+        }
+      })()
     };
     
     const listingId = await publishListing(publishData);
