@@ -30,10 +30,10 @@ export const ListingFormContent = () => {
     const publishData = {
       ...formData,
       images: imageUrls,
-      // Check if features is already an array; if so, use it directly
+      // Fix the TypeScript error by properly handling the features property
       features: Array.isArray(formData.features) 
         ? formData.features 
-        : (typeof formData.features === 'string' && formData.features.length > 0)
+        : (typeof formData.features === 'string')
           ? formData.features.split(',').map((f: string) => f.trim())
           : []
     };

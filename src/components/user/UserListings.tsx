@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -6,13 +7,14 @@ import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Eye, Plus, Loader2, Calendar, Clock, AlertCircle, Info } from "lucide-react";
+import { Eye, Plus, Loader2, Calendar, Clock, AlertCircle, Info, Trash2 } from "lucide-react";
 import PropertyCard from "@/components/property/PropertyCard";
 import { PropertyListing, ListingStatus } from "@/types";
 import ShowingRequestManager from "./showings/ShowingRequestManager";
 import SellerAvailabilityManager from "./showings/SellerAvailabilityManager";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { createLogger } from "@/utils/logger";
+import { clearPropertyListings } from "@/utils/databaseCleanup";
 
 const logger = createLogger("UserListings");
 
@@ -28,6 +30,7 @@ const UserListings = () => {
   const [error, setError] = useState<string | null>(null);
   const [dataSource, setDataSource] = useState<'mock' | 'supabase' | 'both'>('both');
   const [debugInfo, setDebugInfo] = useState<string>('');
+  const [isClearingDb, setIsClearingDb] = useState(false);
 
   useEffect(() => {
     const fetchListings = async () => {
@@ -176,6 +179,46 @@ const UserListings = () => {
   const handleCreateListing = () => {
     navigate("/sell");
   };
+  
+  const handleClearDatabase = async () => {
+    if (!confirm("Are you sure you want to clear all property listings from the database? This cannot be undone.")) {
+      return;
+    }
+    
+    setIsClearingDb(true);
+    try {
+      const result = await clearPropertyListings();
+      
+      if (result.success) {
+        toast({
+          title: "Success",
+          description: result.message,
+        });
+        
+        // Refresh listings after clearing the database
+        // This will show only mock data
+        const mockOnlyListings = listings.filter(
+          listing => (listing as any).source === 'mock'
+        );
+        setListings(mockOnlyListings);
+        setDataSource('mock');
+      } else {
+        toast({
+          title: "Error",
+          description: result.message,
+          variant: "destructive",
+        });
+      }
+    } catch (err: any) {
+      toast({
+        title: "Error",
+        description: `Failed to clear database: ${err.message}`,
+        variant: "destructive",
+      });
+    } finally {
+      setIsClearingDb(false);
+    }
+  };
 
   return (
     <Card className="w-full">
@@ -184,9 +227,19 @@ const UserListings = () => {
           <CardTitle className="text-xl">Property Management</CardTitle>
           <CardDescription>Manage your listings and showings</CardDescription>
         </div>
-        <Button onClick={handleCreateListing}>
-          <Plus className="h-4 w-4 mr-2" /> New Listing
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={handleCreateListing}>
+            <Plus className="h-4 w-4 mr-2" /> New Listing
+          </Button>
+          <Button 
+            variant="destructive"
+            onClick={handleClearDatabase}
+            disabled={isClearingDb}
+          >
+            {isClearingDb ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Trash2 className="h-4 w-4 mr-2" />}
+            Clear Database
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         <Tabs value={activeTab} onValueChange={setActiveTab}>
