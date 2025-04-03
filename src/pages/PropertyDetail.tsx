@@ -59,10 +59,12 @@ const PropertyDetail = () => {
       
       // If not found in mock data, try to fetch from Supabase
       try {
-        // Check if the ID is a valid UUID
+        // Only validate UUID if we're fetching from Supabase database
+        // This allows non-UUID format IDs for mock data
         if (!isValidUUID(id)) {
-          logger.error("Invalid UUID format for property ID:", id);
-          setErrorType('invalid-id');
+          logger.info("Non-UUID format property ID:", id);
+          setProperty(null);
+          setErrorType('not-found');
           setIsLoading(false);
           return;
         }
