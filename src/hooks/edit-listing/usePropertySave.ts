@@ -59,12 +59,12 @@ export function usePropertySave(
       // Get the original status
       const originalStatusValue = await getOriginalStatus();
       
-      // Check if the status is locked (was previously expired)
-      const isStatusLocked = originalStatusValue === ListingStatus.EXPIRED;
+      // Check if the status is locked - only if trying to change FROM expired TO something else
+      // We want to allow changing TO expired from any other status
+      const isStatusLocked = originalStatusValue === ListingStatus.EXPIRED && 
+                             values.status !== ListingStatus.EXPIRED;
       
-      // Only prevent changes FROM expired TO something else
-      // Allow changing status TO expired from any other status
-      if (isStatusLocked && values.status !== ListingStatus.EXPIRED) {
+      if (isStatusLocked) {
         toast({
           title: "Status Locked",
           description: "This listing has expired and its status can only be changed by admin staff.",

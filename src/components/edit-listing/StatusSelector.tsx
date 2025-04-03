@@ -18,12 +18,13 @@ export const StatusSelector: React.FC<StatusSelectorProps> = ({ form, isStatusLo
   const currentStatus = form.watch("status");
   
   // Only block changes if we're trying to change FROM expired TO something else
-  const preventStatusChange = isStatusLocked && currentStatus !== ListingStatus.EXPIRED;
+  // We want to allow changing TO expired from any status
+  const preventStatusChange = isStatusLocked && currentStatus === ListingStatus.EXPIRED;
   
-  // If status is locked, show a toast when user tries to change it
+  // If status is locked, show a toast when user tries to change it away from EXPIRED
   useEffect(() => {
     const subscription = form.watch((value, { name }) => {
-      if (name === "status" && preventStatusChange) {
+      if (name === "status" && preventStatusChange && value.status !== ListingStatus.EXPIRED) {
         toast({
           title: "Status Locked",
           description: "This listing has expired and its status can only be changed by admin staff.",
