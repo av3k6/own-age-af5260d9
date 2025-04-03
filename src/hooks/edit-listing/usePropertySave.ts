@@ -23,7 +23,7 @@ export function usePropertySave(
   const { user } = useAuth();
   
   const [isSaving, setIsSaving] = useState(false);
-  const { getOriginalStatus, isStatusChangeAllowed } = useListingStatus(propertyId);
+  const { originalStatus, getOriginalStatus, isStatusChangeAllowed } = useListingStatus(propertyId);
   const { updateFloorPlans } = useFloorPlanUpdate();
   const { updatePropertyListing } = usePropertyUpdate();
   
@@ -43,8 +43,12 @@ export function usePropertySave(
       // Get the original status
       const originalStatusValue = await getOriginalStatus();
       
-      // Check if status change is allowed
-      if (!isStatusChangeAllowed(originalStatusValue, values.status)) {
+      // Allow changing TO expired from any status
+      // OR changing between other statuses if not currently expired
+      const statusChangeAllowed = values.status === ListingStatus.EXPIRED ||
+                                 isStatusChangeAllowed(originalStatusValue, values.status);
+      
+      if (!statusChangeAllowed) {
         toast({
           title: "Status Locked",
           description: "This listing has expired and its status can only be changed by admin staff.",

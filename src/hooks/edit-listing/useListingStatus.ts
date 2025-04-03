@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSupabase } from "@/hooks/useSupabase";
 import { ListingStatus } from "@/types";
 
@@ -27,12 +27,19 @@ export function useListingStatus(propertyId: string | undefined) {
     }
   };
   
-  const isStatusChangeAllowed = (originalStatus: string | null, newStatus: string) => {
-    // Check if the status is locked - only if trying to change FROM expired TO something else
-    // We want to allow changing TO expired from any other status
-    return !(originalStatus === ListingStatus.EXPIRED && 
-             newStatus !== ListingStatus.EXPIRED);
+  // Modified this function to implement the correct status change logic
+  const isStatusChangeAllowed = (currentStatus: string | null, newStatus: string) => {
+    // If the currentStatus is not expired, allow change to any status
+    // If the currentStatus is expired, only admin can change it (handled elsewhere)
+    return currentStatus !== ListingStatus.EXPIRED;
   };
+
+  // Get status on initial load
+  useEffect(() => {
+    if (propertyId && !originalStatus) {
+      getOriginalStatus();
+    }
+  }, [propertyId]);
 
   return {
     originalStatus,

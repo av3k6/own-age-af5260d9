@@ -1,5 +1,5 @@
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ListingStatus } from "@/types";
@@ -16,28 +16,37 @@ interface StatusSelectorProps {
 export const StatusSelector: React.FC<StatusSelectorProps> = ({ form, isStatusLocked }) => {
   const { toast } = useToast();
   const currentStatus = form.watch("status");
+  const [initialRender, setInitialRender] = useState(true);
   
-  // Only block changes if we're trying to change FROM expired TO something else
-  // We want to allow changing TO expired from any status
-  const preventStatusChange = isStatusLocked && currentStatus === ListingStatus.EXPIRED;
-  
-  // If status is locked, show a toast when user tries to change it away from EXPIRED
+  // After initial render, it's safe to check for status changes
   useEffect(() => {
-    const subscription = form.watch((value, { name }) => {
-      if (name === "status" && preventStatusChange && value.status !== ListingStatus.EXPIRED) {
-        toast({
-          title: "Status Locked",
-          description: "This listing has expired and its status can only be changed by admin staff.",
-          variant: "destructive"
-        });
-        
-        // Reset to "EXPIRED" status
-        form.setValue("status", ListingStatus.EXPIRED);
-      }
-    });
-    
-    return () => subscription.unsubscribe();
-  }, [form, preventStatusChange, toast]);
+    if (initialRender) {
+      setInitialRender(false);
+      return;
+    }
+  }, []);
+
+  // Only block changes if the listing is expired
+  const preventStatusChange = isStatusLocked;
+  
+  useEffect(() => {
+    if (!initialRender) {
+      const subscription = form.watch((value, { name }) => {
+        if (name === "status" && preventStatusChange) {
+          toast({
+            title: "Status Locked",
+            description: "This listing has expired and its status can only be changed by admin staff.",
+            variant: "destructive"
+          });
+          
+          // Reset to "EXPIRED" status
+          form.setValue("status", ListingStatus.EXPIRED);
+        }
+      });
+      
+      return () => subscription.unsubscribe();
+    }
+  }, [form, preventStatusChange, toast, initialRender]);
 
   return (
     <FormField
