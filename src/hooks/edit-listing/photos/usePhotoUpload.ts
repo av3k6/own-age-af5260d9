@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { PhotoUploadResult } from "./types";
 
 export const usePhotoUpload = (propertyId: string | undefined) => {
-  const { supabase, safeUpload, safeGetPublicUrl } = useSupabase();
+  const { supabase, safeUpload, safeGetPublicUrl, ensurePropertyPhotosTable } = useSupabase();
   const { toast } = useToast();
   const [isUploading, setIsUploading] = useState(false);
 
@@ -13,6 +13,17 @@ export const usePhotoUpload = (propertyId: string | undefined) => {
     if (!files.length || !propertyId) {
       console.log("usePhotoUpload: No files or propertyId provided");
       return { success: false };
+    }
+    
+    // Check if the property_photos table exists before proceeding
+    const tableExists = await ensurePropertyPhotosTable();
+    if (!tableExists) {
+      toast({
+        title: "Database Error",
+        description: "Unable to upload photos due to database configuration issues.",
+        variant: "destructive",
+      });
+      return { success: false, error: "Database configuration error" };
     }
     
     setIsUploading(true);
@@ -25,6 +36,29 @@ export const usePhotoUpload = (propertyId: string | undefined) => {
       // Process each file
       for (const file of files) {
         try {
+          // Validate file type
+          const fileType = file.type.toLowerCase();
+          const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+          if (!validTypes.includes(fileType)) {
+            toast({
+              title: "Invalid File Type",
+              description: `File ${file.name} is not a supported image type. Only JPG, PNG, and WebP are accepted.`,
+              variant: "destructive",
+            });
+            continue;
+          }
+          
+          // Validate file size (5MB limit)
+          const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+          if (file.size > MAX_SIZE) {
+            toast({
+              title: "File Too Large",
+              description: `File ${file.name} exceeds the 5MB limit.`,
+              variant: "destructive",
+            });
+            continue;
+          }
+          
           // Create a unique file name
           const fileExt = file.name.split('.').pop();
           const fileName = `property-photos/${propertyId}/${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
@@ -32,7 +66,10 @@ export const usePhotoUpload = (propertyId: string | undefined) => {
           console.log(`Uploading file: ${fileName}`);
           
           // Upload to Supabase Storage using the safe upload method
-          const { data, error: uploadError } = await safeUpload(fileName, file);
+          const { data, error: uploadError } = await safeUpload(fileName, file, {
+            cacheControl: '3600',
+            contentType: file.type,
+          });
           
           if (uploadError) {
             console.error("Storage upload error:", uploadError);
@@ -73,6 +110,12 @@ export const usePhotoUpload = (propertyId: string | undefined) => {
                 toast({
                   title: "Database Setup Required",
                   description: "Photos were uploaded to storage but couldn't be saved to the database. The property_photos table needs to be created.",
+                  variant: "destructive",
+                });
+              } else if (dbError.code === '42501' || dbError.message.includes('permission denied')) {
+                toast({
+                  title: "Permission Denied",
+                  description: "You don't have permission to add photos to this property.",
                   variant: "destructive",
                 });
               } else {

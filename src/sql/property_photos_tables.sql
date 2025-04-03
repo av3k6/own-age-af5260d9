@@ -52,53 +52,8 @@ CREATE POLICY "Users can delete their own property photos" ON public.property_ph
     )
   );
 
--- Create property_documents table
-CREATE TABLE IF NOT EXISTS public.property_documents (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  property_id UUID NOT NULL,
-  name TEXT NOT NULL,
-  type TEXT NOT NULL,
-  size INTEGER NOT NULL,
-  url TEXT NOT NULL,
-  path TEXT NOT NULL,
-  uploaded_by UUID NOT NULL REFERENCES auth.users(id),
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  category TEXT,
-  description TEXT
-);
+-- Create index for property_id for better performance
+CREATE INDEX IF NOT EXISTS idx_property_photos_property_id ON public.property_photos(property_id);
 
--- Create RLS policies for property_documents
-ALTER TABLE public.property_documents ENABLE ROW LEVEL SECURITY;
-
--- Allow authenticated users to view their own property documents
-CREATE POLICY "Users can view their own property documents" ON public.property_documents
-  FOR SELECT USING (
-    auth.uid() IN (
-      SELECT user_id FROM public.properties WHERE id = property_id
-    ) OR auth.uid() = uploaded_by
-  );
-
--- Allow authenticated users to insert their own property documents
-CREATE POLICY "Users can insert their own property documents" ON public.property_documents
-  FOR INSERT WITH CHECK (
-    auth.uid() IN (
-      SELECT user_id FROM public.properties WHERE id = property_id
-    ) OR auth.uid() = uploaded_by
-  );
-
--- Allow authenticated users to update their own property documents
-CREATE POLICY "Users can update their own property documents" ON public.property_documents
-  FOR UPDATE USING (
-    auth.uid() IN (
-      SELECT user_id FROM public.properties WHERE id = property_id
-    ) OR auth.uid() = uploaded_by
-  );
-
--- Allow authenticated users to delete their own property documents
-CREATE POLICY "Users can delete their own property documents" ON public.property_documents
-  FOR DELETE USING (
-    auth.uid() IN (
-      SELECT user_id FROM public.properties WHERE id = property_id
-    ) OR auth.uid() = uploaded_by
-  );
+-- Create index for display_order for better ordering performance
+CREATE INDEX IF NOT EXISTS idx_property_photos_display_order ON public.property_photos(display_order);
