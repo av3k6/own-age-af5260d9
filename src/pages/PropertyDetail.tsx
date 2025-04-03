@@ -73,7 +73,7 @@ const PropertyDetail = () => {
         
         // First, try to fetch from property_listings table
         let propertyData = null;
-        let { data, error } = await supabase
+        const { data, error } = await supabase
           .from("property_listings")
           .select("*")
           .eq("id", id)

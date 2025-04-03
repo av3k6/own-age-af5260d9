@@ -1,18 +1,17 @@
 
-import React, { useContext } from 'react';
-import { FormContext } from '../context/FormContext';
-import { BasicDetails } from '../steps/BasicDetails';
-import { PropertyFeatures } from '../steps/property-features';
-import { MediaUpload } from '../steps/MediaUpload';
-import { DocumentUpload } from '../steps/DocumentUpload';
-import { ReviewAndPublish } from '../steps/review/ReviewAndPublish';
+import React from 'react';
+import { useFormContext } from '../context/FormContext';
+import BasicDetails from '../steps/BasicDetails';
+import PropertyFeatures from '../steps/property-features';
+import MediaUpload from '../steps/MediaUpload';
+import DocumentUpload from '../steps/DocumentUpload';
+import ReviewAndPublish from '../steps/review/ReviewAndPublish';
 import { usePublishListing } from '@/hooks/listing/usePublishListing';
 import { useNavigate } from 'react-router-dom';
-import { ListingFormData } from '@/types/edit-listing';
 import { toast } from '@/hooks/use-toast';
 
 export const ListingFormContent = () => {
-  const { currentStep, formData } = useContext(FormContext);
+  const { currentStep, formData } = useFormContext();
   const { publishListing, isSubmitting } = usePublishListing();
   const navigate = useNavigate();
 
@@ -68,3 +67,4 @@ export const ListingFormContent = () => {
     </div>
   );
 };
+

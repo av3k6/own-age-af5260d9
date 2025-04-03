@@ -1,7 +1,7 @@
 
 import React from "react";
 import { FormProvider } from "./context/FormContext";
-import ListingFormContent from "./components/ListingFormContent";
+import { ListingFormContent } from "./components/ListingFormContent";
 
 const ListingForm = () => {
   return (
