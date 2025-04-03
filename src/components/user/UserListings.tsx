@@ -49,7 +49,8 @@ const UserListings = () => {
         let allListings: PropertyListing[] = [];
         
         // First try to get listings from property_listings table
-        const { data, error } = await supabase
+        // Don't filter in the query to see what's actually in the database
+        const { data: allDbListings, error } = await supabase
           .from("property_listings")
           .select("*");
           
@@ -60,65 +61,77 @@ const UserListings = () => {
           setDebugInfo(prev => `${prev}\n❌ Supabase error: ${error.message}`);
         } else {
           // Log all listings for debugging
-          logger.info("All listings found in Supabase:", data?.length || 0);
-          setDebugInfo(prev => `${prev}\n📊 Total listings in Supabase: ${data?.length || 0}`);
+          logger.info("All listings found in Supabase:", allDbListings?.length || 0);
+          setDebugInfo(prev => `${prev}\n📊 Total listings in Supabase: ${allDbListings?.length || 0}`);
           
-          if (data && data.length > 0) {
+          if (allDbListings && allDbListings.length > 0) {
             // Log IDs for debugging
-            const listingIds = data.map(l => ({ 
+            const listingIds = allDbListings.map(l => ({ 
               id: l.id, 
               seller_id: l.seller_id,
               email: l.seller_email || "no_email"
             }));
             logger.info("Listings in database:", listingIds);
-            setDebugInfo(prev => `${prev}\n🔑 Sample listing IDs: ${JSON.stringify(listingIds.slice(0, 3))}`);
-          }
-          
-          // Now filter by seller_id OR seller_email as fallback
-          let userListings = [];
-          if (data) {
-            userListings = data.filter(listing => {
-              const matchesId = listing.seller_id === user.id;
-              const matchesEmail = listing.seller_email === user.email;
+            setDebugInfo(prev => `${prev}\n🔑 All listing IDs: ${JSON.stringify(listingIds)}`);
+            
+            // Now filter on client side to catch any potential matching issues
+            let userListings = [];
+            if (allDbListings) {
+              userListings = allDbListings.filter(listing => {
+                const matchesId = listing.seller_id === user.id;
+                const matchesEmail = listing.seller_email === user.email;
+                
+                if (matchesId) {
+                  logger.info(`Found listing ${listing.id} matching user ID ${user.id}`);
+                  setDebugInfo(prev => `${prev}\n✅ Found listing matching your ID: ${listing.id}`);
+                }
+                if (matchesEmail) {
+                  logger.info(`Found listing ${listing.id} matching user email ${user.email}`);
+                  setDebugInfo(prev => `${prev}\n✅ Found listing matching your email: ${listing.id}`);
+                }
+                
+                // Look for your specific listing ID
+                if (listing.id === "74f46615-8c3d-4e68-8704-212ffe40d454") {
+                  logger.info(`Found your specific listing: ${listing.id}, seller_id: ${listing.seller_id}`);
+                  setDebugInfo(prev => `${prev}\n🎯 Found your specific listing! Owner: ${listing.seller_id}`);
+                }
+                
+                return matchesId || matchesEmail;
+              });
               
-              if (matchesId) logger.info(`Found listing ${listing.id} matching user ID ${user.id}`);
-              if (matchesEmail) logger.info(`Found listing ${listing.id} matching user email ${user.email}`);
+              logger.info("Filtered Supabase listings for this user:", userListings.length);
+              setDebugInfo(prev => `${prev}\n✅ Supabase listings matching your account: ${userListings.length}`);
               
-              return matchesId || matchesEmail;
-            });
-            
-            logger.info("Filtered Supabase listings for this user:", userListings.length);
-            setDebugInfo(prev => `${prev}\n✅ Supabase listings matching your account: ${userListings.length}`);
-            
-            supabaseListingsFound = userListings.length;
-            
-            // Transform the raw data to match PropertyListing type
-            const formattedListings = userListings.map(listing => ({
-              id: listing.id,
-              title: listing.title || "Untitled Property",
-              description: listing.description || "",
-              price: listing.price || 0,
-              address: listing.address || {
-                street: "",
-                city: "",
-                state: "",
-                zipCode: "",
-              },
-              propertyType: listing.property_type || "house",
-              bedrooms: listing.bedrooms || 0,
-              bathrooms: listing.bathrooms || 0,
-              squareFeet: listing.square_feet || 0,
-              yearBuilt: listing.year_built || 0,
-              features: listing.features || [],
-              images: listing.images || [],
-              sellerId: listing.seller_id || user.id,
-              status: (listing.status as ListingStatus) || ListingStatus.ACTIVE,
-              createdAt: new Date(listing.created_at),
-              updatedAt: new Date(listing.updated_at),
-              source: 'supabase' as 'supabase', // Mark the source
-            })) as (PropertyListing & { source: 'supabase' })[];
-            
-            allListings = [...allListings, ...formattedListings];
+              supabaseListingsFound = userListings.length;
+              
+              // Transform the raw data to match PropertyListing type
+              const formattedListings = userListings.map(listing => ({
+                id: listing.id,
+                title: listing.title || "Untitled Property",
+                description: listing.description || "",
+                price: listing.price || 0,
+                address: listing.address || {
+                  street: "",
+                  city: "",
+                  state: "",
+                  zipCode: "",
+                },
+                propertyType: listing.property_type || "house",
+                bedrooms: listing.bedrooms || 0,
+                bathrooms: listing.bathrooms || 0,
+                squareFeet: listing.square_feet || 0,
+                yearBuilt: listing.year_built || 0,
+                features: listing.features || [],
+                images: listing.images || [],
+                sellerId: listing.seller_id || user.id,
+                status: (listing.status as ListingStatus) || ListingStatus.ACTIVE,
+                createdAt: new Date(listing.created_at),
+                updatedAt: new Date(listing.updated_at),
+                source: 'supabase' as 'supabase', // Mark the source
+              })) as (PropertyListing & { source: 'supabase' })[];
+              
+              allListings = [...allListings, ...formattedListings];
+            }
           }
         }
         
@@ -333,3 +346,4 @@ const UserListings = () => {
 };
 
 export default UserListings;
+

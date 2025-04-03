@@ -60,8 +60,8 @@ export const usePublishListing = () => {
       // Generate a new UUID for the listing
       const listingId = uuidv4();
       
-      // Generate a listing number 
-      const listingNumber = await generateListingNumber();
+      // Generate a listing number with the property ID to ensure uniqueness
+      const listingNumber = await generateListingNumber(listingId);
       logger.info("Generated listing number:", listingNumber);
       
       // Prepare data for insertion
@@ -83,13 +83,12 @@ export const usePublishListing = () => {
         status: formDataWithoutRoomDetails.status,
         images: formDataWithoutRoomDetails.images || [],
         seller_id: user.id,            // Store the seller's ID
-        // Removing seller_email because it doesn't exist in the database table
         listing_number: listingNumber, // Add the generated listing number
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
 
-      logger.info("Prepared listing data:", {
+      logger.info("Preparing to insert listing with data:", {
         id: listingId, 
         seller_id: user.id,
         listing_number: listingNumber
@@ -133,3 +132,4 @@ export const usePublishListing = () => {
 
   return { publishListing, isSubmitting };
 };
+
