@@ -33,7 +33,7 @@ const Dashboard = () => {
       </p>
       
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <Link to="/property/123">
+        <Link to="/dashboard">
           <Card className="h-full transition-all hover:shadow-md">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">My Properties</CardTitle>

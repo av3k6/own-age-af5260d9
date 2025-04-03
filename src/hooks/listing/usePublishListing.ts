@@ -61,6 +61,7 @@ export const usePublishListing = () => {
       const listingId = uuidv4();
       
       // Generate a listing number with the property ID to ensure uniqueness
+      // We need to pass the property ID to the function to use it for uniqueness
       const listingNumber = await generateListingNumber(listingId);
       logger.info("Generated listing number:", listingNumber);
       
@@ -83,6 +84,7 @@ export const usePublishListing = () => {
         status: formDataWithoutRoomDetails.status,
         images: formDataWithoutRoomDetails.images || [],
         seller_id: user.id,            // Store the seller's ID
+        seller_email: user.email,      // Also store the seller's email for additional lookup
         listing_number: listingNumber, // Add the generated listing number
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
@@ -91,6 +93,7 @@ export const usePublishListing = () => {
       logger.info("Preparing to insert listing with data:", {
         id: listingId, 
         seller_id: user.id,
+        seller_email: user.email,
         listing_number: listingNumber
       });
 
@@ -132,4 +135,3 @@ export const usePublishListing = () => {
 
   return { publishListing, isSubmitting };
 };
-

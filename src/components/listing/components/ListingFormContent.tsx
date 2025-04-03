@@ -8,19 +8,24 @@ import DocumentUpload from '../steps/DocumentUpload';
 import ReviewAndPublish from '../steps/review/ReviewAndPublish';
 import { usePublishListing } from '@/hooks/listing/usePublishListing';
 import { useNavigate } from 'react-router-dom';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { v4 as uuidv4 } from 'uuid';
+import { createLogger } from '@/utils/logger';
+
+const logger = createLogger('ListingFormContent');
 
 export const ListingFormContent = () => {
   const { currentStep, formData } = useFormContext();
   const { publishListing, isSubmitting } = usePublishListing();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const handlePublish = async () => {
     if (!formData) return;
     
     // Generate a property ID ahead of time to ensure consistency
     const propertyId = uuidv4();
+    logger.info(`Generated new property ID for listing: ${propertyId}`);
 
     // Convert File[] to string[] for backend storage
     // This ensures compatibility with the PublishListing function's expected type
@@ -44,11 +49,15 @@ export const ListingFormContent = () => {
     const listingId = await publishListing(publishData);
     
     if (listingId) {
+      logger.info(`Successfully published listing with ID: ${listingId}`);
       toast({
         title: "Success",
         description: "Your property has been published successfully!",
       });
+      // Navigate to the actual property page using the returned listing ID
       navigate(`/property/${listingId}`);
+    } else {
+      logger.error("Failed to publish listing");
     }
   };
 
