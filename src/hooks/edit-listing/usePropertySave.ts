@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useSupabase } from "@/hooks/useSupabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { EditListingFormValues } from "@/types/edit-listing";
-import { Room } from "@/types";
+import { Room, ListingStatus } from "@/types";
 import { DocumentMetadata } from "@/types/document";
 
 export function usePropertySave(
@@ -20,6 +20,28 @@ export function usePropertySave(
   const { user } = useAuth();
   
   const [isSaving, setIsSaving] = useState(false);
+  const [originalStatus, setOriginalStatus] = useState<string | null>(null);
+  
+  // Fetch the original status when the hook is first initialized
+  const getOriginalStatus = async () => {
+    if (!propertyId || originalStatus) return originalStatus;
+    
+    try {
+      const { data, error } = await supabase
+        .from("property_listings")
+        .select("status")
+        .eq("id", propertyId)
+        .single();
+        
+      if (error) throw error;
+      
+      setOriginalStatus(data.status);
+      return data.status;
+    } catch (error) {
+      console.error("Error fetching original status:", error);
+      return null;
+    }
+  };
   
   const saveProperty = async (values: EditListingFormValues) => {
     if (!propertyId || !user) {
@@ -34,6 +56,23 @@ export function usePropertySave(
     setIsSaving(true);
 
     try {
+      // Get the original status
+      const originalStatusValue = await getOriginalStatus();
+      
+      // Check if the status is locked (was previously expired)
+      const isStatusLocked = originalStatusValue === ListingStatus.EXPIRED;
+      
+      // If status is locked and the user is trying to change it, prevent the save
+      if (isStatusLocked && values.status !== ListingStatus.EXPIRED) {
+        toast({
+          title: "Status Locked",
+          description: "This listing has expired and its status can only be changed by admin staff.",
+          variant: "destructive",
+        });
+        setIsSaving(false);
+        return;
+      }
+
       const featuresArray = values.features
         ? values.features.split(',').map(item => item.trim())
         : [];

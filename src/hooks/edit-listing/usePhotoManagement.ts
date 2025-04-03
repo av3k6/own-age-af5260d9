@@ -45,6 +45,27 @@ export const usePhotoManagement = (propertyId: string | undefined) => {
   const handleMovePhotoDown = async (index: number) => {
     return movePhotoDown(photos, index, setPhotos);
   };
+  
+  // Support drag and drop reordering
+  const reorderPhotos = async (startIndex: number, endIndex: number) => {
+    const reorderedPhotos = Array.from(photos);
+    const [removed] = reorderedPhotos.splice(startIndex, 1);
+    reorderedPhotos.splice(endIndex, 0, removed);
+    
+    // Update display_order values
+    const updatedPhotos = reorderedPhotos.map((photo, index) => ({
+      ...photo,
+      display_order: index
+    }));
+    
+    // Update UI immediately
+    setPhotos(updatedPhotos);
+    
+    // Save to database
+    await updatePhotoOrder(updatedPhotos);
+    
+    return true;
+  };
 
   // Initialize
   useEffect(() => {
@@ -62,7 +83,8 @@ export const usePhotoManagement = (propertyId: string | undefined) => {
     deletePhoto,
     movePhotoUp: handleMovePhotoUp,
     movePhotoDown: handleMovePhotoDown,
-    setPrimaryPhoto
+    setPrimaryPhoto,
+    reorderPhotos
   };
 };
 
