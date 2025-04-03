@@ -13,6 +13,9 @@ import OpenHouseSchedule from "./OpenHouseSchedule";
 import { useAuth } from "@/contexts/AuthContext";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Shield } from "lucide-react";
+import { createLogger } from "@/utils/logger";
+
+const logger = createLogger("PropertyDetailView");
 
 interface PropertyDetailViewProps {
   property: PropertyListing;
@@ -23,8 +26,18 @@ const PropertyDetailView = ({ property }: PropertyDetailViewProps) => {
   const isOwner = user?.id === property.sellerId;
   const isPending = property.status === ListingStatus.PENDING;
   
+  logger.info("Property detail view", { 
+    propertyId: property.id, 
+    status: property.status, 
+    sellerId: property.sellerId,
+    currentUserId: user?.id,
+    isOwner,
+    isPending
+  });
+  
   // If property is pending and user is not the owner, show restricted access
   if (isPending && !isOwner && !user?.isAdmin) {
+    logger.info("Restricted access - property is pending and user is not owner");
     return (
       <div className="max-w-3xl mx-auto px-4 py-12">
         <Alert variant="destructive" className="mb-4">

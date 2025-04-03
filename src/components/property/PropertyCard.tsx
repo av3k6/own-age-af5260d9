@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { PropertyListing, ListingStatus } from "@/types";
 import { formatCurrency } from "@/lib/formatters";
 import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface PropertyCardProps {
   property: PropertyListing;
@@ -20,15 +21,20 @@ const PropertyCard = ({ property }: PropertyCardProps) => {
     propertyType,
     images,
     status,
+    sellerId,
   } = property;
+  
+  const { user } = useAuth();
+  const isOwner = user?.id === sellerId;
 
   // Use a placeholder image if no images are available
   const imageUrl = images && images.length > 0 
     ? images[0] 
     : "/placeholder.svg";
     
-  // Only render listings that are active (this is a failsafe)
-  if (status !== ListingStatus.ACTIVE && process.env.NODE_ENV === 'production') {
+  // Only render listings that are active OR if the user is the owner
+  // (this allows owners to see their pending listings)
+  if (status !== ListingStatus.ACTIVE && !isOwner && process.env.NODE_ENV === 'production') {
     return null;
   }
 

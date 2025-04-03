@@ -12,6 +12,9 @@ import PropertyCard from "@/components/property/PropertyCard";
 import { PropertyListing, ListingStatus } from "@/types";
 import ShowingRequestManager from "./showings/ShowingRequestManager";
 import SellerAvailabilityManager from "./showings/SellerAvailabilityManager";
+import { createLogger } from "@/utils/logger";
+
+const logger = createLogger("UserListings");
 
 const UserListings = () => {
   const { user } = useAuth();
@@ -27,7 +30,7 @@ const UserListings = () => {
     const fetchListings = async () => {
       if (!user) return;
       
-      console.log("Fetching listings for user:", user.id, user.email);
+      logger.info("Fetching listings for user:", user.id, user.email);
       
       try {
         setIsLoading(true);
@@ -38,33 +41,44 @@ const UserListings = () => {
           .select("*");
           
         if (error) {
-          console.log("Error fetching all listings:", error.message);
+          logger.error("Error fetching all listings:", error.message);
           setListings([]);
           setIsLoading(false);
           return;
         }
         
         // Log all listings for debugging
-        console.log("All listings found:", data?.length || 0);
+        logger.info("All listings found:", data?.length || 0);
         
         if (data && data.length > 0) {
           // Check for any seller_id inconsistencies
-          console.log("Sample listing seller_ids:", data.slice(0, 3).map(l => ({ 
+          logger.info("Sample listing seller_ids:", data.slice(0, 3).map(l => ({ 
             id: l.id, 
             seller_id: l.seller_id,
-            email: l.seller_email
+            email: l.seller_email || "no_email"
           })));
         }
         
         // Now filter by seller email as fallback if ID doesn't match
         let userListings;
         if (data) {
-          userListings = data.filter(listing => 
-            listing.seller_id === user.id || 
-            listing.seller_email === user.email
-          );
+          userListings = data.filter(listing => {
+            const matchesId = listing.seller_id === user.id;
+            const matchesEmail = listing.seller_email === user.email;
+            
+            if (matchesId) logger.info(`Found listing ${listing.id} matching user ID ${user.id}`);
+            if (matchesEmail) logger.info(`Found listing ${listing.id} matching user email ${user.email}`);
+            
+            return matchesId || matchesEmail;
+          });
           
-          console.log("Filtered listings for this user:", userListings.length);
+          logger.info("Filtered listings for this user:", userListings.length);
+          
+          // If no listings were found, log additional information
+          if (userListings.length === 0) {
+            logger.info("User details:", { id: user.id, email: user.email });
+            logger.info("No listings found with this user ID or email. Check if the listings were created with a different account.");
+          }
         } else {
           userListings = [];
         }
@@ -97,7 +111,7 @@ const UserListings = () => {
 
         setListings(formattedListings);
       } catch (err) {
-        console.error("Unexpected error while fetching listings:", err);
+        logger.error("Unexpected error while fetching listings:", err);
         // Set empty listings instead of showing an error
         setListings([]);
       } finally {
@@ -148,6 +162,9 @@ const UserListings = () => {
             ) : listings.length === 0 ? (
               <div className="text-center py-8">
                 <p className="text-muted-foreground mb-4">You don't have any property listings yet.</p>
+                <p className="text-sm text-muted-foreground mb-4">
+                  If you believe you should see listings here, they may have been created with a different account.
+                </p>
                 <Button onClick={handleCreateListing} variant="outline">
                   Create Your First Listing
                 </Button>

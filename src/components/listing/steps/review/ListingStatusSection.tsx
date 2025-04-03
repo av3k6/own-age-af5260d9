@@ -3,11 +3,17 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { ListingStatus } from "@/types";
 import { useFormContext } from "../../context/FormContext";
+import { createLogger } from "@/utils/logger";
+
+const logger = createLogger("ListingStatusSection");
 
 const ListingStatusSection = () => {
   const { formData, updateFormData } = useFormContext();
+  
+  logger.info("Current listing status:", formData.status);
 
   const handleStatusChange = (status: ListingStatus) => {
+    logger.info("Changing listing status to:", status);
     updateFormData({ status });
   };
 
@@ -38,6 +44,14 @@ const ListingStatusSection = () => {
         <div className="text-sm text-muted-foreground">
           <p className="mt-2">
             Note: Active listings are immediately visible to all users. 
+          </p>
+        </div>
+      )}
+      
+      {formData.status === ListingStatus.PENDING && (
+        <div className="text-sm text-muted-foreground">
+          <p className="mt-2">
+            Note: Pending listings are only visible to you as the owner. You can activate them later when you're ready.
           </p>
         </div>
       )}
