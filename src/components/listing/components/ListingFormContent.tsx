@@ -2,7 +2,7 @@
 import React from 'react';
 import { useFormContext } from '../context/FormContext';
 import BasicDetails from '../steps/BasicDetails';
-import PropertyFeatures from '../steps/property-features';
+import PropertyFeatures from '../steps/PropertyFeatures';
 import MediaUpload from '../steps/MediaUpload';
 import DocumentUpload from '../steps/DocumentUpload';
 import ReviewAndPublish from '../steps/review/ReviewAndPublish';
@@ -30,11 +30,11 @@ export const ListingFormContent = () => {
     const publishData = {
       ...formData,
       images: imageUrls,
-      // Fix the TypeScript error by properly handling the features property
+      // Fix the TypeScript error by properly checking the type of features
       features: Array.isArray(formData.features) 
         ? formData.features 
-        : (typeof formData.features === 'string')
-          ? formData.features.split(',').map((f: string) => f.trim())
+        : typeof formData.features === 'string' && formData.features.trim() !== ''
+          ? formData.features.split(',').map(f => f.trim())
           : []
     };
     
