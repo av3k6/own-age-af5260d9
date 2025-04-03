@@ -10,6 +10,7 @@ import { useSupabase } from "@/hooks/useSupabase";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { createLogger } from "@/utils/logger";
+import { isPropertyOwner } from "@/utils/propertyOwnershipUtils";
 
 const logger = createLogger("PropertyDetail");
 
@@ -72,7 +73,8 @@ const PropertyDetail = () => {
         logger.info("Fetching property from Supabase:", id);
         
         // First, try to fetch from property_listings table
-        const { data, error } = await supabase
+        let propertyData = null;
+        let { data, error } = await supabase
           .from("property_listings")
           .select("*")
           .eq("id", id)
@@ -99,7 +101,7 @@ const PropertyDetail = () => {
             }
             
             // If we found a property by email, use that
-            data = emailData;
+            propertyData = emailData;
             logger.info("Found property using seller_email match:", id);
           } else {
             setProperty(null);
@@ -107,18 +109,19 @@ const PropertyDetail = () => {
             setIsLoading(false);
             return;
           }
+        } else {
+          // Use the data from the first query
+          propertyData = data;
         }
         
-        if (data) {
-          logger.info("Found property in database:", { id, title: data.title });
+        if (propertyData) {
+          logger.info("Found property in database:", { id, title: propertyData.title });
           
           // Check if listing is pending and user is not the owner
           // When checking ownership, check both seller_id and seller_email
-          const isOwner = 
-            data.seller_id === user?.id || 
-            data.seller_email === user?.email;
+          const isOwner = isPropertyOwner(propertyData, user?.id, user?.email);
             
-          if (data.status === ListingStatus.PENDING && 
+          if (propertyData.status === ListingStatus.PENDING && 
               !isOwner && 
               !user?.isAdmin) {
             setProperty(null);
@@ -129,25 +132,25 @@ const PropertyDetail = () => {
           
           // Transform the raw data to match PropertyListing type
           const formattedProperty: PropertyListing = {
-            id: data.id,
-            title: data.title,
-            description: data.description,
-            price: data.price,
-            address: data.address,
-            propertyType: data.property_type,
-            bedrooms: data.bedrooms,
-            bathrooms: data.bathrooms,
-            squareFeet: data.square_feet,
-            yearBuilt: data.year_built,
-            features: data.features || [],
-            images: data.images || [],
-            sellerId: data.seller_id || user?.id || "",  // Fallback to current user ID if missing
-            status: data.status,
-            createdAt: new Date(data.created_at),
-            updatedAt: new Date(data.updated_at),
+            id: propertyData.id,
+            title: propertyData.title,
+            description: propertyData.description,
+            price: propertyData.price,
+            address: propertyData.address,
+            propertyType: propertyData.property_type,
+            bedrooms: propertyData.bedrooms,
+            bathrooms: propertyData.bathrooms,
+            squareFeet: propertyData.square_feet,
+            yearBuilt: propertyData.year_built,
+            features: propertyData.features || [],
+            images: propertyData.images || [],
+            sellerId: propertyData.seller_id || user?.id || "",  // Fallback to current user ID if missing
+            status: propertyData.status,
+            createdAt: new Date(propertyData.created_at),
+            updatedAt: new Date(propertyData.updated_at),
             roomDetails: {
-              ...data.room_details,
-              listingNumber: data.listing_number
+              ...propertyData.room_details,
+              listingNumber: propertyData.listing_number
             }
           };
           

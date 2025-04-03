@@ -27,7 +27,7 @@ interface FormData {
   yearBuilt: number;
   features: string[];
   status: ListingStatus;
-  images: string[];
+  images: string[]; // This is now a string[] to match the expected type
   roomDetails?: any;
   documents?: any[];
 }
