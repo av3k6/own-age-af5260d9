@@ -14,6 +14,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Shield } from "lucide-react";
 import { createLogger } from "@/utils/logger";
+import { Badge } from "@/components/ui/badge";
 
 const logger = createLogger("PropertyDetailView");
 
@@ -25,6 +26,7 @@ const PropertyDetailView = ({ property }: PropertyDetailViewProps) => {
   const { user } = useAuth();
   const isOwner = user?.id === property.sellerId;
   const isPending = property.status === ListingStatus.PENDING;
+  const isExpired = property.status === ListingStatus.EXPIRED;
   
   // Extract listing number - check different possible locations
   let listingNumber = property.roomDetails?.listingNumber;
@@ -69,6 +71,17 @@ const PropertyDetailView = ({ property }: PropertyDetailViewProps) => {
   
   return (
     <div className="max-w-7xl mx-auto px-4 pb-12 space-y-8">
+      {/* Expired banner */}
+      {isExpired && (
+        <div className="bg-[#ea384c] text-white p-4 rounded-md mb-4 flex items-center justify-between shadow-md">
+          <div className="flex items-center">
+            <span className="font-bold text-lg mr-2">EXPIRED</span>
+            <span>This listing is no longer active</span>
+          </div>
+          <Badge className="bg-white text-[#222] border-none">Expired</Badge>
+        </div>
+      )}
+      
       {isPending && (
         <Alert className="bg-yellow-50 text-yellow-800 border-yellow-200">
           <Shield className="h-4 w-4" />
