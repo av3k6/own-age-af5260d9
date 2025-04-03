@@ -11,9 +11,10 @@ import OptionalPropertyDetails from "./OptionalPropertyDetails";
 interface StepContentProps {
   currentStep: string;
   onPublish: () => Promise<void>;
+  isSubmitting: boolean;
 }
 
-const StepContent: React.FC<StepContentProps> = ({ currentStep, onPublish }) => {
+const StepContent: React.FC<StepContentProps> = ({ currentStep, onPublish, isSubmitting }) => {
   return (
     <>
       {currentStep === "basic" && (
@@ -36,7 +37,7 @@ const StepContent: React.FC<StepContentProps> = ({ currentStep, onPublish }) => 
       )}
       
       {currentStep === "review" && (
-        <ReviewAndPublish onPublish={onPublish} />
+        <ReviewAndPublish onPublish={onPublish} isSubmitting={isSubmitting} />
       )}
     </>
   );

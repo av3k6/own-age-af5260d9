@@ -34,7 +34,7 @@ export const ListingFormContent = () => {
       features: Array.isArray(formData.features) 
         ? formData.features 
         : typeof formData.features === 'string' 
-          ? formData.features.split(',').map(f => f.trim())
+          ? formData.features.split(',').map((f: string) => f.trim())
           : []
     };
     
