@@ -60,9 +60,8 @@ export const usePublishListing = () => {
       // Generate a new UUID for the listing
       const listingId = uuidv4();
       
-      // Generate a listing number with the property ID to ensure uniqueness
-      // We need to pass the property ID to the function to use it for uniqueness
-      const listingNumber = await generateListingNumber(listingId);
+      // Generate a listing number - removing the argument as the function doesn't expect one
+      const listingNumber = await generateListingNumber();
       logger.info("Generated listing number:", listingNumber);
       
       // Prepare data for insertion
