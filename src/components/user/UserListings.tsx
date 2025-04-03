@@ -7,11 +7,12 @@ import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Eye, Plus, Loader2, Calendar, Clock } from "lucide-react";
+import { Eye, Plus, Loader2, Calendar, Clock, AlertCircle } from "lucide-react";
 import PropertyCard from "@/components/property/PropertyCard";
 import { PropertyListing, ListingStatus } from "@/types";
 import ShowingRequestManager from "./showings/ShowingRequestManager";
 import SellerAvailabilityManager from "./showings/SellerAvailabilityManager";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { createLogger } from "@/utils/logger";
 
 const logger = createLogger("UserListings");
@@ -25,6 +26,7 @@ const UserListings = () => {
   const [activeTab, setActiveTab] = useState<string>("listings");
   const [isLoading, setIsLoading] = useState(true);
   const [listings, setListings] = useState<PropertyListing[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchListings = async () => {
@@ -34,14 +36,16 @@ const UserListings = () => {
       
       try {
         setIsLoading(true);
+        setError(null);
         
         // First try to get listings from property_listings table
-        let { data, error } = await supabase
+        const { data, error } = await supabase
           .from("property_listings")
           .select("*");
           
         if (error) {
           logger.error("Error fetching all listings:", error.message);
+          setError(`Database error: ${error.message}`);
           setListings([]);
           setIsLoading(false);
           return;
@@ -59,8 +63,8 @@ const UserListings = () => {
           })));
         }
         
-        // Now filter by seller email as fallback if ID doesn't match
-        let userListings;
+        // Now filter by seller_id OR seller_email as fallback
+        let userListings = [];
         if (data) {
           userListings = data.filter(listing => {
             const matchesId = listing.seller_id === user.id;
@@ -102,7 +106,7 @@ const UserListings = () => {
           yearBuilt: listing.year_built || 0,
           features: listing.features || [],
           images: listing.images || [],
-          sellerId: listing.seller_id,
+          sellerId: listing.seller_id || user.id,  // Set user id as fallback
           // Convert the status string to a valid ListingStatus enum value
           status: (listing.status as ListingStatus) || ListingStatus.ACTIVE,
           createdAt: new Date(listing.created_at),
@@ -110,8 +114,9 @@ const UserListings = () => {
         })) as PropertyListing[] : [];
 
         setListings(formattedListings);
-      } catch (err) {
+      } catch (err: any) {
         logger.error("Unexpected error while fetching listings:", err);
+        setError(`Failed to load listings: ${err.message}`);
         // Set empty listings instead of showing an error
         setListings([]);
       } finally {
@@ -155,6 +160,14 @@ const UserListings = () => {
           </TabsList>
           
           <TabsContent value="listings">
+            {error && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Error</AlertTitle>
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            
             {isLoading ? (
               <div className="flex justify-center py-8">
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -163,7 +176,10 @@ const UserListings = () => {
               <div className="text-center py-8">
                 <p className="text-muted-foreground mb-4">You don't have any property listings yet.</p>
                 <p className="text-sm text-muted-foreground mb-4">
-                  If you believe you should see listings here, they may have been created with a different account.
+                  If you believe you should see listings here, they might have been created with a different account.
+                  Current user ID: {user?.id || 'not logged in'}
+                  <br/>
+                  Email: {user?.email || 'no email'}
                 </p>
                 <Button onClick={handleCreateListing} variant="outline">
                   Create Your First Listing

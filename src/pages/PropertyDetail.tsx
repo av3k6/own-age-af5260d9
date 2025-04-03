@@ -69,6 +69,9 @@ const PropertyDetail = () => {
           return;
         }
         
+        logger.info("Fetching property from Supabase:", id);
+        
+        // First, try to fetch from property_listings table
         const { data, error } = await supabase
           .from("property_listings")
           .select("*")
@@ -77,18 +80,46 @@ const PropertyDetail = () => {
           
         if (error) {
           logger.error("Error fetching property:", error);
-          setProperty(null);
-          setErrorType('not-found');
-          setIsLoading(false);
-          return;
+          
+          // Try an alternative query using seller_email instead of seller_id
+          if (user) {
+            logger.info("Attempting to find property with user email:", user.email);
+            const { data: emailData, error: emailError } = await supabase
+              .from("property_listings")
+              .select("*")
+              .eq("seller_email", user.email)
+              .eq("id", id)
+              .single();
+              
+            if (emailError || !emailData) {
+              setProperty(null);
+              setErrorType('not-found');
+              setIsLoading(false);
+              return;
+            }
+            
+            // If we found a property by email, use that
+            data = emailData;
+            logger.info("Found property using seller_email match:", id);
+          } else {
+            setProperty(null);
+            setErrorType('not-found');
+            setIsLoading(false);
+            return;
+          }
         }
         
         if (data) {
           logger.info("Found property in database:", { id, title: data.title });
           
           // Check if listing is pending and user is not the owner
+          // When checking ownership, check both seller_id and seller_email
+          const isOwner = 
+            data.seller_id === user?.id || 
+            data.seller_email === user?.email;
+            
           if (data.status === ListingStatus.PENDING && 
-              data.seller_id !== user?.id && 
+              !isOwner && 
               !user?.isAdmin) {
             setProperty(null);
             setErrorType('no-permission');
@@ -110,7 +141,7 @@ const PropertyDetail = () => {
             yearBuilt: data.year_built,
             features: data.features || [],
             images: data.images || [],
-            sellerId: data.seller_id,
+            sellerId: data.seller_id || user?.id || "",  // Fallback to current user ID if missing
             status: data.status,
             createdAt: new Date(data.created_at),
             updatedAt: new Date(data.updated_at),

@@ -1,109 +1,126 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
+import { useSupabase } from "@/hooks/useSupabase";
+import { ListingStatus, PropertyType } from "@/types";
 import { useToast } from "@/hooks/use-toast";
-import { ListingFormData } from "@/components/listing/context/FormContext";
-import { useListingNumber } from "@/hooks/useListingNumber";
-import { useImageUpload } from "./useImageUpload";
-import { useDocumentUpload } from "./useDocumentUpload";
-import { useListingDatabase } from "./useListingDatabase";
+import { useAuth } from "@/contexts/AuthContext";
+import { v4 as uuidv4 } from 'uuid';
+import { createLogger } from "@/utils/logger";
+
+const logger = createLogger("usePublishListing");
+
+interface FormData {
+  title: string;
+  description: string;
+  price: number;
+  propertyType: PropertyType;
+  address: {
+    street: string;
+    city: string;
+    state: string;
+    zipCode: string;
+  };
+  bedrooms: number;
+  bathrooms: number;
+  squareFeet: number;
+  yearBuilt: number;
+  features: string[];
+  status: ListingStatus;
+  images: string[];
+  roomDetails?: any;
+  documents?: any[];
+}
 
 export const usePublishListing = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { user } = useAuth();
-  const { toast } = useToast();
+  const { supabase } = useSupabase();
   const navigate = useNavigate();
-  const { generateListingNumber } = useListingNumber();
-  const { uploadImages } = useImageUpload();
-  const { uploadDocuments } = useDocumentUpload();
-  const { insertListing } = useListingDatabase();
+  const { toast } = useToast();
+  const { user } = useAuth();
 
-  const publishListing = async (formData: ListingFormData) => {
+  const publishListing = async (formData: FormData) => {
     if (!user) {
       toast({
-        title: "Error",
-        description: "You must be logged in to publish a property",
+        title: "Authentication required",
+        description: "You must be logged in to publish a listing",
         variant: "destructive",
       });
-      return;
-    }
-
-    if (!formData.confirmationChecked) {
-      toast({
-        title: "Confirmation Required",
-        description: "Please confirm that your listing information is accurate",
-        variant: "destructive",
-      });
-      return;
+      return false;
     }
 
     setIsSubmitting(true);
 
     try {
-      // Generate a unique listing number
-      const listingNumber = await generateListingNumber();
-      
-      // Upload images
-      const imageUrls = await uploadImages(formData.images, user.id);
-      
-      // Upload documents
-      const documentData = await uploadDocuments(formData.documents, user.id);
+      logger.info("Publishing listing:", formData.title);
+      logger.info("Current user:", { id: user.id, email: user.email });
 
-      // Insert into database
-      const { data, error } = await insertListing(
-        formData,
-        user.id,
-        user.email,
-        user.name,
-        imageUrls,
-        documentData,
-        listingNumber
-      );
+      // Generate a new UUID for the listing
+      const listingId = uuidv4();
+      
+      // Prepare data for insertion
+      const listingData = {
+        id: listingId,
+        title: formData.title,
+        description: formData.description,
+        price: formData.price,
+        property_type: formData.propertyType,
+        address: formData.address,
+        bedrooms: formData.bedrooms,
+        bathrooms: formData.bathrooms,
+        square_feet: formData.squareFeet,
+        year_built: formData.yearBuilt,
+        features: formData.features,
+        status: formData.status,
+        images: formData.images || [],
+        room_details: formData.roomDetails || {},
+        seller_id: user.id,            // Store the seller's ID
+        seller_email: user.email,      // Also store seller's email as backup
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      logger.info("Prepared listing data:", {
+        id: listingId, 
+        seller_id: user.id, 
+        seller_email: user.email
+      });
+
+      // Insert the listing into Supabase
+      const { error } = await supabase
+        .from("property_listings")
+        .insert(listingData);
 
       if (error) {
-        let errorMessage = "Failed to publish your listing";
-        
-        if (error.message && error.message.includes("property_listings table doesn't exist")) {
-          errorMessage = "The database is not set up correctly. The property_listings table needs to be created.";
-          
-          toast({
-            title: "Database Setup Required",
-            description: errorMessage,
-            variant: "destructive",
-          });
-        } else if (error.code === "PGRST116") {
-          errorMessage = "The property_listings table doesn't exist in your Supabase database. Please create it before publishing.";
-          
-          toast({
-            title: "Database Setup Required",
-            description: errorMessage,
-            variant: "destructive",
-          });
-        } else {
-          toast({
-            title: "Error",
-            description: error.message || errorMessage,
-            variant: "destructive",
-          });
-        }
-        
-        throw error;
+        logger.error("Error publishing listing:", error);
+        toast({
+          title: "Error",
+          description: `Failed to publish listing: ${error.message}`,
+          variant: "destructive",
+        });
+        return false;
       }
 
+      logger.info("Listing published successfully:", listingId);
       toast({
-        title: "Success!",
+        title: "Success",
         description: "Your property listing has been published",
       });
 
-      // Redirect to the dashboard
-      navigate('/dashboard');
-    } catch (error: any) {
-      console.error('Error publishing listing:', error);
+      // Return listing ID for redirection
+      return listingId;
+    } catch (err) {
+      logger.error("Unexpected error publishing listing:", err);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred while publishing your listing",
+        variant: "destructive",
+      });
+      return false;
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  return { isSubmitting, publishListing };
+  return { publishListing, isSubmitting };
 };
