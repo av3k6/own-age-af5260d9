@@ -30,7 +30,12 @@ export const ListingFormContent = () => {
     const publishData = {
       ...formData,
       images: imageUrls,
-      features: formData.features ? formData.features.split(',').map(f => f.trim()) : []
+      // Check if features is already an array; if so, use it directly
+      features: Array.isArray(formData.features) 
+        ? formData.features 
+        : typeof formData.features === 'string' 
+          ? formData.features.split(',').map(f => f.trim())
+          : []
     };
     
     const listingId = await publishListing(publishData);
@@ -46,15 +51,15 @@ export const ListingFormContent = () => {
 
   const renderStepContent = () => {
     switch (currentStep) {
-      case 0:
+      case "basic":
         return <BasicDetails />;
-      case 1:
+      case "features":
         return <PropertyFeatures />;
-      case 2:
+      case "media":
         return <MediaUpload />;
-      case 3:
+      case "documents":
         return <DocumentUpload />;
-      case 4:
+      case "review":
         return <ReviewAndPublish onPublish={handlePublish} isSubmitting={isSubmitting} />;
       default:
         return <BasicDetails />;
@@ -67,4 +72,3 @@ export const ListingFormContent = () => {
     </div>
   );
 };
-

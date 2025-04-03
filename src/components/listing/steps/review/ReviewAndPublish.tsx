@@ -14,10 +14,11 @@ import ConfirmationSection from "./ConfirmationSection";
 
 interface ReviewAndPublishProps {
   onPublish: () => Promise<void>;
+  isSubmitting: boolean; // Added isSubmitting prop to match usage in ListingFormContent
 }
 
-const ReviewAndPublish = ({ onPublish }: ReviewAndPublishProps) => {
-  const { goToPreviousStep, isSubmitting, formData } = useFormContext();
+const ReviewAndPublish = ({ onPublish, isSubmitting }: ReviewAndPublishProps) => {
+  const { goToPreviousStep, formData } = useFormContext();
 
   const handlePublish = async () => {
     await onPublish();
