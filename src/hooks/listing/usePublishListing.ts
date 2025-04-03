@@ -77,15 +77,14 @@ export const usePublishListing = () => {
         status: formDataWithoutRoomDetails.status,
         images: formDataWithoutRoomDetails.images || [],
         seller_id: user.id,            // Store the seller's ID
-        seller_email: user.email,      // Also store seller's email as backup
+        // Removing seller_email because it doesn't exist in the database table
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
 
       logger.info("Prepared listing data:", {
         id: listingId, 
-        seller_id: user.id, 
-        seller_email: user.email
+        seller_id: user.id
       });
 
       // Insert the listing into Supabase

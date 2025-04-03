@@ -34,8 +34,7 @@ export const useListingDatabase = () => {
           images: imageUrls,
           documents: documentData,
           seller_id: userId,
-          seller_email: userEmail, // Add user email for more robust querying
-          seller_name: userName,   // Add user name for display purposes
+          // Removing seller_email and seller_name fields
           status: formData.status,
           listing_number: listingNumber, // Add the unique listing number
           // Optional fields
