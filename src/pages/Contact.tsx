@@ -1,6 +1,5 @@
-
 import React, { useState, useRef } from "react";
-import { Helmet } from "react-helmet";
+import { Helmet } from "react-helmet-async";
 import { 
   Mail, Phone, Clock, ChevronDown, ChevronUp, Search, 
   MessageSquare, Copy, CheckCircle, AlertCircle 
@@ -561,9 +560,11 @@ const Contact: React.FC = () => {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="email">Email</SelectItem>
-                            <SelectItem value="phone">Phone</SelectItem>
-                            <SelectItem value="either">Either</SelectItem>
+                            <SelectGroup>
+                              <SelectItem value="email">Email</SelectItem>
+                              <SelectItem value="phone">Phone</SelectItem>
+                              <SelectItem value="either">Either</SelectItem>
+                            </SelectGroup>
                           </SelectContent>
                         </Select>
                       </FormItem>
@@ -586,10 +587,12 @@ const Contact: React.FC = () => {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="morning">Morning (9AM - 12PM)</SelectItem>
-                            <SelectItem value="afternoon">Afternoon (12PM - 5PM)</SelectItem>
-                            <SelectItem value="evening">Evening (5PM - 8PM)</SelectItem>
-                            <SelectItem value="anytime">Anytime</SelectItem>
+                            <SelectGroup>
+                              <SelectItem value="morning">Morning (9AM - 12PM)</SelectItem>
+                              <SelectItem value="afternoon">Afternoon (12PM - 5PM)</SelectItem>
+                              <SelectItem value="evening">Evening (5PM - 8PM)</SelectItem>
+                              <SelectItem value="anytime">Anytime</SelectItem>
+                            </SelectGroup>
                           </SelectContent>
                         </Select>
                       </FormItem>
