@@ -11,8 +11,8 @@ const ProfessionalDetail = () => {
   const { category, id } = useParams();
   const { user } = useAuth();
   const [isBusinessOwner, setIsBusinessOwner] = useState(false);
-  const [professional, setProfessional] = useState(null);
-  const [categoryInfo, setCategoryInfo] = useState(null);
+  const [professional, setProfessional] = useState<any>(null);
+  const [categoryInfo, setCategoryInfo] = useState<any>(null);
   
   // Find the professional data - first check localStorage, then fallback to static data
   useEffect(() => {
@@ -21,11 +21,11 @@ const ProfessionalDetail = () => {
     let businessData = localBusinessData ? JSON.parse(localBusinessData) : [...professionalData.professionals];
     
     // Find the business by ID and category
-    const foundProfessional = businessData.find(p => p.id === id && p.category === category);
+    const foundProfessional = businessData.find((p: any) => p.id === id && p.category === category);
     setProfessional(foundProfessional || null);
     
     // Find the category info
-    const foundCategory = professionalData.categories.find(c => c.type === category);
+    const foundCategory = professionalData.categories.find((c: any) => c.type === category);
     setCategoryInfo(foundCategory || null);
   }, [category, id]);
   
@@ -44,7 +44,7 @@ const ProfessionalDetail = () => {
       
       // Check if the current user's email matches any business assignment for this business ID
       const isOwner = businessAssignments.some(
-        (assignment) => assignment.businessId === id && assignment.email === user.email
+        (assignment: any) => assignment.businessId === id && assignment.email === user.email
       );
       
       console.log("Is business owner:", isOwner);

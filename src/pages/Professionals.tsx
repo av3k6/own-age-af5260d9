@@ -6,71 +6,28 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Home, Building2, Construction, Zap, Pipette, Thermometer, Flame, Bug, Droplet, FlaskRound, Radiation, Waves, Fuel, Bike, Hammer } from "lucide-react";
-import { ProfessionalType } from "@/types";
 import { Link } from "react-router-dom";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { professionalData } from "@/components/professionals/data";
 
-// Define sample professional data until we have a proper database
-const professionalData = {
-  professionals: [
-    {
-      id: "1",
-      name: "John Smith",
-      category: "inspector",
-      expertise: "Certified Home Inspector",
-      rating: 4.8,
-      reviews: 42,
-      location: "Toronto, ON"
-    },
-    {
-      id: "2",
-      name: "Maria Rodriguez",
-      category: "inspector",
-      expertise: "Commercial Building Inspector",
-      rating: 4.7,
-      reviews: 38,
-      location: "Vancouver, BC"
-    },
-    {
-      id: "3",
-      name: "David Chen",
-      category: "electrical",
-      expertise: "Master Electrician",
-      rating: 4.9,
-      reviews: 56,
-      location: "Calgary, AB"
-    },
-    {
-      id: "4",
-      name: "Sarah Johnson",
-      category: "plumbing",
-      expertise: "Licensed Plumber",
-      rating: 4.6,
-      reviews: 31,
-      location: "Montreal, QC"
-    }
-  ]
+// Map the icon strings to actual Lucide icon components
+const iconMap: Record<string, React.ReactNode> = {
+  Home: <Home className="h-4 w-4 mr-2" />,
+  Building2: <Building2 className="h-4 w-4 mr-2" />,
+  Construction: <Construction className="h-4 w-4 mr-2" />,
+  Zap: <Zap className="h-4 w-4 mr-2" />,
+  Pipette: <Pipette className="h-4 w-4 mr-2" />,
+  Thermometer: <Thermometer className="h-4 w-4 mr-2" />,
+  Flame: <Flame className="h-4 w-4 mr-2" />,
+  Bug: <Bug className="h-4 w-4 mr-2" />,
+  Droplet: <Droplet className="h-4 w-4 mr-2" />,
+  FlaskRound: <FlaskRound className="h-4 w-4 mr-2" />,
+  Radiation: <Radiation className="h-4 w-4 mr-2" />,
+  Waves: <Waves className="h-4 w-4 mr-2" />,
+  Fuel: <Fuel className="h-4 w-4 mr-2" />,
+  Bike: <Bike className="h-4 w-4 mr-2" />,
+  Hammer: <Hammer className="h-4 w-4 mr-2" />
 };
-
-// Define the categories and their icons
-const professionalCategories = [
-  { type: "inspector", label: "Home Inspectors", icon: Home },
-  { type: "structural", label: "Structural Engineers", icon: Building2 },
-  { type: "roofing", label: "Roof Inspectors", icon: Construction },
-  { type: "electrical", label: "Electricians", icon: Zap },
-  { type: "plumbing", label: "Plumbers", icon: Pipette },
-  { type: "hvac", label: "HVAC Technicians", icon: Thermometer },
-  { type: "chimney", label: "WETT Inspectors", icon: Flame },
-  { type: "pest", label: "Pest Inspectors", icon: Bug },
-  { type: "mold", label: "Mold Specialists", icon: Droplet },
-  { type: "asbestos", label: "Asbestos & Lead", icon: FlaskRound },
-  { type: "radon", label: "Radon Testing", icon: Radiation },
-  { type: "septic", label: "Septic Inspectors", icon: Pipette },
-  { type: "well", label: "Well Water Testing", icon: Waves },
-  { type: "oil", label: "Oil Tank Inspectors", icon: Fuel },
-  { type: "pool", label: "Pool Inspectors", icon: Bike },
-  { type: "contractor", label: "General Contractors", icon: Hammer },
-];
 
 const MAX_PREVIEW_ITEMS = 3; // Number of professionals to show in preview
 
@@ -121,9 +78,9 @@ const Professionals = () => {
           className="w-full"
         >
           <TabsList className="grid grid-cols-2 md:grid-cols-4 mb-8">
-            {professionalCategories.slice(0, 8).map((category) => (
+            {professionalData.categories.slice(0, 8).map((category) => (
               <TabsTrigger key={category.type} value={category.type}>
-                <category.icon className="h-4 w-4 mr-2" />
+                {iconMap[category.icon as keyof typeof iconMap]}
                 <span className="hidden sm:inline">{category.label}</span>
               </TabsTrigger>
             ))}
@@ -131,21 +88,21 @@ const Professionals = () => {
           
           <div className="mb-8">
             <TabsList className="grid grid-cols-2 md:grid-cols-4">
-              {professionalCategories.slice(8, 16).map((category) => (
+              {professionalData.categories.slice(8, 16).map((category) => (
                 <TabsTrigger key={category.type} value={category.type}>
-                  <category.icon className="h-4 w-4 mr-2" />
+                  {iconMap[category.icon as keyof typeof iconMap]}
                   <span className="hidden sm:inline">{category.label}</span>
                 </TabsTrigger>
               ))}
             </TabsList>
           </div>
           
-          {professionalCategories.map((category) => (
+          {professionalData.categories.map((category) => (
             <TabsContent key={category.type} value={category.type}>
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <category.icon className="h-5 w-5" /> {category.label}
+                    {iconMap[category.icon as keyof typeof iconMap]} {category.label}
                   </CardTitle>
                   <CardDescription>
                     Find qualified {category.label.toLowerCase()} for your real estate needs
