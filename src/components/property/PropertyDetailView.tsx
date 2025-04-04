@@ -53,6 +53,17 @@ const PropertyDetailView = ({ property }: { property: PropertyListing }) => {
       {/* Property Gallery */}
       <PropertyGallery images={property.images} />
 
+      {/* Mobile Action Buttons - Only show on mobile */}
+      <div className="md:hidden mt-6 space-y-3">
+        {!isOwner && (
+          <MobilePropertyActions 
+            propertyId={property.id} 
+            propertyTitle={property.title} 
+            sellerId={property.sellerId}
+          />
+        )}
+      </div>
+
       {/* Property Details Sections */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
         <div className="col-span-2 space-y-8">
@@ -68,13 +79,52 @@ const PropertyDetailView = ({ property }: { property: PropertyListing }) => {
           <PropertyLocation property={property} />
         </div>
 
-        {/* Sidebar Content */}
-        <div className="space-y-6">
+        {/* Sidebar Content - Only show on desktop */}
+        <div className="hidden md:block space-y-6">
           {/* Property Information with Action Buttons */}
           <PropertyInformation property={property} />
         </div>
       </div>
     </div>
+  );
+};
+
+// New component for mobile property actions
+const MobilePropertyActions = ({ propertyId, propertyTitle, sellerId }: { 
+  propertyId: string;
+  propertyTitle: string;
+  sellerId: string;
+}) => {
+  const { user } = useAuth();
+  
+  return (
+    <>
+      <Link to="#" onClick={(e) => {
+        e.preventDefault();
+        document.getElementById("schedule-showing-button")?.click();
+      }} className="block">
+        <Button variant="default" className="w-full flex items-center justify-center gap-2">
+          <Calendar className="h-4 w-4" />
+          Schedule a Showing
+        </Button>
+      </Link>
+      
+      <Link to="#" onClick={(e) => {
+        e.preventDefault();
+        document.getElementById("contact-seller-button")?.click();
+      }} className="block">
+        <Button variant="outline" className="w-full flex items-center justify-center gap-2">
+          <Mail className="h-4 w-4" />
+          Contact Seller
+        </Button>
+      </Link>
+      
+      <Link to={`/property/${propertyId}/make-offer`} className="block">
+        <Button variant="secondary" className="w-full flex items-center justify-center gap-2">
+          Make an Offer
+        </Button>
+      </Link>
+    </>
   );
 };
 

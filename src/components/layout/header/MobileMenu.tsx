@@ -1,12 +1,13 @@
 
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
-import { Menu, X, Bell, Mail, ChevronRight, LogIn } from "lucide-react";
+import { Menu, X, Bell, Mail, ChevronRight, LogIn, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ThemeToggle from "@/components/theme/ThemeToggle";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import ProvinceSelector from "./ProvinceSelector";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface MobileMenuProps {
   isAuthenticated: boolean;
@@ -18,6 +19,12 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
   unreadMessageCount,
 }) => {
   const [open, setOpen] = useState(false);
+  const { signOut } = useAuth();
+  
+  const handleSignOut = async () => {
+    setOpen(false); // Close menu first
+    await signOut();
+  };
 
   return (
     <div className="md:hidden flex items-center">
@@ -111,6 +118,19 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
                 <MobileNavLink to="/profile" onClick={() => setOpen(false)}>
                   Profile Settings
                 </MobileNavLink>
+                
+                {/* Add logout button */}
+                <Button 
+                  variant="ghost" 
+                  className="flex w-full items-center justify-between px-3 py-2 rounded-md text-sm text-destructive hover:bg-accent hover:text-destructive mt-2"
+                  onClick={handleSignOut}
+                >
+                  <span className="flex items-center">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign Out
+                  </span>
+                  <ChevronRight className="h-4 w-4 opacity-70" />
+                </Button>
               </>
             )}
 

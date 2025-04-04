@@ -140,17 +140,21 @@ export default function PropertyInformation({ property }: PropertyInformationPro
         </div>
       ) : (
         <div className="space-y-3">
-          <ScheduleShowingDialog 
-            propertyId={property.id} 
-            propertyTitle={property.title}
-            sellerId={property.sellerId}
-          />
+          <div id="schedule-showing-button">
+            <ScheduleShowingDialog 
+              propertyId={property.id} 
+              propertyTitle={property.title}
+              sellerId={property.sellerId}
+            />
+          </div>
           
-          <ContactSellerDialog
-            propertyId={property.id}
-            propertyTitle={property.title}
-            sellerId={property.sellerId}
-          />
+          <div id="contact-seller-button">
+            <ContactSellerDialog
+              propertyId={property.id}
+              propertyTitle={property.title}
+              sellerId={property.sellerId}
+            />
+          </div>
           
           <Link to={`/property/${property.id}/make-offer`}>
             <Button variant="secondary" className="w-full">
