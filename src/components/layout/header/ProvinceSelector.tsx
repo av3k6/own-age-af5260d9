@@ -20,6 +20,7 @@ interface ProvinceSelectorProps {
 
 const ProvinceSelector = ({ className = "" }: ProvinceSelectorProps) => {
   const [selectedProvince, setSelectedProvince] = useState<string>("ON");
+  const [hasInitialized, setHasInitialized] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -30,20 +31,22 @@ const ProvinceSelector = ({ className = "" }: ProvinceSelectorProps) => {
       if (savedProvince) {
         setSelectedProvince(savedProvince);
       }
+      setHasInitialized(true);
     } catch (error) {
       console.error("Error loading province from localStorage:", error);
+      setHasInitialized(true);
     }
   }, []);
 
   // Use our hook to get the user's location
   useProvinceLocation({
     onLocationDetected: (province) => {
-      if (province && province !== selectedProvince) {
+      if (province && province !== selectedProvince && hasInitialized) {
         try {
           setSelectedProvince(province);
           localStorage.setItem("selectedProvince", province);
           
-          // Show a toast to inform the user
+          // Only show a toast if we've already initialized and this is a new detection
           const provinceName = provinces.find(p => p.value === province)?.fullName || province;
           toast({
             title: "Location detected",
