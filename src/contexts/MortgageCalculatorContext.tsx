@@ -14,6 +14,7 @@ interface MortgageCalculatorContextType {
   saveScenario: () => void;
   createNewScenario: () => void;
   deleteScenario: (id: string) => void;
+  updateScenarioName: (id: string, name: string) => void;
 }
 
 const MortgageCalculatorContext = createContext<MortgageCalculatorContextType | undefined>(undefined);
@@ -45,7 +46,8 @@ export const MortgageCalculatorProvider: React.FC<MortgageCalculatorProviderProp
     handleDownPaymentPercentChange,
     saveScenario,
     createNewScenario,
-    deleteScenario
+    deleteScenario,
+    updateScenarioName
   } = useMortgageScenarios({ initialPropertyPrice: propertyPrice });
 
   return (
@@ -60,7 +62,8 @@ export const MortgageCalculatorProvider: React.FC<MortgageCalculatorProviderProp
       handleDownPaymentPercentChange,
       saveScenario,
       createNewScenario,
-      deleteScenario
+      deleteScenario,
+      updateScenarioName
     }}>
       {children}
     </MortgageCalculatorContext.Provider>

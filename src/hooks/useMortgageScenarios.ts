@@ -14,6 +14,7 @@ export interface MortgageScenario {
   maintenanceCost: number;
   rentalIncome: number;
   cashFlow: number;
+  paymentFrequency: string;
 }
 
 interface UseMortgageScenariosProps {
@@ -34,7 +35,8 @@ export const useMortgageScenarios = ({ initialPropertyPrice }: UseMortgageScenar
     propertyTax: Math.round(initialPropertyPrice * 0.01 / 12),
     maintenanceCost: 0,
     rentalIncome: 0,
-    cashFlow: 0
+    cashFlow: 0,
+    paymentFrequency: "monthly"
   });
 
   // Calculate mortgage payment
@@ -115,7 +117,9 @@ export const useMortgageScenarios = ({ initialPropertyPrice }: UseMortgageScenar
     const newScenario = {
       ...currentScenario,
       id: `scenario-${Date.now()}`,
-      name: `Scenario ${scenarios.length + 1}`
+      name: currentScenario.name !== "Current Scenario" 
+        ? currentScenario.name 
+        : `Scenario ${scenarios.length + 1}`
     };
     
     setScenarios([...scenarios, newScenario]);
@@ -135,13 +139,21 @@ export const useMortgageScenarios = ({ initialPropertyPrice }: UseMortgageScenar
       propertyTax: Math.round(initialPropertyPrice * 0.01 / 12),
       maintenanceCost: 0,
       rentalIncome: 0,
-      cashFlow: 0
+      cashFlow: 0,
+      paymentFrequency: "monthly"
     });
   };
 
   // Delete a scenario
   const deleteScenario = (id: string) => {
     setScenarios(scenarios.filter(scenario => scenario.id !== id));
+  };
+
+  // Update scenario name
+  const updateScenarioName = (id: string, name: string) => {
+    setScenarios(scenarios.map(scenario => 
+      scenario.id === id ? { ...scenario, name } : scenario
+    ));
   };
 
   return {
@@ -153,6 +165,7 @@ export const useMortgageScenarios = ({ initialPropertyPrice }: UseMortgageScenar
     handleDownPaymentPercentChange,
     saveScenario,
     createNewScenario,
-    deleteScenario
+    deleteScenario,
+    updateScenarioName
   };
 };

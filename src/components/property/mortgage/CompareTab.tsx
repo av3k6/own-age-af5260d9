@@ -9,6 +9,7 @@ const CompareTab: React.FC = () => {
     scenarios,
     deleteScenario,
     createNewScenario,
+    updateScenarioName,
     setActiveTab
   } = useMortgageCalculator();
 
@@ -36,6 +37,7 @@ const CompareTab: React.FC = () => {
             createNewScenario();
             setActiveTab("calculator");
           }}
+          onUpdateName={updateScenarioName}
         />
       )}
     </div>

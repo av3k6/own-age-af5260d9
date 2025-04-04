@@ -11,11 +11,13 @@ interface MortgageInputsProps {
   rate: number;
   downPayment: number;
   downPaymentPercent: number;
+  paymentFrequency: string;
   onHomePriceChange: (value: string) => void;
   onTermChange: (value: number) => void;
   onRateChange: (value: number) => void;
   onDownPaymentChange: (value: string) => void;
   onDownPaymentPercentChange: (value: number[]) => void;
+  onPaymentFrequencyChange: (value: string) => void;
 }
 
 const MortgageInputs = ({
@@ -24,16 +26,18 @@ const MortgageInputs = ({
   rate,
   downPayment,
   downPaymentPercent,
+  paymentFrequency,
   onHomePriceChange,
   onTermChange,
   onRateChange,
   onDownPaymentChange,
-  onDownPaymentPercentChange
+  onDownPaymentPercentChange,
+  onPaymentFrequencyChange
 }: MortgageInputsProps) => {
   // Available terms
   const terms = [1, 2, 3, 4, 5, 6, 7, 10, 15, 20, 25, 30];
   
-  // Current average rates based on the screenshot
+  // Current average rates based on the sample data
   const currentRates = [
     { term: 1, rate: 5.19 },
     { term: 2, rate: 4.24 },
@@ -149,7 +153,7 @@ const MortgageInputs = ({
             <SelectContent>
               {terms.map((t) => (
                 <SelectItem key={t} value={t.toString()}>
-                  {t}-yr {t === term && `(${getCurrentRate(t)}%)`}
+                  {t}-yr fixed
                 </SelectItem>
               ))}
             </SelectContent>
@@ -157,8 +161,8 @@ const MortgageInputs = ({
         </div>
       </div>
       
-      {/* Interest Rate */}
       <div className="grid gap-6 sm:grid-cols-2">
+        {/* Interest Rate */}
         <div className="space-y-2">
           <Label htmlFor="rate">Interest Rate</Label>
           <div className="flex">
@@ -174,9 +178,23 @@ const MortgageInputs = ({
               %
             </span>
           </div>
-          <div className="text-xs text-muted-foreground mt-1">
-            Current market rate for {term}-year term: {getCurrentRate(term)}%
-          </div>
+        </div>
+
+        {/* Payment Frequency */}
+        <div className="space-y-2">
+          <Label htmlFor="payment-frequency">Payment Frequency</Label>
+          <Select value={paymentFrequency} onValueChange={onPaymentFrequencyChange}>
+            <SelectTrigger className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+              <SelectValue placeholder="Select payment frequency" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="monthly">Monthly</SelectItem>
+              <SelectItem value="biweekly">Bi-weekly</SelectItem>
+              <SelectItem value="accelerated-biweekly">Accelerated Bi-weekly</SelectItem>
+              <SelectItem value="weekly">Weekly</SelectItem>
+              <SelectItem value="accelerated-weekly">Accelerated Weekly</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
     </div>

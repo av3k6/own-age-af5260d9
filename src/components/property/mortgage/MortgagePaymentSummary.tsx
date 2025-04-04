@@ -6,14 +6,51 @@ import { useState } from "react";
 
 interface MortgagePaymentSummaryProps {
   monthlyPayment: number;
+  paymentFrequency: string;
 }
 
-const MortgagePaymentSummary = ({ monthlyPayment }: MortgagePaymentSummaryProps) => {
+const MortgagePaymentSummary = ({ monthlyPayment, paymentFrequency }: MortgagePaymentSummaryProps) => {
   const [showDetails, setShowDetails] = useState(false);
   
-  // Calculate annual and total payments
+  // Calculate payment based on frequency
+  const getPaymentByFrequency = () => {
+    switch(paymentFrequency) {
+      case 'biweekly':
+        return monthlyPayment * 12 / 26;
+      case 'accelerated-biweekly':
+        return monthlyPayment / 2;
+      case 'weekly':
+        return monthlyPayment * 12 / 52;
+      case 'accelerated-weekly':
+        return monthlyPayment / 4;
+      case 'monthly':
+      default:
+        return monthlyPayment;
+    }
+  };
+  
+  // Get frequency for display
+  const getFrequencyLabel = () => {
+    switch(paymentFrequency) {
+      case 'biweekly':
+        return 'Bi-weekly';
+      case 'accelerated-biweekly':
+        return 'Accelerated Bi-weekly';
+      case 'weekly':
+        return 'Weekly';
+      case 'accelerated-weekly':
+        return 'Accelerated Weekly';
+      case 'monthly':
+      default:
+        return 'Monthly';
+    }
+  };
+
+  // Calculate payment amounts
+  const payment = getPaymentByFrequency();
+  const biweeklyPayment = monthlyPayment * 12 / 26;
+  const weeklyPayment = monthlyPayment * 12 / 52;
   const annualPayment = monthlyPayment * 12;
-  const biweeklyPayment = monthlyPayment / 2.17;
   
   const toggleDetails = () => {
     setShowDetails(!showDetails);
@@ -23,8 +60,8 @@ const MortgagePaymentSummary = ({ monthlyPayment }: MortgagePaymentSummaryProps)
     <div className="pt-4 border-t border-border">
       <div className="flex flex-col space-y-2">
         <div className="flex justify-between items-center">
-          <span className="text-lg font-medium">Monthly Payment</span>
-          <span className="text-2xl font-bold text-primary">{formatCurrency(monthlyPayment)}</span>
+          <span className="text-lg font-medium">{getFrequencyLabel()} Payment</span>
+          <span className="text-2xl font-bold text-primary">{formatCurrency(payment)}</span>
         </div>
         
         <Button 
@@ -49,8 +86,18 @@ const MortgagePaymentSummary = ({ monthlyPayment }: MortgagePaymentSummaryProps)
         {showDetails && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 pb-2 pl-2">
             <div className="space-y-1">
+              <div className="text-sm text-muted-foreground">Monthly Payment</div>
+              <div className="font-medium">{formatCurrency(monthlyPayment)}</div>
+            </div>
+            
+            <div className="space-y-1">
               <div className="text-sm text-muted-foreground">Bi-weekly Payment</div>
               <div className="font-medium">{formatCurrency(biweeklyPayment)}</div>
+            </div>
+            
+            <div className="space-y-1">
+              <div className="text-sm text-muted-foreground">Weekly Payment</div>
+              <div className="font-medium">{formatCurrency(weeklyPayment)}</div>
             </div>
             
             <div className="space-y-1">
