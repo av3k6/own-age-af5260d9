@@ -56,7 +56,8 @@ const Login = () => {
       setAuthProgress(10);
       console.log("Login form submitting with email:", email);
       
-      const { error } = await signIn(email, password, token || captchaToken);
+      // Fix: Only pass two arguments to signIn
+      const { error } = await signIn(email, password);
       
       if (error) {
         console.error("Login error details:", error);

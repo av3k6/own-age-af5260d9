@@ -1,7 +1,7 @@
 
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
-import { Menu, X, Bell, Mail, ChevronRight } from "lucide-react";
+import { Menu, X, Bell, Mail, ChevronRight, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ThemeToggle from "@/components/theme/ThemeToggle";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -65,6 +65,24 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
             <MobileNavLink to="/contact" onClick={() => setOpen(false)}>
               Contact Us
             </MobileNavLink>
+
+            {/* Add authentication links */}
+            {!isAuthenticated && (
+              <>
+                <div className="pt-4 pb-1 border-t border-gray-200 dark:border-gray-700">
+                  <p className="px-3 text-sm font-medium text-muted-foreground">
+                    Account
+                  </p>
+                </div>
+                <MobileNavLink to="/login" onClick={() => setOpen(false)}>
+                  <LogIn className="mr-2 h-4 w-4" />
+                  Sign In
+                </MobileNavLink>
+                <MobileNavLink to="/signup" onClick={() => setOpen(false)}>
+                  Sign Up
+                </MobileNavLink>
+              </>
+            )}
 
             {isAuthenticated && (
               <>
@@ -153,7 +171,7 @@ const MobileNavLink: React.FC<MobileNavLinkProps> = ({
       }
       onClick={onClick}
     >
-      <span>{children}</span>
+      <span className="flex items-center">{children}</span>
       <ChevronRight className="h-4 w-4 opacity-70" />
     </NavLink>
   );
