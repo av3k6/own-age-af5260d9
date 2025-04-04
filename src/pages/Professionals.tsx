@@ -8,8 +8,49 @@ import { Button } from "@/components/ui/button";
 import { Search, Home, Building2, Construction, Zap, Pipette, Thermometer, Flame, Bug, Droplet, FlaskRound, Radiation, Waves, Fuel, Bike, Hammer } from "lucide-react";
 import { ProfessionalType } from "@/types";
 import { Link } from "react-router-dom";
-import { professionalData } from "@/components/professionals/data";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+
+// Define sample professional data until we have a proper database
+const professionalData = {
+  professionals: [
+    {
+      id: "1",
+      name: "John Smith",
+      category: "inspector",
+      expertise: "Certified Home Inspector",
+      rating: 4.8,
+      reviews: 42,
+      location: "Toronto, ON"
+    },
+    {
+      id: "2",
+      name: "Maria Rodriguez",
+      category: "inspector",
+      expertise: "Commercial Building Inspector",
+      rating: 4.7,
+      reviews: 38,
+      location: "Vancouver, BC"
+    },
+    {
+      id: "3",
+      name: "David Chen",
+      category: "electrical",
+      expertise: "Master Electrician",
+      rating: 4.9,
+      reviews: 56,
+      location: "Calgary, AB"
+    },
+    {
+      id: "4",
+      name: "Sarah Johnson",
+      category: "plumbing",
+      expertise: "Licensed Plumber",
+      rating: 4.6,
+      reviews: 31,
+      location: "Montreal, QC"
+    }
+  ]
+};
 
 // Define the categories and their icons
 const professionalCategories = [

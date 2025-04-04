@@ -1,65 +1,40 @@
 
-import { professionalCategories } from './categories';
-import { homeInspectors } from './inspectors';
-import { structuralEngineers } from './structural';
-import { roofingInspectors } from './roofing';
-import { electricians } from './electrical';
-import { plumbers } from './plumbing';
-import { hvacTechnicians } from './hvac';
-import { wettInspectors } from './chimney';
-import { pestInspectors } from './pest';
-import { moldSpecialists } from './mold';
-import { asbestosInspectors } from './asbestos';
-import { radonTesters } from './radon';
-import { septicInspectors } from './septic';
-import { wellInspectors } from './well';
-import { oilTankInspectors } from './oil';
-import { poolInspectors } from './pool';
-import { generalContractors } from './contractor';
+// Import the professionals by category
+import { inspectors } from './inspectors';
+import { electrical } from './electrical';
+import { plumbing } from './plumbing';
+import { hvac } from './hvac';
+import { structural } from './structural';
+import { roofing } from './roofing';
+import { chimney } from './chimney';
+import { pest } from './pest';
+import { mold } from './mold';
+import { asbestos } from './asbestos';
+import { radon } from './radon';
+import { septic } from './septic';
+import { well } from './well';
+import { oil } from './oil';
+import { pool } from './pool';
+import { contractor } from './contractor';
 
-// Combine all professionals into a single array
-const allProfessionals = [
-  ...homeInspectors,
-  ...structuralEngineers,
-  ...roofingInspectors,
-  ...electricians,
-  ...plumbers,
-  ...hvacTechnicians,
-  ...wettInspectors,
-  ...pestInspectors,
-  ...moldSpecialists,
-  ...asbestosInspectors,
-  ...radonTesters,
-  ...septicInspectors,
-  ...wellInspectors,
-  ...oilTankInspectors,
-  ...poolInspectors,
-  ...generalContractors
-];
-
-// Export as professionalData to maintain the same interface
+// Export a combined list of all professionals
 export const professionalData = {
-  categories: professionalCategories,
-  professionals: allProfessionals
-};
-
-// Export each category separately for more granular imports
-export {
-  professionalCategories,
-  homeInspectors,
-  structuralEngineers,
-  roofingInspectors,
-  electricians,
-  plumbers,
-  hvacTechnicians,
-  wettInspectors,
-  pestInspectors,
-  moldSpecialists,
-  asbestosInspectors,
-  radonTesters,
-  septicInspectors,
-  wellInspectors,
-  oilTankInspectors,
-  poolInspectors,
-  generalContractors
+  professionals: [
+    ...inspectors,
+    ...electrical,
+    ...plumbing,
+    ...hvac,
+    ...structural,
+    ...roofing,
+    ...chimney,
+    ...pest,
+    ...mold,
+    ...asbestos,
+    ...radon,
+    ...septic,
+    ...well,
+    ...oil,
+    ...pool,
+    ...contractor
+  ]
 };
