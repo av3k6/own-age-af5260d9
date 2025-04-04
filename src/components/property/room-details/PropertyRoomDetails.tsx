@@ -9,9 +9,6 @@ import RoomsTab from "./RoomsTab";
 import { useSupabase } from "@/hooks/useSupabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { createLogger } from "@/utils/logger";
-
-const logger = createLogger("PropertyRoomDetails");
 
 interface PropertyRoomDetailsProps {
   bedrooms?: Room[];
@@ -22,7 +19,6 @@ interface PropertyRoomDetailsProps {
   listingStatus?: string;
   propertyId?: string;
   sellerId?: string;
-  roomDetails?: any; // Added for compatibility with PropertyDetailView
 }
 
 const PropertyRoomDetails = ({
@@ -34,29 +30,17 @@ const PropertyRoomDetails = ({
   listingStatus = 'active',
   propertyId,
   sellerId,
-  roomDetails,
 }: PropertyRoomDetailsProps) => {
   const [activeTab, setActiveTab] = useState("keyFacts");
   const [measurementUnit, setMeasurementUnit] = useState("Feet");
-  
-  // Use roomDetails if provided (for backward compatibility)
-  const details = roomDetails || propertyDetails;
-  
-  // Extract bedrooms and otherRooms from roomDetails if available
-  const actualBedrooms = details?.bedrooms || bedrooms;
-  const actualOtherRooms = details?.otherRooms || otherRooms;
-  
-  const [localBedrooms, setLocalBedrooms] = useState<Room[]>(actualBedrooms);
-  const [localOtherRooms, setLocalOtherRooms] = useState<Room[]>(actualOtherRooms);
-  
+  const [localBedrooms, setLocalBedrooms] = useState<Room[]>(bedrooms);
+  const [localOtherRooms, setLocalOtherRooms] = useState<Room[]>(otherRooms);
   const { supabase } = useSupabase();
   const { user } = useAuth();
   const { toast } = useToast();
   
   // Check if current user is the seller
   const canEdit = user?.id === sellerId;
-  
-  logger.info(`PropertyRoomDetails: User ${user?.id}, Seller: ${sellerId}, Can edit: ${canEdit}`);
   
   // Handle room changes (for editing)
   const handleRoomChange = async (newBedrooms: Room[], newOtherRooms: Room[]) => {
@@ -71,7 +55,7 @@ const PropertyRoomDetails = ({
         .from("property_listings")
         .update({
           room_details: {
-            ...(details || {}),
+            ...(propertyDetails || {}),
             bedrooms: newBedrooms,
             otherRooms: newOtherRooms,
           },
@@ -107,7 +91,7 @@ const PropertyRoomDetails = ({
           <TabsContent value="keyFacts" className="space-y-6">
             <KeyFactsTab 
               propertyTitle={propertyTitle}
-              propertyDetails={details}
+              propertyDetails={propertyDetails}
               listingStatus={listingStatus}
             />
           </TabsContent>
@@ -116,7 +100,7 @@ const PropertyRoomDetails = ({
             <DetailsTab 
               bedrooms={localBedrooms}
               otherRooms={localOtherRooms}
-              propertyDetails={details}
+              propertyDetails={propertyDetails}
             />
           </TabsContent>
           
@@ -124,7 +108,7 @@ const PropertyRoomDetails = ({
             <RoomsTab 
               bedrooms={localBedrooms}
               otherRooms={localOtherRooms}
-              propertyDetails={details}
+              propertyDetails={propertyDetails}
               propertyTitle={propertyTitle}
               propertyPrice={propertyPrice}
               measurementUnit={measurementUnit}
