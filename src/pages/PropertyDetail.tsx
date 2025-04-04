@@ -1,6 +1,6 @@
 
 import { useParams } from "react-router-dom";
-import { usePropertyDetail } from "@/hooks/property/usePropertyDetail";
+import { usePropertyDetail } from "@/hooks/property/detail/usePropertyDetail";
 import PropertyNotFound from "@/components/property/PropertyNotFound";
 import PropertyDetailView from "@/components/property/PropertyDetailView";
 import PropertyDetailLoading from "@/components/property/PropertyDetailLoading";
