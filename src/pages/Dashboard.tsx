@@ -11,12 +11,14 @@ import {
   Settings,
   Building2,
   Users,
-  File
+  File,
+  Heart
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useSupabase } from "@/hooks/useSupabase";
 import { createLogger } from "@/utils/logger";
 import { useToast } from "@/hooks/use-toast";
+import FavoritePropertiesSection from "@/components/user/favorites/FavoritePropertiesSection";
 
 const logger = createLogger("Dashboard");
 
@@ -24,6 +26,7 @@ const Dashboard = () => {
   const { user } = useAuth();
   const { supabase } = useSupabase();
   const { toast } = useToast();
+  const [showFavorites, setShowFavorites] = useState(false);
   
   // Check if user is admin (jredmond)
   const isAdmin = user?.email === "jredmond@example.com" || user?.id === "jredmond";
@@ -39,6 +42,7 @@ const Dashboard = () => {
   const [documentsCount, setDocumentsCount] = useState(0);
   const [showingsCount, setShowingsCount] = useState(0);
   const [messagesCount, setMessagesCount] = useState(0);
+  const [favoritesCount, setFavoritesCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
   // Fetch counts when user is logged in
@@ -104,6 +108,19 @@ const Dashboard = () => {
             total + (convo.unread_count || 0), 0) || 0;
           setMessagesCount(unreadCount);
         }
+        
+        // Fetch favorites count
+        const { count: favoriteCount, error: favoritesError } = await supabase
+          .from("property_favorites")
+          .select("*", { count: "exact", head: true })
+          .eq("user_id", user.id);
+          
+        if (favoritesError) {
+          logger.error("Error fetching favorites count:", favoritesError);
+        } else {
+          setFavoritesCount(favoriteCount || 0);
+          setShowFavorites(favoriteCount > 0);
+        }
       } catch (error) {
         logger.error("Error fetching dashboard data:", error);
         toast({
@@ -126,7 +143,7 @@ const Dashboard = () => {
         Welcome back, {user?.name || "user"}!
       </p>
       
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-12">
         <Link to="/dashboard/listings">
           <Card className="h-full transition-all hover:shadow-md">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -149,6 +166,22 @@ const Dashboard = () => {
             <CardContent>
               <p className="text-2xl font-bold">{isLoading ? "..." : showingsCount}</p>
               <p className="text-xs text-muted-foreground">Upcoming property showings</p>
+            </CardContent>
+          </Card>
+        </Link>
+        
+        <Link to="/favorites" onClick={(e) => {
+          e.preventDefault();
+          setShowFavorites(!showFavorites);
+        }}>
+          <Card className="h-full transition-all hover:shadow-md">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Favorite Properties</CardTitle>
+              <Heart className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <p className="text-2xl font-bold">{isLoading ? "..." : favoritesCount}</p>
+              <p className="text-xs text-muted-foreground">Properties you've saved</p>
             </CardContent>
           </Card>
         </Link>
@@ -234,6 +267,13 @@ const Dashboard = () => {
           </Link>
         )}
       </div>
+      
+      {/* Favorites Section - conditionally rendered */}
+      {showFavorites && (
+        <div className="mb-12">
+          <FavoritePropertiesSection />
+        </div>
+      )}
     </div>
   );
 };

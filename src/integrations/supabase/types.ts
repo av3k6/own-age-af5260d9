@@ -149,6 +149,27 @@ export type Database = {
         }
         Relationships: []
       }
+      property_favorites: {
+        Row: {
+          created_at: string | null
+          id: string
+          property_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          property_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          property_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       property_listings: {
         Row: {
           address: Json

@@ -4,6 +4,7 @@ import { PropertyListing, ListingStatus } from "@/types";
 import { formatCurrency } from "@/lib/formatters";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
+import FavoriteButton from "./FavoriteButton";
 
 interface PropertyCardProps {
   property: PropertyListing;
@@ -54,7 +55,7 @@ const PropertyCard = ({ property }: PropertyCardProps) => {
             </Badge>
           </div>
           
-          <div className="absolute top-2 right-2">
+          <div className="absolute top-2 right-2 flex gap-2">
             <Badge 
               variant={status === ListingStatus.ACTIVE ? 'secondary' : 'outline'} 
               className={status === ListingStatus.ACTIVE ? 'bg-green-500 hover:bg-green-500 text-white' : 
@@ -64,6 +65,8 @@ const PropertyCard = ({ property }: PropertyCardProps) => {
             >
               {status.charAt(0).toUpperCase() + status.slice(1)}
             </Badge>
+            
+            <FavoriteButton propertyId={id} className="z-10 h-6 w-6 p-0" />
           </div>
         </div>
         

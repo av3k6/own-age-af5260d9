@@ -12,6 +12,7 @@ import PropertyRoomDetails from "./PropertyRoomDetails";
 import PropertyInformation from "./PropertyInformation";
 import PropertyFloorPlans from "./PropertyFloorPlans";
 import MortgageCalculator from "./MortgageCalculator";
+import FavoriteButton from "./FavoriteButton";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { isPropertyOwner } from "@/utils/propertyOwnershipUtils";
@@ -52,14 +53,17 @@ const PropertyDetailView = ({ property }: { property: PropertyListing }) => {
               <span>{property.address.street}, {property.address.city}, {property.address.state} {property.address.zipCode}</span>
             </div>
           </div>
-          {isOwner && (
-            <Link to={`/edit-listing/${property.id}?tab=basic`}>
-              <Button variant="outline" size="sm">
-                <Edit className="h-4 w-4 mr-2" />
-                Edit Listing
-              </Button>
-            </Link>
-          )}
+          <div className="flex items-center gap-2">
+            <FavoriteButton propertyId={property.id} showText={true} variant="outline" size="sm" />
+            {isOwner && (
+              <Link to={`/edit-listing/${property.id}?tab=basic`}>
+                <Button variant="outline" size="sm">
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit Listing
+                </Button>
+              </Link>
+            )}
+          </div>
         </div>
       </div>
 
@@ -119,15 +123,18 @@ const MobilePropertyActions = ({ propertyId, propertyTitle, sellerId }: {
   
   return (
     <>
-      <Link to="#" onClick={(e) => {
-        e.preventDefault();
-        document.getElementById("schedule-showing-button")?.click();
-      }} className="block">
-        <Button variant="default" className="w-full flex items-center justify-center gap-2">
-          <Calendar className="h-4 w-4" />
-          Schedule a Showing
-        </Button>
-      </Link>
+      <div className="flex gap-2">
+        <FavoriteButton propertyId={propertyId} showText={true} variant="outline" className="flex-1" />
+        <Link to="#" onClick={(e) => {
+          e.preventDefault();
+          document.getElementById("schedule-showing-button")?.click();
+        }} className="flex-1">
+          <Button variant="default" className="w-full flex items-center justify-center gap-2">
+            <Calendar className="h-4 w-4" />
+            Schedule
+          </Button>
+        </Link>
+      </div>
       
       <Link to="#" onClick={(e) => {
         e.preventDefault();
