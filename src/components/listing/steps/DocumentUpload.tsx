@@ -1,13 +1,9 @@
+
 import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { FileText, Upload, X, File } from "lucide-react";
 import { useFormContext } from "../context/FormContext";
-
-function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return bytes + ' bytes';
-  else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
-  else return (bytes / 1048576).toFixed(1) + ' MB';
-}
+import { formatFileSize, getFileIconColor } from "@/utils/fileUtils";
 
 const DocumentUpload = () => {
   const { formData, updateFormData, goToNextStep, goToPreviousStep } = useFormContext();
@@ -46,21 +42,8 @@ const DocumentUpload = () => {
 
   const getFileIcon = (fileName: string) => {
     const extension = fileName.split('.').pop()?.toLowerCase();
-    
-    switch(extension) {
-      case 'pdf':
-        return <File className="h-10 w-10 text-red-500" />;
-      case 'doc':
-      case 'docx':
-        return <File className="h-10 w-10 text-blue-500" />;
-      case 'xls':
-      case 'xlsx':
-        return <File className="h-10 w-10 text-green-500" />;
-      case 'txt':
-        return <File className="h-10 w-10 text-gray-500" />;
-      default:
-        return <FileText className="h-10 w-10 text-muted-foreground" />;
-    }
+    const colorClass = getFileIconColor(fileName);
+    return <File className={`h-10 w-10 ${colorClass}`} />;
   };
 
   return (

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { X, CheckCircle, AlertCircle, File } from 'lucide-react';
-import { formatFileSize, getFileIcon } from '@/utils/fileUtils';
+import { formatFileSize, getFileIconColor } from '@/utils/fileUtils';
 import { UploadableDocument } from '@/hooks/documents/useDocumentUpload';
 
 interface DocumentItemProps {
@@ -20,21 +20,9 @@ const DocumentItem: React.FC<DocumentItemProps> = ({
   onRemove,
   isUploading
 }) => {
-  const getFileIconComponent = (iconType: string) => {
-    switch(iconType) {
-      case 'pdf':
-        return <File className="h-10 w-10 text-red-500" />;
-      case 'doc':
-        return <File className="h-10 w-10 text-blue-500" />;
-      case 'xls':
-        return <File className="h-10 w-10 text-green-500" />;
-      case 'image':
-        return <File className="h-10 w-10 text-purple-500" />;
-      case 'text':
-        return <File className="h-10 w-10 text-gray-500" />;
-      default:
-        return <File className="h-10 w-10 text-muted-foreground" />;
-    }
+  const getFileIconComponent = (fileName: string) => {
+    const colorClass = getFileIconColor(fileName);
+    return <File className={`h-10 w-10 ${colorClass}`} />;
   };
 
   const getStatusIcon = (status: string) => {
@@ -50,8 +38,7 @@ const DocumentItem: React.FC<DocumentItemProps> = ({
     }
   };
 
-  const iconType = getFileIcon(document.file.name);
-  const fileIcon = getFileIconComponent(iconType);
+  const fileIcon = getFileIconComponent(document.file.name);
 
   return (
     <div className="flex items-center justify-between p-3 bg-muted/30 border rounded-md group hover:bg-muted/50 transition-colors">

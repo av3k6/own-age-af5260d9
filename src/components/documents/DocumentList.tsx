@@ -1,9 +1,11 @@
+
 import React from 'react';
 import { DocumentMetadata } from '@/types/document';
-import { File, FileText, Download, Trash2, Search } from 'lucide-react';
+import { File, FileText, Download, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import SignatureActions from './signatures/SignatureActions';
+import { formatFileSize, getFileIconColor } from '@/utils/fileUtils';
 
 interface DocumentListProps {
   documents: DocumentMetadata[];
@@ -22,29 +24,8 @@ const DocumentList: React.FC<DocumentListProps> = ({
 }) => {
   // Function to determine file type icon
   const getFileIcon = (document: DocumentMetadata) => {
-    const extension = document.name.split('.').pop()?.toLowerCase();
-    
-    switch(extension) {
-      case 'pdf':
-        return <File className="h-8 w-8 text-red-500" />;
-      case 'doc':
-      case 'docx':
-        return <File className="h-8 w-8 text-blue-500" />;
-      case 'xls':
-      case 'xlsx':
-        return <File className="h-8 w-8 text-green-500" />;
-      case 'txt':
-        return <File className="h-8 w-8 text-gray-500" />;
-      default:
-        return <FileText className="h-8 w-8 text-muted-foreground" />;
-    }
-  };
-
-  // Helper function to format file size
-  const formatFileSize = (bytes: number): string => {
-    if (bytes < 1024) return bytes + ' bytes';
-    else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
-    else return (bytes / 1048576).toFixed(1) + ' MB';
+    const colorClass = getFileIconColor(document.name);
+    return <File className={`h-8 w-8 ${colorClass}`} />;
   };
 
   // Helper function to format date
