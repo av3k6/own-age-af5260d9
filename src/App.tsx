@@ -1,26 +1,27 @@
+
 import React from "react";
 import {
   createBrowserRouter,
   RouterProvider,
 } from "react-router-dom";
-import { ThemeProvider } from "@/components/theme-provider"
+import { ThemeProvider } from "./contexts/ThemeContext";
 import { ErrorBoundary } from 'react-error-boundary';
-import Layout from "@/components/layout/Layout";
-import Home from "@/pages/Home";
-import Login from "@/pages/Login";
-import Register from "@/pages/Register";
-import NotFound from "@/pages/NotFound";
-import Sell from "@/pages/Sell";
-import Dashboard from "@/pages/Dashboard";
-import Profile from "@/pages/Profile";
-import PropertyDetail from "@/pages/PropertyDetail";
-import EditListing from "@/pages/EditListing";
-import DocumentManagement from "@/pages/DocumentManagement";
-import Showings from "@/pages/Showings";
-import Messages from "@/pages/Messages";
-import BusinessEdit from "@/pages/BusinessEdit";
-import AdminDashboard from "@/pages/AdminDashboard";
-import { Toaster } from "@/components/ui/toaster"
+import Layout from "./components/layout/Layout";
+import Home from "./pages/Index";
+import Login from "./pages/Auth/Login";
+import Register from "./pages/Auth/Signup";
+import NotFound from "./pages/NotFound";
+import Sell from "./pages/Sell";
+import Dashboard from "./pages/Dashboard";
+import Profile from "./pages/UserProfile";
+import PropertyDetail from "./pages/PropertyDetail";
+import EditListing from "./pages/EditListing";
+import DocumentManagement from "./pages/DocumentManagement";
+import Showings from "./pages/UserShowings";
+import Messages from "./pages/Messaging";
+import BusinessEdit from "./pages/BusinessEdit";
+import AdminDashboard from "./pages/Admin/AdminDashboard";
+import { Toaster } from "./components/ui/toaster";
 
 // Add the import for DocumentRequirements
 import DocumentRequirements from "./pages/DocumentRequirements";
