@@ -23,6 +23,8 @@ import BusinessEdit from "./pages/BusinessEdit";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
 import { Toaster } from "./components/ui/toaster";
 import DocumentRequirements from "./pages/DocumentRequirements";
+import About from "./pages/About";
+import Contact from "./pages/Contact";
 import { AuthProvider } from "./contexts/AuthContext";
 
 function App() {
@@ -96,6 +98,14 @@ function App() {
                   {
                     path: "/document-requirements",
                     element: <DocumentRequirements />,
+                  },
+                  {
+                    path: "/about",
+                    element: <About />,
+                  },
+                  {
+                    path: "/contact",
+                    element: <Contact />,
                   },
                 ],
               },
