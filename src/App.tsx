@@ -28,9 +28,6 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Professionals from "./pages/Professionals";
 import { AuthProvider } from "./contexts/AuthContext";
-import ProfessionalsList from "./components/professionals/ProfessionalsList";
-import ProfessionalDetail from "./components/professionals/ProfessionalDetail";
-import Buy from "./pages/buy";
 
 function App() {
   return (
@@ -60,10 +57,6 @@ function App() {
                     {
                       path: "/sell",
                       element: <Sell />,
-                    },
-                    {
-                      path: "/buy",
-                      element: <Buy />,
                     },
                     {
                       path: "/dashboard",
@@ -123,11 +116,11 @@ function App() {
                     },
                     {
                       path: "/professionals/:category",
-                      element: <ProfessionalsList />,
+                      element: <Professionals />,
                     },
                     {
                       path: "/professionals/:category/:id",
-                      element: <ProfessionalDetail />,
+                      element: <Professionals />,
                     },
                   ],
                 },

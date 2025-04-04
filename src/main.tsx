@@ -4,6 +4,7 @@ import App from './App.tsx';
 import './index.css';
 import { supabase } from './lib/supabase';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import React from 'react';
 
 // Add error handling for the root rendering
 const renderApp = () => {
@@ -17,11 +18,13 @@ const renderApp = () => {
     console.log("Starting app rendering");
     const root = createRoot(rootElement);
     
-    // Removed React.StrictMode to prevent duplicate rendering in development
+    // Wrap the app in an error boundary for better debugging
     root.render(
-      <ErrorBoundary>
-        <App />
-      </ErrorBoundary>
+      <React.StrictMode>
+        <ErrorBoundary>
+          <App />
+        </ErrorBoundary>
+      </React.StrictMode>
     );
     
     console.log("App rendering complete");

@@ -1,39 +1,38 @@
 
-import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
 const CallToAction = () => {
   return (
-    <section className="relative py-16 overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-r from-zen-blue-700 to-zen-blue-500 opacity-90">
-        <img
-          src="/lovable-uploads/f8ab30ab-c80f-45ce-bfa8-72ad4cb2d8c3.png"
-          alt="Luxury home with pool"
-          className="w-full h-full object-cover mix-blend-overlay opacity-80"
-        />
-      </div>
-      <div className="relative container mx-auto px-6 py-12 text-white z-10">
-        <div className="max-w-2xl mx-auto text-center">
-          <h2 className="text-4xl font-bold mb-4 text-shadow-sm">Ready to Start Your Journey?</h2>
-          <p className="text-lg mb-8">
-            Find your dream property or sell your home with our simple, agent-free platform.
-          </p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <Link to="/register">
-              <Button size="lg" className="bg-white text-zen-blue-700 hover:bg-white/90 font-semibold">
-                Get Started
-              </Button>
-            </Link>
-            <Link to="/about">
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="border-white text-white bg-transparent hover:bg-white/20 hover:text-white dark:text-white dark:border-white dark:hover:bg-white/20 font-semibold"
-              >
-                Learn More
-              </Button>
-            </Link>
+    <section className="py-12 bg-white dark:bg-background/90 transition-colors duration-300">
+      <div className="container px-4 mx-auto">
+        <div className="bg-gradient-to-r from-zen-blue-500 to-zen-teal-500 dark:from-zen-blue-600 dark:to-zen-teal-600 rounded-2xl overflow-hidden shadow-xl">
+          <div className="flex flex-col md:flex-row">
+            <div className="p-8 md:p-12 md:w-3/5">
+              <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+                Ready to Experience Agent-Free Real Estate?
+              </h2>
+              <p className="text-blue-100 text-lg mb-6 md:pr-8">
+                Join thousands of buyers and sellers who are saving money and enjoying a stress-free real estate experience with our platform.
+              </p>
+              <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
+                <Button className="bg-white text-zen-blue-600 hover:bg-blue-50 dark:bg-blue-800 dark:text-white dark:hover:bg-blue-700 transition-colors duration-300">
+                  Get Started
+                </Button>
+                <Link to="/how-it-works">
+                  <Button variant="outline" className="border-white text-white hover:bg-blue-600 dark:border-gray-400 dark:hover:bg-blue-700 transition-colors duration-300">
+                    Learn More
+                  </Button>
+                </Link>
+              </div>
+            </div>
+            <div className="hidden md:block md:w-2/5">
+              <img
+                src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=870&q=80"
+                alt="Beautiful home"
+                className="w-full h-full object-cover"
+              />
+            </div>
           </div>
         </div>
       </div>
