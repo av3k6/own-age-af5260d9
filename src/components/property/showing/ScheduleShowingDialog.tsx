@@ -9,7 +9,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { ShowingForm } from "./ShowingForm";
+import ShowingForm from "./ShowingForm"; // Changed to default import
 import { useScheduleShowing } from "./useScheduleShowing";
 
 interface ScheduleShowingDialogProps {
@@ -27,8 +27,7 @@ export default function ScheduleShowingDialog({
     isSubmitting,
     open,
     setOpen,
-    userData,
-    handleSubmit
+    handleShowingRequest // Use the correct method name from the hook
   } = useScheduleShowing({ propertyId, propertyTitle, sellerId });
 
   return (
@@ -48,9 +47,10 @@ export default function ScheduleShowingDialog({
         </DialogHeader>
         
         <ShowingForm
-          onSubmit={handleSubmit}
-          userData={userData}
+          onSubmit={handleShowingRequest} // Use the correct property
           isSubmitting={isSubmitting}
+          propertyId={propertyId}
+          sellerId={sellerId}
         />
       </DialogContent>
     </Dialog>

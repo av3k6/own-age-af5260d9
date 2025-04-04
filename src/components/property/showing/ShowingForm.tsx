@@ -43,7 +43,7 @@ interface ShowingFormProps {
   propertyId: string;
   sellerId: string;
   isSubmitting: boolean;
-  onRequestSubmit: (data: Partial<Showing> & { 
+  onSubmit: (data: Partial<Showing> & { 
     name: string; 
     email: string; 
     phone: string; 
@@ -51,10 +51,11 @@ interface ShowingFormProps {
   }) => void;
 }
 
+// Export as default instead of named export
 export default function ShowingForm({ 
   propertyId, 
   sellerId, 
-  onRequestSubmit,
+  onSubmit,
   isSubmitting
 }: ShowingFormProps) {
   const { user } = useAuth();
@@ -76,9 +77,9 @@ export default function ShowingForm({
     setSelectedShowing(showing);
   };
 
-  const onSubmit = (data: z.infer<typeof formSchema>) => {
+  const handleSubmit = (data: z.infer<typeof formSchema>) => {
     if (selectedShowing) {
-      onRequestSubmit({
+      onSubmit({
         ...selectedShowing,
         buyerName: data.name,
         buyerEmail: data.email,
@@ -105,7 +106,7 @@ export default function ShowingForm({
           <SelectedTimeDisplay showing={selectedShowing} />
           <UserDetailsForm 
             form={form} 
-            onSubmit={onSubmit} 
+            onSubmit={handleSubmit} 
             isSubmitting={isSubmitting} 
           />
         </div>

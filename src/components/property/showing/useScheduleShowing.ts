@@ -119,6 +119,6 @@ export const useScheduleShowing = ({
     open,
     setOpen,
     isSubmitting,
-    handleShowingRequest
+    handleShowingRequest // Return this function instead of handleSubmit
   };
 };
