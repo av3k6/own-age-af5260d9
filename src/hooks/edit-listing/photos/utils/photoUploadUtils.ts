@@ -36,107 +36,92 @@ export const uploadPhotoFile = async (
 
     // Create a unique file name
     const fileExt = file.name.split('.').pop();
-    // Changed from const to let since we need to reassign it during retries
+    // Use let instead of const since we need to reassign it during retries
     let fileName = `${propertyId}/${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
     
     logger.info(`Uploading file: ${fileName}`);
     
-    // Upload to Supabase Storage with retries
-    let attempts = 0;
-    const maxAttempts = 3; // Increased from 2 to 3
-    let uploadData = null;
-    let uploadError = null;
-    
-    while (attempts < maxAttempts) {
-      attempts++;
-      
-      try {
-        // Try with direct upload first
-        const { data, error } = await supabase.storage
-          .from(BUCKET_NAME)
-          .upload(fileName, file, {
-            cacheControl: '3600',
-            contentType: file.type,
-            upsert: attempts > 1 // Use upsert for retry attempts
-          });
+    // Try with storage bucket first (this exists in all Supabase projects)
+    try {
+      logger.info("Attempting upload to default 'storage' bucket");
+      const { data: storageData, error: storageError } = await supabase.storage
+        .from('storage')
+        .upload(`property-photos/${fileName}`, file, {
+          cacheControl: '3600',
+          contentType: file.type,
+          upsert: true
+        });
+        
+      if (!storageError) {
+        logger.info("Upload to default 'storage' bucket successful");
+        
+        // Get public URL from storage bucket
+        const { data: urlData } = supabase.storage
+          .from('storage')
+          .getPublicUrl(`property-photos/${fileName}`);
           
-        if (!error) {
-          uploadData = data;
-          break;
+        if (!urlData?.publicUrl) {
+          logger.error("Failed to get public URL from 'storage' bucket");
+          return {
+            success: false,
+            error: "Failed to get public URL for uploaded file"
+          };
         }
         
-        uploadError = error;
-        logger.warn(`Upload attempt ${attempts} failed:`, error);
+        logger.info("Public URL obtained from 'storage' bucket:", urlData.publicUrl);
         
-        // Handle specific error cases
-        if (error.message) {
-          if (error.message.includes('already exists')) {
-            // If duplicate, modify filename and try again
-            const newFileName = `${propertyId}/${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
-            fileName = newFileName;
-            logger.info(`Retrying with new filename: ${fileName}`);
-          } else if (error.message.includes('violates row-level security policy')) {
-            // If RLS policy violation, try to use safeUpload from useSupabase hook if available
-            logger.warn("RLS policy violation. Attempting to use alternative upload method.");
-            try {
-              const { data: fallbackData, error: fallbackError } = await supabase.storage
-                .from('storage')  // Try the default 'storage' bucket as fallback
-                .upload(`property-photos/${fileName}`, file, {
-                  contentType: file.type,
-                });
-              
-              if (!fallbackError) {
-                uploadData = fallbackData;
-                // Adjust the fileName for the public URL
-                fileName = `property-photos/${fileName}`;
-                break;
-              } else {
-                logger.warn("Fallback upload method failed:", fallbackError);
-              }
-            } catch (fallbackErr) {
-              logger.warn("Error with fallback upload:", fallbackErr);
-            }
-          }
-        }
-        
-        // Wait before next attempt
-        if (attempts < maxAttempts) {
-          await new Promise(resolve => setTimeout(resolve, 1000 * attempts)); // Increasing wait time for each retry
-        }
-      } catch (err) {
-        uploadError = err;
-        logger.warn(`Upload attempt ${attempts} exception:`, err);
-        await new Promise(resolve => setTimeout(resolve, 1000 * attempts)); 
+        return {
+          success: true,
+          url: urlData.publicUrl
+        };
       }
+      
+      logger.warn("Failed to upload to 'storage' bucket:", storageError);
+    } catch (storageError) {
+      logger.warn("Error uploading to 'storage' bucket:", storageError);
     }
     
-    if (uploadError) {
-      logger.error("Storage upload error after all attempts:", uploadError);
+    // If storage bucket failed, try the property-photos bucket
+    try {
+      logger.info(`Attempting upload to '${BUCKET_NAME}' bucket`);
+      const { data, error } = await supabase.storage
+        .from(BUCKET_NAME)
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          contentType: file.type,
+          upsert: true
+        });
+        
+      if (error) {
+        throw error;
+      }
+      
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from(BUCKET_NAME)
+        .getPublicUrl(fileName);
+        
+      if (!urlData?.publicUrl) {
+        logger.error(`Failed to get public URL from '${BUCKET_NAME}' bucket`);
+        return {
+          success: false,
+          error: "Failed to get public URL for uploaded file"
+        };
+      }
+      
+      logger.info(`Public URL obtained from '${BUCKET_NAME}' bucket:`, urlData.publicUrl);
+      
+      return {
+        success: true,
+        url: urlData.publicUrl
+      };
+    } catch (customBucketError) {
+      logger.error(`Failed to upload to '${BUCKET_NAME}' bucket:`, customBucketError);
       return {
         success: false,
-        error: `Upload failed: ${uploadError.message || 'Unknown error'}`
+        error: `Upload failed: ${String(customBucketError)}`
       };
     }
-    
-    // Get public URL
-    const { data: urlData } = supabase.storage
-      .from(fileName.startsWith('property-photos/') ? 'storage' : BUCKET_NAME)
-      .getPublicUrl(fileName.startsWith('property-photos/') ? fileName : fileName);
-    
-    if (!urlData?.publicUrl) {
-      logger.error("Failed to get public URL");
-      return {
-        success: false,
-        error: "Failed to get public URL for uploaded file"
-      };
-    }
-    
-    logger.info("Public URL obtained:", urlData.publicUrl);
-    
-    return {
-      success: true,
-      url: urlData.publicUrl
-    };
   } catch (error) {
     logger.error("Error uploading photo file:", error);
     return {
@@ -163,7 +148,6 @@ export const savePhotoRecord = async (
   isPrimary: boolean
 ): Promise<boolean> => {
   try {
-    // For the SQL CHECK expression error, we need to ensure our RLS policies are set properly
     const { error: dbError } = await supabase
       .from('property_photos')
       .insert({
@@ -176,7 +160,6 @@ export const savePhotoRecord = async (
     if (dbError) {
       logger.error('Database error adding photo record:', dbError);
       
-      // If it's an RLS policy error, try a different approach
       if (dbError.message && dbError.message.includes('row-level security')) {
         logger.warn('RLS policy violation. This may indicate that the current user does not own the property.');
       }

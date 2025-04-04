@@ -35,20 +35,35 @@ export const useSupabase = () => {
     fetchBuckets();
   }, []);
 
-  // Create a safe upload function that will always use the 'storage' bucket
+  // Create a safe upload function that will always try to use appropriate buckets with fallback
   const safeUpload = async (path: string, fileBody: File, options?: any) => {
     try {
-      // Always use the 'property-photos' bucket first, fallback to 'storage' bucket
-      const { data, error } = await supabase.storage
+      // First attempt to use property-photos bucket
+      let { data, error } = await supabase.storage
         .from('property-photos')
-        .upload(path, fileBody, options);
+        .upload(path, fileBody, {
+          ...options,
+          upsert: true // Add upsert to prevent duplicate errors
+        });
       
-      if (error && error.message && error.message.includes('violates row-level security policy')) {
-        // If RLS error, try with the default storage bucket
-        console.log('Falling back to default storage bucket due to RLS policy');
-        return await supabase.storage
+      // If there's an error (bucket not found, permissions issue, etc), try the storage bucket
+      if (error) {
+        console.log('Falling back to default storage bucket due to error:', error.message);
+        
+        // Try with the default storage bucket (which exists in all Supabase projects)
+        const result = await supabase.storage
           .from('storage')
-          .upload(`property-photos/${path}`, fileBody, options);
+          .upload(`property-photos/${path}`, fileBody, {
+            ...options,
+            upsert: true // Add upsert to prevent duplicate errors
+          });
+          
+        data = result.data;
+        error = result.error;
+        
+        if (error) {
+          console.error('Error uploading to fallback storage bucket:', error);
+        }
       }
       
       return { data, error };
@@ -58,12 +73,22 @@ export const useSupabase = () => {
     }
   };
 
-  // Create a safe getPublicUrl function
+  // Create a safe getPublicUrl function that tries both buckets
   const safeGetPublicUrl = (path: string) => {
     try {
-      return supabase.storage
+      // First try property-photos bucket
+      const propertyPhotosUrl = supabase.storage
         .from('property-photos')
         .getPublicUrl(path);
+      
+      if (propertyPhotosUrl?.data?.publicUrl) {
+        return propertyPhotosUrl;
+      }
+      
+      // If that fails, try the storage bucket with property-photos prefix
+      return supabase.storage
+        .from('storage')
+        .getPublicUrl(`property-photos/${path}`);
     } catch (error) {
       console.error('Safe getPublicUrl error:', error);
       return { data: { publicUrl: null } };
@@ -85,23 +110,42 @@ export const useSupabase = () => {
   // Check if a table exists in the database
   const checkTableExists = async (tableName: string) => {
     try {
-      // Query the information_schema to check if table exists
-      const { data, error } = await supabase
+      // First try a simple query to check if the table exists
+      const { error } = await supabase
+        .from(tableName)
+        .select('count')
+        .limit(1);
+        
+      if (!error) {
+        return { exists: true, error: null };
+      }
+      
+      // If there was an error, check if it's because the table doesn't exist
+      if (error.code === '42P01' || error.message.includes('does not exist')) {
+        return { exists: false, error: null };
+      }
+      
+      // For permission errors, assume table exists but we can't access it
+      if (error.message && error.message.includes('permission denied')) {
+        return { exists: true, error: null };
+      }
+      
+      // Query the information_schema as a fallback
+      const { data, error: schemaError } = await supabase
         .from('information_schema.tables')
         .select('table_name')
         .eq('table_name', tableName)
         .eq('table_schema', 'public')
         .single();
       
-      if (error) {
+      if (schemaError) {
         // If error is permission denied, we'll assume the table exists
-        // as this is likely due to RLS policies
-        if (error.code === 'PGRST116') {
+        if (schemaError.code === 'PGRST116') {
           return { exists: true, error: null };
         }
         
-        console.error(`Error checking if table ${tableName} exists:`, error);
-        return { exists: false, error };
+        console.error(`Error checking if table ${tableName} exists:`, schemaError);
+        return { exists: false, error: schemaError };
       }
       
       return { exists: !!data, error: null };
@@ -120,6 +164,13 @@ export const useSupabase = () => {
         .select('id')
         .limit(1);
       
+      // If no error, table exists and we have access
+      if (!error) {
+        console.log("property_photos table exists and is accessible");
+        return true;
+      }
+      
+      // If the table doesn't exist, try to create it
       if (error && (error.code === '42P01' || error.message.includes('does not exist'))) {
         console.log("Property photos table doesn't exist. Attempting to create it...");
         
@@ -154,6 +205,8 @@ export const useSupabase = () => {
         }
       }
       
+      // For other errors (like permission issues), assume the table exists
+      console.log("Assuming property_photos table exists despite access issues");
       return true;
     } catch (checkError) {
       console.error("Error checking for property_photos table:", checkError);
