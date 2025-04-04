@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { DocumentMetadata } from "@/types/document";
@@ -12,6 +12,7 @@ import { PropertyRoomDetails } from "@/types";
 export const useEditListing = (propertyId: string | undefined) => {
   const [floorPlans, setFloorPlans] = useState<DocumentMetadata[]>([]);
   const [propertyDetails, setPropertyDetails] = useState<PropertyRoomDetails | undefined>(undefined);
+  const [error, setError] = useState<Error | null>(null);
 
   const form = useForm<EditListingFormValues>({
     resolver: zodResolver(editListingFormSchema),
@@ -38,7 +39,7 @@ export const useEditListing = (propertyId: string | undefined) => {
     form.watch
   );
 
-  const { isLoading } = usePropertyFetch(
+  const { isLoading, fetchError } = usePropertyFetch(
     propertyId,
     { reset: form.reset },
     setBedroomRooms,
@@ -46,6 +47,14 @@ export const useEditListing = (propertyId: string | undefined) => {
     setFloorPlans,
     setPropertyDetails
   );
+  
+  // Track any errors from property fetching
+  useEffect(() => {
+    if (fetchError) {
+      console.error("Error fetching property:", fetchError);
+      setError(fetchError);
+    }
+  }, [fetchError]);
 
   const { isSaving, saveProperty } = usePropertySave(
     propertyId,
@@ -65,7 +74,8 @@ export const useEditListing = (propertyId: string | undefined) => {
     floorPlans,
     setFloorPlans,
     saveProperty,
-    propertyDetails
+    propertyDetails,
+    error
   };
 };
 

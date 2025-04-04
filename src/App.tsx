@@ -4,6 +4,7 @@ import {
   BrowserRouter as Router,
   Route,
   Routes,
+  Navigate,
 } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -109,11 +110,19 @@ function App() {
                         <MakeOffer />
                       </ProtectedRoute>
                     } />
+                    
+                    {/* Edit listing routes - support both URL patterns */}
                     <Route path="/property/:id/edit" element={
                       <ProtectedRoute requiredRole={UserRole.SELLER}>
                         <EditListing />
                       </ProtectedRoute>
                     } />
+                    <Route path="/edit-listing/:id" element={
+                      <ProtectedRoute requiredRole={UserRole.SELLER}>
+                        <EditListing />
+                      </ProtectedRoute>
+                    } />
+                    
                     <Route path="/documents" element={
                       <ProtectedRoute>
                         <DocumentManagement />

@@ -12,6 +12,10 @@ import OpenHouseTab from "@/components/edit-listing/open-house/OpenHouseTab";
 import PhotoManagementTab from "@/components/edit-listing/photo-management/PhotoManagementTab";
 import ListingNumberDisplay from "@/components/property/ListingNumberDisplay";
 import { OpenHouseProvider } from "@/contexts/OpenHouseContext";
+import PropertyNotFound from "@/components/property/PropertyNotFound";
+import { createLogger } from "@/utils/logger";
+
+const logger = createLogger("EditListing");
 
 export default function EditListing() {
   const { id } = useParams<{ id: string }>();
@@ -21,6 +25,7 @@ export default function EditListing() {
   // Get tab from URL query or default to "basic"
   const tabFromQuery = searchParams.get("tab");
   const [activeTab, setActiveTab] = useState(tabFromQuery || "basic");
+  const [errorLoading, setErrorLoading] = useState<boolean>(false);
   
   const {
     form,
@@ -33,12 +38,13 @@ export default function EditListing() {
     floorPlans,
     setFloorPlans,
     saveProperty,
-    propertyDetails
+    propertyDetails,
+    error
   } = useEditListing(id);
 
   // Update URL when tab changes
   const handleTabChange = (newTab: string) => {
-    console.log("EditListing: Tab changed to:", newTab);
+    logger.info("EditListing: Tab changed to:", newTab);
     setActiveTab(newTab);
     searchParams.set("tab", newTab);
     setSearchParams(searchParams);
@@ -46,26 +52,43 @@ export default function EditListing() {
 
   // Add debug logging
   useEffect(() => {
-    console.log("EditListing: Rendered with activeTab:", activeTab);
-    console.log("EditListing: propertyId:", id);
-  }, [activeTab, id]);
+    logger.info("EditListing: Rendered with activeTab:", activeTab);
+    logger.info("EditListing: propertyId:", id);
+    
+    // Check for error after initial loading
+    if (error) {
+      logger.error("EditListing: Error loading property:", error);
+      setErrorLoading(true);
+    }
+  }, [activeTab, id, error]);
 
   const onSubmit = form.handleSubmit((data) => {
-    console.log("EditListing: Main form submitted with data:", data);
+    logger.info("EditListing: Main form submitted with data:", data);
     saveProperty(data);
   });
+
+  // Show property not found if there was an error loading the property
+  if (errorLoading) {
+    return <PropertyNotFound errorType="edit-not-found" propertyId={id} />;
+  }
 
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-12">
-        <p className="text-center">Loading...</p>
+        <div className="max-w-2xl mx-auto">
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-pulse text-center">
+              <p className="text-lg font-medium text-gray-500">Loading property data...</p>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
 
   // Improved navigation handler that uses React Router's navigate
   const handleCancel = () => {
-    console.log("EditListing: Cancel button clicked");
+    logger.info("EditListing: Cancel button clicked");
     if (id) {
       navigate(`/property/${id}`);
     }

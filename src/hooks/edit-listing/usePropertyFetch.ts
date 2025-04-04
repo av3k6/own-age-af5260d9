@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useSupabase } from "@/hooks/useSupabase";
@@ -18,17 +19,22 @@ export const usePropertyFetch = (
   const { toast } = useToast();
   const { supabase } = useSupabase();
   const [isLoading, setIsLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<Error | null>(null);
 
   useEffect(() => {
     if (!propertyId) {
       setIsLoading(false);
+      setFetchError(new Error("No property ID provided"));
       return;
     }
 
     const fetchProperty = async () => {
       setIsLoading(true);
+      setFetchError(null); // Reset error state
 
       try {
+        logger.info(`Fetching property with ID: ${propertyId}`);
+        
         // Fetch property listing data
         const { data: propertyData, error: propertyError } = await supabase
           .from("property_listings")
@@ -36,9 +42,17 @@ export const usePropertyFetch = (
           .eq("id", propertyId)
           .single();
 
-        if (propertyError || !propertyData) {
-          throw propertyError || new Error("Property not found");
+        if (propertyError) {
+          logger.error("Error fetching property:", propertyError);
+          throw propertyError;
         }
+
+        if (!propertyData) {
+          logger.error("Property not found with ID:", propertyId);
+          throw new Error("Property not found");
+        }
+        
+        logger.info("Successfully fetched property data:", propertyData.title);
 
         // Format and set form data
         form.reset({
@@ -108,6 +122,7 @@ export const usePropertyFetch = (
           setFloorPlans([]);
         }
       } catch (error: any) {
+        setFetchError(error);
         toast({
           title: "Error",
           description: "Could not load property data. Please try again later.",
@@ -122,5 +137,5 @@ export const usePropertyFetch = (
     fetchProperty();
   }, [propertyId, form, setBedroomRooms, setOtherRooms, setFloorPlans, setPropertyDetails, supabase, toast]);
 
-  return { isLoading };
+  return { isLoading, fetchError };
 };

@@ -1,15 +1,17 @@
 
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { ArrowLeft, Home, Search, AlertCircle, Lock } from "lucide-react";
+import { ArrowLeft, Home, Search, AlertCircle, Lock, Edit } from "lucide-react";
 
 type PropertyNotFoundProps = {
-  errorType?: 'not-found' | 'invalid-id' | 'no-permission' | null;
+  errorType?: 'not-found' | 'invalid-id' | 'no-permission' | 'edit-not-found' | null;
   propertyId?: string;
 };
 
 export default function PropertyNotFound({ errorType = 'not-found', propertyId }: PropertyNotFoundProps) {
+  const location = useLocation();
+  
   // Determine error message based on error type
   const getErrorContent = () => {
     switch (errorType) {
@@ -32,6 +34,16 @@ export default function PropertyNotFound({ errorType = 'not-found', propertyId }
           descClass: "text-blue-700 dark:text-blue-400",
           icon: <Lock className="h-4 w-4" />,
           message: "This property may be in pending status and only visible to the property owner."
+        };
+      case 'edit-not-found':
+        return {
+          title: "Editing Error",
+          description: "The property listing you're trying to edit cannot be found.",
+          alertVariant: "bg-orange-50 dark:bg-orange-950/20 border-orange-300",
+          titleClass: "text-orange-800 dark:text-orange-300",
+          descClass: "text-orange-700 dark:text-orange-400",
+          icon: <Edit className="h-4 w-4" />,
+          message: "The property listing you're trying to edit may have been deleted or you may not have permission to edit it."
         };
       case 'not-found':
       default:
@@ -65,7 +77,9 @@ export default function PropertyNotFound({ errorType = 'not-found', propertyId }
       
       <div className="mt-8 flex flex-col items-center">
         <p className="text-zen-gray-600 mb-6 text-center max-w-md">
-          {errorContent.message}
+          {location.pathname.includes('edit-listing') 
+            ? `Failed to find the property listing with ID "${propertyId}" for editing.`
+            : errorContent.message}
         </p>
         
         <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md">
