@@ -4,7 +4,7 @@ import { useSupabase } from "@/hooks/useSupabase";
 import { Card, CardContent } from "@/components/ui/card";
 import { DocumentMetadata } from "@/types/document";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertCircle, FileSymbol } from "lucide-react";
+import { AlertCircle, FileText } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { createLogger } from "@/utils/logger";
 
@@ -115,7 +115,7 @@ const PropertyFloorPlans = ({ propertyId }: PropertyFloorPlansProps) => {
               {plan.url ? (
                 <a href={plan.url} target="_blank" rel="noopener noreferrer">
                   <div className="bg-muted p-6 flex flex-col items-center justify-center h-48">
-                    <FileSymbol className="h-12 w-12 text-muted-foreground mb-2" />
+                    <FileText className="h-12 w-12 text-muted-foreground mb-2" />
                     <span className="text-sm font-medium">{plan.name}</span>
                     <span className="text-xs text-muted-foreground mt-1">
                       {plan.type} • {(plan.size / 1024).toFixed(0)} KB
@@ -124,7 +124,7 @@ const PropertyFloorPlans = ({ propertyId }: PropertyFloorPlansProps) => {
                 </a>
               ) : (
                 <div className="bg-muted p-6 flex flex-col items-center justify-center h-48">
-                  <FileSymbol className="h-12 w-12 text-muted-foreground mb-2" />
+                  <FileText className="h-12 w-12 text-muted-foreground mb-2" />
                   <span className="text-sm font-medium">{plan.name}</span>
                   <span className="text-xs text-muted-foreground">No preview available</span>
                 </div>
