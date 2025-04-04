@@ -43,15 +43,19 @@ const PropertyFloorPlans: React.FC<PropertyFloorPlansProps> = ({ propertyId }) =
           .select("id, name, url, type, size")
           .eq("property_id", propertyId)
           .eq("category", "floor_plans");
+        
+        logger.info(`Floor plans query result (plural): ${floorPlansData?.length || 0} documents found, error: ${floorPlansError?.message || 'none'}`);
           
-        // If no data or error, try alternative query with category "floor_plan" (singular)
-        if ((!floorPlansData || floorPlansData.length === 0)) {
+        // If no data, try alternative query with category "floor_plan" (singular)
+        if (!floorPlansData || floorPlansData.length === 0) {
           logger.info("No data with 'floor_plans', trying with 'floor_plan' (singular)");
           const { data: altData, error: altError } = await supabase
             .from("property_documents")
             .select("id, name, url, type, size")
             .eq("property_id", propertyId)
             .eq("category", "floor_plan");
+          
+          logger.info(`Floor plans query result (singular): ${altData?.length || 0} documents found, error: ${altError?.message || 'none'}`);
             
           if (!altError && altData && altData.length > 0) {
             floorPlansData = altData;
@@ -60,13 +64,15 @@ const PropertyFloorPlans: React.FC<PropertyFloorPlansProps> = ({ propertyId }) =
         }
         
         // If still no data, try with document_type field as fallback
-        if ((!floorPlansData || floorPlansData.length === 0)) {
+        if (!floorPlansData || floorPlansData.length === 0) {
           logger.info("No data with categories, trying with document_type field");
           const { data: typeData, error: typeError } = await supabase
             .from("property_documents")
             .select("id, name, url, type, size")
             .eq("property_id", propertyId)
             .eq("document_type", "floor_plan");
+          
+          logger.info(`Floor plans query result (document_type): ${typeData?.length || 0} documents found, error: ${typeError?.message || 'none'}`);
             
           if (!typeError && typeData && typeData.length > 0) {
             floorPlansData = typeData;
@@ -75,12 +81,14 @@ const PropertyFloorPlans: React.FC<PropertyFloorPlansProps> = ({ propertyId }) =
         }
         
         // Final attempt - check if documents exist for this property without filtering by type
-        if ((!floorPlansData || floorPlansData.length === 0)) {
+        if (!floorPlansData || floorPlansData.length === 0) {
           logger.info("No floor plans found with specific categories, checking for any documents with floor plan in the name");
           const { data: anyDocsData, error: anyDocsError } = await supabase
             .from("property_documents")
             .select("id, name, url, type, size")
             .eq("property_id", propertyId);
+          
+          logger.info(`Any documents query result: ${anyDocsData?.length || 0} documents found, error: ${anyDocsError?.message || 'none'}`);
             
           if (!anyDocsError && anyDocsData && anyDocsData.length > 0) {
             logger.info(`Found ${anyDocsData.length} documents, filtering for floor plans`);
@@ -89,11 +97,22 @@ const PropertyFloorPlans: React.FC<PropertyFloorPlansProps> = ({ propertyId }) =
               doc.name.toLowerCase().includes('floor') || 
               doc.name.toLowerCase().includes('plan')
             );
+            
+            logger.info(`After filtering for floor plans: ${floorPlansData.length} documents found`);
           }
         }
         
         logger.info(`Found ${floorPlansData?.length || 0} floor plans`);
-        setFloorPlans(floorPlansData || []);
+        
+        if (floorPlansData && floorPlansData.length > 0) {
+          // Validate URLs before setting the data
+          const validatedPlans = floorPlansData.filter(plan => plan.url && typeof plan.url === 'string');
+          logger.info(`After URL validation: ${validatedPlans.length} floor plans with valid URLs`);
+          
+          setFloorPlans(validatedPlans);
+        } else {
+          setFloorPlans([]);
+        }
       } catch (err: any) {
         logger.error("Error fetching floor plans:", err);
         setError("Could not load floor plans. Please try again later.");
@@ -107,6 +126,10 @@ const PropertyFloorPlans: React.FC<PropertyFloorPlansProps> = ({ propertyId }) =
 
   // Handle document download
   const handleDownload = (floorPlan: FloorPlanDocument) => {
+    if (!floorPlan.url) {
+      logger.error("Attempted to download floor plan with no URL:", floorPlan);
+      return;
+    }
     window.open(floorPlan.url, '_blank');
   };
   
