@@ -4,125 +4,16 @@ import { useSupabase } from "@/hooks/useSupabase";
 import { useToast } from "@/hooks/use-toast";
 import { PhotoUploadResult } from "./types";
 import { createLogger } from "@/utils/logger";
+import { ensureStorageBucket } from "./utils/bucketUtils";
+import { ensurePropertyPhotosTable } from "./utils/tableUtils";
+import { uploadPhotoFile, savePhotoRecord } from "./utils/photoUploadUtils";
 
 const logger = createLogger("usePhotoUpload");
-const BUCKET_NAME = "property-photos";
 
 export const usePhotoUpload = (propertyId: string | undefined) => {
   const { supabase } = useSupabase();
   const { toast } = useToast();
   const [isUploading, setIsUploading] = useState(false);
-
-  // Create property_photos table if it doesn't exist
-  const ensurePropertyPhotosTable = async (): Promise<boolean> => {
-    try {
-      logger.info("Ensuring property_photos table exists");
-      
-      // Try a simple query to see if the table exists and is accessible
-      const { error } = await supabase
-        .from('property_photos')
-        .select('count')
-        .limit(1);
-      
-      // If the table doesn't exist, try to create it
-      if (error && (error.code === '42P01' || error.message.includes('relation "property_photos" does not exist'))) {
-        logger.warn("property_photos table doesn't exist, creating it...");
-        
-        const createTableSQL = `
-          CREATE TABLE IF NOT EXISTS property_photos (
-            id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-            property_id UUID NOT NULL,
-            url TEXT NOT NULL,
-            display_order INTEGER NOT NULL DEFAULT 0,
-            is_primary BOOLEAN NOT NULL DEFAULT false,
-            created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-            updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-          );
-          
-          CREATE INDEX IF NOT EXISTS idx_property_photos_property_id 
-          ON property_photos(property_id);
-          
-          CREATE INDEX IF NOT EXISTS idx_property_photos_display_order 
-          ON property_photos(display_order);
-        `;
-        
-        // Try to create the table using RPC
-        try {
-          const { error: createError } = await supabase.rpc('create_table_if_not_exists', { 
-            table_sql: createTableSQL 
-          });
-          
-          if (createError) {
-            logger.error("Failed to create property_photos table:", createError);
-            return false;
-          }
-          
-          logger.info("Successfully created property_photos table");
-          return true;
-        } catch (rpcError) {
-          logger.error("RPC error creating table:", rpcError);
-          return false;
-        }
-      } else if (error) {
-        logger.error("Error checking property_photos table:", error);
-        return false;
-      }
-      
-      // If we get here, the table exists
-      logger.info("property_photos table exists");
-      return true;
-    } catch (error) {
-      logger.error("Error in ensurePropertyPhotosTable:", error);
-      return false;
-    }
-  };
-
-  // Create storage bucket if it doesn't exist
-  const ensureStorageBucket = async (): Promise<boolean> => {
-    try {
-      logger.info("Checking if storage bucket exists:", BUCKET_NAME);
-      
-      // Check if bucket exists
-      const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
-      
-      if (bucketsError) {
-        logger.error("Error checking buckets:", bucketsError);
-        return false;
-      }
-      
-      // Check if our bucket exists
-      const bucketExists = buckets?.some(bucket => bucket.name === BUCKET_NAME);
-      
-      if (!bucketExists) {
-        logger.info(`Bucket ${BUCKET_NAME} not found, creating it...`);
-        
-        // Create the bucket with public access
-        const { error: createError } = await supabase.storage.createBucket(BUCKET_NAME, {
-          public: true,
-          fileSizeLimit: 5 * 1024 * 1024 // 5MB limit
-        });
-        
-        if (createError) {
-          logger.error("Failed to create bucket:", createError);
-          toast({
-            title: "Storage Setup Error",
-            description: "Could not create storage for photos. Please try again later.",
-            variant: "destructive",
-          });
-          return false;
-        }
-        
-        logger.info(`Successfully created bucket: ${BUCKET_NAME}`);
-      } else {
-        logger.info(`Bucket ${BUCKET_NAME} already exists`);
-      }
-      
-      return true;
-    } catch (error) {
-      logger.error("Error in ensureStorageBucket:", error);
-      return false;
-    }
-  };
 
   const uploadPhotos = async (files: File[], currentPhotosLength: number): Promise<PhotoUploadResult> => {
     if (!files.length || !propertyId) {
@@ -138,7 +29,7 @@ export const usePhotoUpload = (propertyId: string | undefined) => {
       logger.info("Starting upload for", files.length, "files for property:", propertyId);
       
       // First ensure the property_photos table exists
-      const tableExists = await ensurePropertyPhotosTable();
+      const tableExists = await ensurePropertyPhotosTable(supabase);
       if (!tableExists) {
         logger.error("property_photos table could not be created or accessed");
         toast({
@@ -150,9 +41,9 @@ export const usePhotoUpload = (propertyId: string | undefined) => {
       }
       
       // Then ensure the storage bucket exists
-      const bucketExists = await ensureStorageBucket();
+      const bucketExists = await ensureStorageBucket(supabase);
       if (!bucketExists) {
-        logger.error(`${BUCKET_NAME} bucket could not be created or accessed`);
+        logger.error("Storage bucket could not be created or accessed");
         toast({
           title: "Storage Error",
           description: "Could not prepare the storage for photo uploads. Please try again later.",
@@ -164,91 +55,43 @@ export const usePhotoUpload = (propertyId: string | undefined) => {
       // Process each file
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        try {
-          // Validate file type
-          const fileType = file.type.toLowerCase();
-          const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
-          if (!validTypes.includes(fileType)) {
-            toast({
-              title: "Invalid File Type",
-              description: `File ${file.name} is not a supported image type. Only JPG, PNG, and WebP are accepted.`,
-              variant: "destructive",
-            });
-            continue;
-          }
-          
-          // Validate file size (5MB limit)
-          const MAX_SIZE = 5 * 1024 * 1024; // 5MB
-          if (file.size > MAX_SIZE) {
-            toast({
-              title: "File Too Large",
-              description: `File ${file.name} exceeds the 5MB limit.`,
-              variant: "destructive",
-            });
-            continue;
-          }
-          
-          // Create a unique file name
-          const fileExt = file.name.split('.').pop();
-          const fileName = `${propertyId}/${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
-          
-          logger.info(`Uploading file: ${fileName}`);
-          
-          // Upload to Supabase Storage
-          const { data, error: uploadError } = await supabase.storage
-            .from(BUCKET_NAME)
-            .upload(fileName, file, {
-              cacheControl: '3600',
-              contentType: file.type,
-            });
-          
-          if (uploadError) {
-            logger.error("Storage upload error:", uploadError);
-            throw uploadError;
-          }
-          
-          // Mark file as uploaded for counting
-          uploadedFiles.push(file);
-          
-          // Get public URL
-          const { data: urlData } = supabase.storage
-            .from(BUCKET_NAME)
-            .getPublicUrl(fileName);
-          
-          if (!urlData?.publicUrl) {
-            logger.error("Failed to get public URL");
-            throw new Error("Failed to get public URL for uploaded file");
-          }
-          
-          logger.info("Public URL obtained:", urlData.publicUrl);
-          
-          // Add to database with next display order
-          const nextOrder = currentPhotosLength + i;
-          const isPrimary = currentPhotosLength === 0 && i === 0; // First photo is primary by default
-          
-          const { error: dbError } = await supabase
-            .from('property_photos')
-            .insert({
-              property_id: propertyId,
-              url: urlData.publicUrl,
-              display_order: nextOrder,
-              is_primary: isPrimary
-            });
-          
-          if (dbError) {
-            logger.error('Database error adding photo record:', dbError);
-            throw dbError;
-          }
-          
-          logger.info(`Successfully uploaded photo ${i+1} with order ${nextOrder}`);
-        } catch (fileError) {
-          logger.error(`Error processing file ${file.name}:`, fileError);
+        
+        // Upload the file to storage
+        const uploadResult = await uploadPhotoFile(supabase, file, propertyId);
+        
+        if (!uploadResult.success) {
           toast({
             title: "Upload Error",
-            description: `Failed to upload ${file.name}. Please try again.`,
+            description: uploadResult.error || `Failed to upload ${file.name}`,
             variant: "destructive",
           });
+          continue;
         }
+        
+        // If upload was successful, save to database
+        const nextOrder = currentPhotosLength + i;
+        const isPrimary = currentPhotosLength === 0 && i === 0; // First photo is primary by default
+        
+        const saveSuccess = await savePhotoRecord(
+          supabase,
+          propertyId,
+          uploadResult.url!,
+          nextOrder,
+          isPrimary
+        );
+        
+        if (!saveSuccess) {
+          toast({
+            title: "Database Error",
+            description: `Failed to save photo record for ${file.name}`,
+            variant: "destructive",
+          });
+          continue;
+        }
+        
+        // Mark file as uploaded for counting
+        uploadedFiles.push(file);
+        logger.info(`Successfully processed photo ${i+1} with order ${nextOrder}`);
       }
       
       // If we've uploaded at least one file, consider it a success

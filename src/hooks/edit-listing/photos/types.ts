@@ -14,3 +14,14 @@ export interface PhotoUploadResult {
   uploadedFiles?: File[];
   count?: number;
 }
+
+export interface ValidationResult {
+  valid: boolean;
+  error?: string;
+}
+
+export interface UploadResult {
+  success: boolean;
+  url?: string;
+  error?: string;
+}
