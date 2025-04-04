@@ -37,7 +37,7 @@ const PropertyFloorPlans: React.FC<PropertyFloorPlansProps> = ({ propertyId }) =
       try {
         logger.info("Fetching floor plans for property:", propertyId);
         
-        // Try first with floor_plans category
+        // Try first with floor_plans category (plural form)
         let { data: floorPlansData, error: floorPlansError } = await supabase
           .from("property_documents")
           .select("id, name, url, type, size")
@@ -45,8 +45,8 @@ const PropertyFloorPlans: React.FC<PropertyFloorPlansProps> = ({ propertyId }) =
           .eq("category", "floor_plans");
           
         // If no data or error, try alternative query with category "floor_plan" (singular)
-        if ((!floorPlansData || floorPlansData.length === 0) && floorPlansError) {
-          logger.info("Trying alternative query with category floor_plan (singular)");
+        if ((!floorPlansData || floorPlansData.length === 0)) {
+          logger.info("No data with 'floor_plans', trying with 'floor_plan' (singular)");
           const { data: altData, error: altError } = await supabase
             .from("property_documents")
             .select("id, name, url, type, size")
@@ -60,8 +60,8 @@ const PropertyFloorPlans: React.FC<PropertyFloorPlansProps> = ({ propertyId }) =
         }
         
         // If still no data, try with document_type field as fallback
-        if ((!floorPlansData || floorPlansData.length === 0) && floorPlansError) {
-          logger.info("Trying with document_type field as fallback");
+        if ((!floorPlansData || floorPlansData.length === 0)) {
+          logger.info("No data with categories, trying with document_type field");
           const { data: typeData, error: typeError } = await supabase
             .from("property_documents")
             .select("id, name, url, type, size")
@@ -75,8 +75,8 @@ const PropertyFloorPlans: React.FC<PropertyFloorPlansProps> = ({ propertyId }) =
         }
         
         // Final attempt - check if documents exist for this property without filtering by type
-        if ((!floorPlansData || floorPlansData.length === 0) && floorPlansError) {
-          logger.info("Checking for any documents for this property");
+        if ((!floorPlansData || floorPlansData.length === 0)) {
+          logger.info("No floor plans found with specific categories, checking for any documents with floor plan in the name");
           const { data: anyDocsData, error: anyDocsError } = await supabase
             .from("property_documents")
             .select("id, name, url, type, size")
