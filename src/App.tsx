@@ -22,14 +22,12 @@ import Messages from "./pages/Messaging";
 import BusinessEdit from "./pages/BusinessEdit";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
 import { Toaster } from "./components/ui/toaster";
-
-// Add the import for DocumentRequirements
 import DocumentRequirements from "./pages/DocumentRequirements";
 
 function App() {
   return (
-    <ErrorBoundary>
-      <ThemeProvider>
+    <ThemeProvider>
+      <ErrorBoundary fallback={<div>Something went wrong</div>}>
         <RouterProvider
           router={createBrowserRouter([
             {
@@ -93,20 +91,17 @@ function App() {
                   path: "/admin/dashboard",
                   element: <AdminDashboard />,
                 },
-                
-                // Add the new route for DocumentRequirements
                 {
                   path: "/document-requirements",
                   element: <DocumentRequirements />,
                 },
-                
               ],
             },
           ])}
         />
         <Toaster />
-      </ThemeProvider>
-    </ErrorBoundary>
+      </ErrorBoundary>
+    </ThemeProvider>
   );
 }
 
