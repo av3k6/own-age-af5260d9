@@ -1,13 +1,18 @@
 
-import { icons } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { PropertyListing } from '@/types';
 import { getFeatureIcon } from "@/utils/featureIcons";
 
 interface PropertyFeaturesProps {
-  features: string[];
+  property: PropertyListing;
 }
 
-export default function PropertyFeatures({ features }: PropertyFeaturesProps) {
+export default function PropertyFeatures({ property }: PropertyFeaturesProps) {
+  const { features } = property;
+  
+  if (!features || features.length === 0) {
+    return null;
+  }
+  
   return (
     <div className="bg-white border rounded-lg shadow-sm p-6 mb-6">
       <h2 className="text-xl font-bold text-zen-gray-800 mb-4">Property Features</h2>

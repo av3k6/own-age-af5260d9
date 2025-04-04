@@ -1,11 +1,13 @@
 
-import { Address } from "@/types";
+import { PropertyListing } from '@/types';
 
 interface PropertyLocationProps {
-  address: Address;
+  property: PropertyListing;
 }
 
-export default function PropertyLocation({ address }: PropertyLocationProps) {
+export default function PropertyLocation({ property }: PropertyLocationProps) {
+  const { address } = property;
+  
   return (
     <div className="bg-white border rounded-lg shadow-sm p-6">
       <h2 className="text-xl font-bold text-zen-gray-800 mb-4">Location</h2>
