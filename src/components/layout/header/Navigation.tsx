@@ -42,6 +42,16 @@ export const Navigation = ({ isAuthenticated, className = "" }: NavigationProps)
         </NavLink>
       )}
       <NavLink
+        to="/about"
+        className={({ isActive }) =>
+          isActive
+            ? "font-medium text-foreground"
+            : "text-muted-foreground hover:text-foreground transition-colors"
+        }
+      >
+        About
+      </NavLink>
+      <NavLink
         to="/professionals"
         className={({ isActive }) =>
           isActive

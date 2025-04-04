@@ -1,3 +1,4 @@
+
 import React, { Suspense } from 'react';
 import {
   BrowserRouter as Router,
@@ -33,6 +34,7 @@ import AdminLogin from './pages/Admin/AdminLogin';
 import AdminDashboard from './pages/Admin/AdminDashboard';
 import UserListings from './components/user/UserListings';
 import Contact from './pages/Contact';
+import About from './pages/About';
 
 // Professional components - lazy loaded
 const ProfessionalsList = React.lazy(() => import('./components/professionals/ProfessionalsList'));
@@ -67,6 +69,7 @@ function App() {
                   <Route element={<Layout />}>
                     <Route path="/" element={<Home />} />
                     <Route path="/buy" element={<Buy />} />
+                    <Route path="/about" element={<About />} />
                     <Route path="/property/:id" element={<PropertyDetail />} />
                     <Route path="/professionals" element={<Professionals />} />
                     <Route path="/professionals/:category" element={<ProfessionalsList />} />
