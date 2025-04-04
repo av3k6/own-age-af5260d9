@@ -1,10 +1,10 @@
-
 import { supabase } from '@/lib/supabase';
 import { useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { STORAGE_BUCKETS, safeUploadFile, getPublicFileUrl, verifyBucketAccess } from '@/utils/storage/bucketUtils';
 
 export const useSupabase = () => {
-  const [buckets, setBuckets] = useState<string[]>(['storage']); // Default to 'storage' bucket
+  const [availableBuckets, setAvailableBuckets] = useState<string[]>([STORAGE_BUCKETS.DEFAULT]);
   const { toast } = useToast();
   
   // Get available buckets on component mount
@@ -21,10 +21,10 @@ export const useSupabase = () => {
         if (data && data.length > 0) {
           const bucketNames = data.map(bucket => bucket.name);
           // Make sure we always include the "storage" bucket as a fallback
-          if (!bucketNames.includes('storage')) {
-            bucketNames.push('storage');
+          if (!bucketNames.includes(STORAGE_BUCKETS.DEFAULT)) {
+            bucketNames.push(STORAGE_BUCKETS.DEFAULT);
           }
-          setBuckets(bucketNames);
+          setAvailableBuckets(bucketNames);
         }
       } catch (err) {
         console.error('Failed to fetch buckets:', err);
@@ -35,60 +35,72 @@ export const useSupabase = () => {
     fetchBuckets();
   }, []);
 
-  // Create a safe upload function that will always try to use appropriate buckets with fallback
+  /**
+   * Enhanced file upload with bucket fallback and retry logic
+   */
   const safeUpload = async (path: string, fileBody: File, options?: any) => {
+    // First verify primary bucket
+    const primaryBucket = STORAGE_BUCKETS.PROPERTY_PHOTOS;
+    const { exists: bucketExists } = await verifyBucketAccess(supabase, primaryBucket);
+    
     try {
-      // First attempt to use property-photos bucket
-      let { data, error } = await supabase.storage
-        .from('property-photos')
-        .upload(path, fileBody, {
-          ...options,
-          upsert: true // Add upsert to prevent duplicate errors
-        });
+      // Upload with automatic fallback if needed
+      const { data, error, actualBucket, actualPath } = await safeUploadFile(
+        supabase,
+        bucketExists ? primaryBucket : STORAGE_BUCKETS.DEFAULT,
+        path,
+        fileBody,
+        options
+      );
       
-      // If there's an error (bucket not found, permissions issue, etc), try the storage bucket
+      // If both uploads failed
       if (error) {
-        console.log('Falling back to default storage bucket due to error:', error.message);
-        
-        // Try with the default storage bucket (which exists in all Supabase projects)
-        const result = await supabase.storage
-          .from('storage')
-          .upload(`property-photos/${path}`, fileBody, {
-            ...options,
-            upsert: true // Add upsert to prevent duplicate errors
-          });
-          
-        data = result.data;
-        error = result.error;
-        
-        if (error) {
-          console.error('Error uploading to fallback storage bucket:', error);
-        }
+        console.error('All upload attempts failed:', error);
+        return { data: null, error };
       }
       
-      return { data, error };
+      return { 
+        data: { ...data, path: actualPath }, 
+        error: null 
+      };
     } catch (error) {
-      console.error('Safe upload error:', error);
-      return { data: null, error };
+      console.error('Unexpected error in safeUpload:', error);
+      return { 
+        data: null, 
+        error: error instanceof Error ? error : new Error(String(error)) 
+      };
     }
   };
 
-  // Create a safe getPublicUrl function that tries both buckets
-  const safeGetPublicUrl = (path: string) => {
+  /**
+   * Enhanced public URL getter with bucket fallback
+   */
+  const safeGetPublicUrl = (path: string, bucket?: string) => {
+    // First try with the specified bucket or property-photos
+    const primaryBucket = bucket || STORAGE_BUCKETS.PROPERTY_PHOTOS;
+    
     try {
-      // First try property-photos bucket
-      const propertyPhotosUrl = supabase.storage
-        .from('property-photos')
-        .getPublicUrl(path);
+      // Try the primary bucket
+      const primaryResult = getPublicFileUrl(supabase, primaryBucket, path);
       
-      if (propertyPhotosUrl?.data?.publicUrl) {
-        return propertyPhotosUrl;
+      // If we got a URL, return it
+      if (primaryResult.publicUrl) {
+        return { data: { publicUrl: primaryResult.publicUrl } };
       }
       
-      // If that fails, try the storage bucket with property-photos prefix
-      return supabase.storage
-        .from('storage')
-        .getPublicUrl(`property-photos/${path}`);
+      // If primary fails, try fallback with default bucket and adjusted path
+      if (primaryBucket !== STORAGE_BUCKETS.DEFAULT) {
+        const fallbackPath = path.includes('/') ? path : `${primaryBucket}/${path}`;
+        const fallbackResult = getPublicFileUrl(supabase, STORAGE_BUCKETS.DEFAULT, fallbackPath);
+        
+        if (fallbackResult.publicUrl) {
+          return { data: { publicUrl: fallbackResult.publicUrl } };
+        }
+      }
+      
+      // If all attempts fail
+      console.warn('Failed to get public URL for path:', path);
+      return { data: { publicUrl: null } };
     } catch (error) {
       console.error('Safe getPublicUrl error:', error);
       return { data: { publicUrl: null } };
@@ -174,7 +186,7 @@ export const useSupabase = () => {
       if (error && (error.code === '42P01' || error.message.includes('does not exist'))) {
         console.log("Property photos table doesn't exist. Attempting to create it...");
         
-        // Try to create the table using the SQL from the file
+        // Try to create the table using SQL
         try {
           const { error: sqlError } = await supabase.rpc('execute_sql', {
             sql_script: `
@@ -215,8 +227,8 @@ export const useSupabase = () => {
   };
 
   return { 
-    supabase, 
-    buckets, 
+    supabase,
+    availableBuckets, 
     safeUpload, 
     safeGetPublicUrl,
     getCurrentUser,

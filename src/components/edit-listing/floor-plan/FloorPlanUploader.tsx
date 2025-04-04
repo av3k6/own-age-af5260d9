@@ -7,6 +7,9 @@ import { Input } from "@/components/ui/input";
 import { DocumentMetadata } from "@/types/document";
 import { Upload } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { createLogger } from "@/utils/logger";
+
+const logger = createLogger("FloorPlanUploader");
 
 interface FloorPlanUploaderProps {
   floorPlans: DocumentMetadata[];
@@ -17,7 +20,7 @@ interface FloorPlanUploaderProps {
 const FloorPlanUploader = ({ floorPlans, setFloorPlans, propertyId }: FloorPlanUploaderProps) => {
   const { toast } = useToast();
   const { user } = useAuth();
-  const { supabase, safeUpload, safeGetPublicUrl } = useSupabase();
+  const { safeUpload, safeGetPublicUrl } = useSupabase();
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -62,78 +65,105 @@ const FloorPlanUploader = ({ floorPlans, setFloorPlans, propertyId }: FloorPlanU
 
     setIsUploading(true);
     setUploadProgress(0);
+    
+    let successCount = 0;
+    let errorCount = 0;
 
     try {
       for (const file of validFiles) {
-        // Always use storage folder
-        const folderPath = propertyId ? `floor_plans/${propertyId}` : `floor_plans/temp_${Date.now()}`;
+        // Set folder path based on property ID
+        const folderPath = propertyId 
+          ? `floor_plans/${propertyId}` 
+          : `floor_plans/temp_${Date.now()}`;
+          
         const filePath = `${folderPath}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
         
         // Set intermediate progress
         setUploadProgress(30);
+        logger.info(`Uploading floor plan: ${filePath}`);
 
-        // Use our safe upload function
-        const { data, error } = await safeUpload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false,
-        });
-
-        if (error) {
-          console.error("Upload error details:", error);
-          throw error;
+        try {
+          // Use our enhanced upload function with fallback
+          const { data, error } = await safeUpload(filePath, file, {
+            cacheControl: '3600',
+            upsert: false,
+          });
+  
+          if (error) {
+            logger.error("Floor plan upload error:", error);
+            throw error;
+          }
+  
+          logger.info("Floor plan uploaded successfully:", data);
+          
+          // Get the public URL using the enhanced function
+          const { data: urlData } = safeGetPublicUrl(filePath);
+          
+          if (!urlData.publicUrl) {
+            throw new Error("Failed to get public URL for the uploaded file");
+          }
+  
+          // Create metadata for the new floor plan
+          const newFloorPlan: DocumentMetadata = {
+            id: data.path || `${Date.now()}-${file.name}`,
+            name: file.name,
+            type: file.type,
+            size: file.size,
+            url: urlData.publicUrl,
+            path: filePath,
+            uploadedBy: user?.id || '',
+            createdAt: new Date().toISOString(),
+            propertyId: propertyId
+          };
+  
+          // Add the new floor plan to the list
+          setFloorPlans([...floorPlans, newFloorPlan]);
+          successCount++;
+          
+        } catch (uploadError: any) {
+          logger.error(`Error uploading ${file.name}:`, uploadError);
+          errorCount++;
+          
+          toast({
+            title: "Upload failed",
+            description: `Failed to upload ${file.name}. ${uploadError.message || ''}`,
+            variant: "destructive"
+          });
         }
-
-        // Get the public URL for the uploaded file using safe function
-        const { data: urlData } = safeGetPublicUrl(filePath);
-
-        // Create metadata for the new floor plan
-        const newFloorPlan: DocumentMetadata = {
-          id: data.path || `${Date.now()}-${file.name}`,
-          name: file.name,
-          type: file.type,
-          size: file.size,
-          url: urlData.publicUrl,
-          path: filePath,
-          uploadedBy: user?.id || '',
-          createdAt: new Date().toISOString(),
-          propertyId: propertyId
-        };
-
-        // Add the new floor plan to the list
-        setFloorPlans([...floorPlans, newFloorPlan]);
-        
-        // Simulate upload completed
-        setUploadProgress(100);
       }
 
-      toast({
-        title: "Floor plan uploaded",
-        description: "Your floor plan has been uploaded successfully.",
-      });
+      if (successCount > 0) {
+        toast({
+          title: `${successCount} floor plan${successCount > 1 ? 's' : ''} uploaded`,
+          description: errorCount > 0 
+            ? `${errorCount} file${errorCount > 1 ? 's' : ''} failed to upload.` 
+            : "All floor plans uploaded successfully.",
+          variant: errorCount > 0 ? "default" : "default"
+        });
+      }
 
+      // Simulate upload completed for UI
+      setUploadProgress(100);
     } catch (error: any) {
-      console.error("Error uploading floor plan:", error);
+      logger.error("Unexpected error in floor plan upload:", error);
       
-      let errorMessage = "Failed to upload floor plan. Please try again.";
-      
-      if (error?.message?.includes("Bucket not found")) {
-        errorMessage = "There was an issue with the storage system. Please try again later or contact support.";
-      }
-      
-      setUploadError(errorMessage);
+      setUploadError("There was a problem with the upload. Please try again.");
       
       toast({
         title: "Upload failed",
-        description: errorMessage,
+        description: "There was a problem uploading your floor plans. Please try again later.",
         variant: "destructive"
       });
     } finally {
-      setIsUploading(false);
-      setUploadProgress(0);
-      // Reset the file input
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
+      // Small delay to show 100% before resetting
+      setTimeout(() => {
+        setIsUploading(false);
+        setUploadProgress(0);
+        // Reset the file input
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+      }, 800);
     }
   };
 
