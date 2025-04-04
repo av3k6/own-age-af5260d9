@@ -30,28 +30,28 @@ export const usePropertyDetail = (propertyId: string | undefined) => {
 
       setIsLoading(true);
       
-      // First check mock data (for demo purposes)
-      const mockProperty = mockListings.find((listing) => listing.id === propertyId);
-      
-      if (mockProperty) {
-        // If listing is pending and user is not the owner, don't display it
-        if (mockProperty.status === ListingStatus.PENDING && 
-            mockProperty.sellerId !== user?.id && 
-            !user?.isAdmin) {
-          setProperty(null);
-          setErrorType('no-permission');
+      try {
+        // First check mock data (for demo purposes)
+        const mockProperty = mockListings.find((listing) => listing.id === propertyId);
+        
+        if (mockProperty) {
+          // If listing is pending and user is not the owner, don't display it
+          if (mockProperty.status === ListingStatus.PENDING && 
+              mockProperty.sellerId !== user?.id && 
+              !user?.isAdmin) {
+            setProperty(null);
+            setErrorType('no-permission');
+            setIsLoading(false);
+            return;
+          }
+          
+          logger.info("Found property in mock data:", { id: propertyId, title: mockProperty.title });
+          setProperty(mockProperty);
           setIsLoading(false);
           return;
         }
         
-        logger.info("Found property in mock data:", { id: propertyId, title: mockProperty.title });
-        setProperty(mockProperty);
-        setIsLoading(false);
-        return;
-      }
-      
-      // If not found in mock data, try to fetch from Supabase
-      try {
+        // If not found in mock data, try to fetch from Supabase
         // Only validate UUID if we're fetching from Supabase database
         // This allows non-UUID format IDs for mock data
         if (!isValidUUID(propertyId)) {
@@ -61,6 +61,8 @@ export const usePropertyDetail = (propertyId: string | undefined) => {
           setIsLoading(false);
           return;
         }
+        
+        logger.info("Fetching property from database:", propertyId);
         
         // Fetch property from database
         const { property: dbProperty, error } = await fetchPropertyFromDatabase(
@@ -88,6 +90,11 @@ export const usePropertyDetail = (propertyId: string | undefined) => {
           setErrorType('no-permission');
           setIsLoading(false);
           return;
+        }
+        
+        // Ensure roomDetails exists even if it doesn't in the database
+        if (!dbProperty.roomDetails) {
+          dbProperty.roomDetails = {};
         }
         
         setProperty(dbProperty);

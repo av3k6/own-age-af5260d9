@@ -19,10 +19,10 @@ export const fetchPropertyFromDatabase = async (
   try {
     logger.info("Fetching property from Supabase:", propertyId);
     
-    // Try the primary query with property ID
+    // Try the primary query with property ID - only select columns we know exist
     const { data, error } = await supabase
       .from("property_listings")
-      .select("*, room_details, seller_name, seller_email")
+      .select("id, title, description, price, address, property_type, bedrooms, bathrooms, square_feet, year_built, features, images, seller_id, seller_name, seller_email, status, created_at, updated_at")
       .eq("id", propertyId)
       .single();
       
@@ -33,7 +33,7 @@ export const fetchPropertyFromDatabase = async (
       
       const { data: emailData, error: emailError } = await supabase
         .from("property_listings")
-        .select("*, room_details, seller_name, seller_email")
+        .select("id, title, description, price, address, property_type, bedrooms, bathrooms, square_feet, year_built, features, images, seller_id, seller_name, seller_email, status, created_at, updated_at")
         .eq("seller_email", userEmail)
         .eq("id", propertyId)
         .single();
@@ -66,8 +66,11 @@ export const fetchPropertyFromDatabase = async (
     
     logger.info("Found property in database:", { id: propertyId, title: propertyData.title });
     
-    // Format the raw data to match PropertyListing type
-    const formattedProperty = formatPropertyData(propertyData, userId);
+    // Format the raw data to match PropertyListing type - passing an empty object for roomDetails
+    const formattedProperty = formatPropertyData({
+      ...propertyData,
+      room_details: {} // Provide an empty object as a fallback
+    }, userId);
     
     return { property: formattedProperty, error: null };
   } catch (error: any) {

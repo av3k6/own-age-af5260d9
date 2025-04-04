@@ -24,12 +24,9 @@ export const formatPropertyData = (
     sellerId: propertyData.seller_id || userId || "",
     sellerName: propertyData.seller_name || "Property Owner", // Add default seller name
     sellerEmail: propertyData.seller_email || "", // Add seller email
-    status: propertyData.status,
+    status: propertyData.status || ListingStatus.ACTIVE,
     createdAt: new Date(propertyData.created_at),
     updatedAt: new Date(propertyData.updated_at),
-    roomDetails: {
-      ...propertyData.room_details,
-      listingNumber: propertyData.listing_number
-    }
+    roomDetails: propertyData.room_details || {}
   };
 };

@@ -15,6 +15,9 @@ import MortgageCalculator from "./MortgageCalculator";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { isPropertyOwner } from "@/utils/propertyOwnershipUtils";
+import { createLogger } from "@/utils/logger";
+
+const logger = createLogger("PropertyDetailView");
 
 const PropertyDetailView = ({ property }: { property: PropertyListing }) => {
   const { user } = useAuth();
@@ -27,6 +30,15 @@ const PropertyDetailView = ({ property }: { property: PropertyListing }) => {
       setIsOwner(false);
     }
   }, [user, property]);
+  
+  // Log the property data to debug
+  useEffect(() => {
+    logger.info("Property data received:", {
+      id: property.id,
+      hasRoomDetails: !!property.roomDetails,
+      keys: Object.keys(property)
+    });
+  }, [property]);
   
   return (
     <div className="container mx-auto px-4 py-8">
@@ -70,7 +82,11 @@ const PropertyDetailView = ({ property }: { property: PropertyListing }) => {
         <div className="col-span-2 space-y-8">
           <PropertyDescription property={property} />
           <PropertyFeatures property={property} />
-          <PropertyRoomDetails propertyId={property.id} roomDetails={property.roomDetails} />
+          
+          {/* Conditionally render room details if they exist */}
+          {property.roomDetails && Object.keys(property.roomDetails).length > 0 && (
+            <PropertyRoomDetails propertyId={property.id} roomDetails={property.roomDetails} />
+          )}
           
           {/* Floor Plans Section */}
           <div className="bg-card rounded-lg p-6 shadow-sm">
