@@ -91,5 +91,3 @@ export const ensureStorageBucket = async (supabase: SupabaseClient): Promise<boo
     return true;
   }
 };
-
-export { BUCKET_NAME };

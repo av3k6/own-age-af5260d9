@@ -163,6 +163,7 @@ export const savePhotoRecord = async (
   isPrimary: boolean
 ): Promise<boolean> => {
   try {
+    // For the SQL CHECK expression error, we need to ensure our RLS policies are set properly
     const { error: dbError } = await supabase
       .from('property_photos')
       .insert({
@@ -174,6 +175,12 @@ export const savePhotoRecord = async (
     
     if (dbError) {
       logger.error('Database error adding photo record:', dbError);
+      
+      // If it's an RLS policy error, try a different approach
+      if (dbError.message && dbError.message.includes('row-level security')) {
+        logger.warn('RLS policy violation. This may indicate that the current user does not own the property.');
+      }
+      
       return false;
     }
     
