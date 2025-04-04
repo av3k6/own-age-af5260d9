@@ -28,6 +28,7 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Professionals from "./pages/Professionals";
 import Buy from "./pages/buy";
+import MortgageCalculator from "./pages/MortgageCalculator";
 import { AuthProvider } from "./contexts/AuthContext";
 
 function App() {
@@ -126,6 +127,10 @@ function App() {
                     {
                       path: "/professionals/:category/:id",
                       element: <Professionals />,
+                    },
+                    {
+                      path: "/mortgage-calculator",
+                      element: <MortgageCalculator />,
                     },
                   ],
                 },
