@@ -1,27 +1,36 @@
 
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { Navigation } from "./header/Navigation";
+import HeaderLogo from "./header/HeaderLogo";
+import UserMenu from "./header/UserMenu";
+import MobileMenu from "./header/MobileMenu";
+import ProvinceSelector from "./header/ProvinceSelector";
 
 const Header = () => {
   const { user } = useAuth();
+  const isAuthenticated = !!user;
+  const unreadMessageCount = 0; // This would typically be fetched from a real data source
   
   return (
     <header className="sticky top-0 z-50 bg-background border-b shadow-sm">
       <div className="container flex items-center justify-between h-16 px-4 mx-auto">
-        <Link to="/" className="font-bold text-xl">TransacZen Haven</Link>
+        <div className="flex items-center gap-4">
+          <HeaderLogo />
+          <ProvinceSelector className="hidden md:flex" />
+        </div>
         
-        <nav className="hidden md:flex space-x-4">
-          <Link to="/" className="text-foreground hover:text-primary">Home</Link>
-          <Link to="/dashboard" className="text-foreground hover:text-primary">Dashboard</Link>
-          <Link to="/document-requirements" className="text-foreground hover:text-primary">Document Requirements</Link>
-        </nav>
+        <Navigation 
+          isAuthenticated={isAuthenticated} 
+          className="hidden md:flex space-x-6"
+        />
         
-        <div className="flex items-center space-x-4">
-          {user ? (
-            <Link to="/profile" className="text-foreground hover:text-primary">Profile</Link>
-          ) : (
-            <Link to="/login" className="text-foreground hover:text-primary">Login</Link>
-          )}
+        <div className="flex items-center gap-4">
+          <UserMenu />
+          <MobileMenu 
+            isAuthenticated={isAuthenticated}
+            unreadMessageCount={unreadMessageCount}
+          />
         </div>
       </div>
     </header>
