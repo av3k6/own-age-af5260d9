@@ -30,7 +30,7 @@ const CallToAction = () => {
               <Button 
                 size="lg" 
                 variant="outline" 
-                className="border-white text-white hover:bg-white/20 dark:text-white dark:border-white dark:hover:text-white dark:hover:bg-white/20 font-semibold"
+                className="border-white text-white bg-transparent hover:bg-white/20 dark:text-white dark:border-white dark:hover:bg-white/20 font-semibold"
               >
                 Learn More
               </Button>
