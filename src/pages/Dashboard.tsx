@@ -12,9 +12,17 @@ import {
   Building2,
   Users
 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useSupabase } from "@/hooks/useSupabase";
+import { createLogger } from "@/utils/logger";
+import { useToast } from "@/hooks/use-toast";
+
+const logger = createLogger("Dashboard");
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const { supabase } = useSupabase();
+  const { toast } = useToast();
   
   // Check if user is admin (jredmond)
   const isAdmin = user?.email === "jredmond@example.com" || user?.id === "jredmond";
@@ -24,6 +32,91 @@ const Dashboard = () => {
   
   // Check if user has business assignment (in a real app, we'd fetch this from the database)
   const hasBusinessAssignment = isProfessional; // For simplicity, assume all professionals have a business
+
+  // State for actual counts
+  const [propertyCount, setPropertyCount] = useState(0);
+  const [documentsCount, setDocumentsCount] = useState(0);
+  const [showingsCount, setShowingsCount] = useState(0);
+  const [messagesCount, setMessagesCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch counts when user is logged in
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const fetchCounts = async () => {
+      setIsLoading(true);
+      try {
+        // Fetch property listings count
+        const { count: propertiesCount, error: propertiesError } = await supabase
+          .from("property_listings")
+          .select("*", { count: "exact", head: true })
+          .eq("seller_id", user.id);
+        
+        if (propertiesError) {
+          logger.error("Error fetching property count:", propertiesError);
+          toast({
+            title: "Error",
+            description: "Could not retrieve property listings",
+            variant: "destructive"
+          });
+        } else {
+          setPropertyCount(propertiesCount || 0);
+        }
+        
+        // Fetch documents count
+        const { data: documents, error: documentsError } = await supabase
+          .from("property_documents")
+          .select("id")
+          .eq("uploaded_by", user.id);
+        
+        if (documentsError) {
+          logger.error("Error fetching documents count:", documentsError);
+        } else {
+          setDocumentsCount(documents?.length || 0);
+        }
+        
+        // Fetch showings count
+        const { data: showings, error: showingsError } = await supabase
+          .from("property_viewings")
+          .select("id")
+          .eq("seller_id", user.id)
+          .eq("status", "PENDING");
+        
+        if (showingsError) {
+          logger.error("Error fetching showings count:", showingsError);
+        } else {
+          setShowingsCount(showings?.length || 0);
+        }
+        
+        // Fetch unread messages count
+        const { data: conversations, error: conversationsError } = await supabase
+          .from("conversations")
+          .select("id, unread_count")
+          .contains("participants", [user.id]);
+        
+        if (conversationsError) {
+          logger.error("Error fetching messages count:", conversationsError);
+        } else {
+          // Sum up unread counts across conversations
+          const unreadCount = conversations?.reduce((total, convo) => 
+            total + (convo.unread_count || 0), 0) || 0;
+          setMessagesCount(unreadCount);
+        }
+      } catch (error) {
+        logger.error("Error fetching dashboard data:", error);
+        toast({
+          title: "Error",
+          description: "Could not retrieve dashboard data",
+          variant: "destructive"
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCounts();
+  }, [user, supabase, toast]);
 
   return (
     <div className="container py-10">
@@ -40,7 +133,7 @@ const Dashboard = () => {
               <Home className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold">1</p>
+              <p className="text-2xl font-bold">{isLoading ? "..." : propertyCount}</p>
               <p className="text-xs text-muted-foreground">Properties you're managing</p>
             </CardContent>
           </Card>
@@ -53,7 +146,7 @@ const Dashboard = () => {
               <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold">0</p>
+              <p className="text-2xl font-bold">{isLoading ? "..." : showingsCount}</p>
               <p className="text-xs text-muted-foreground">Upcoming property showings</p>
             </CardContent>
           </Card>
@@ -66,7 +159,7 @@ const Dashboard = () => {
               <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold">1</p>
+              <p className="text-2xl font-bold">{isLoading ? "..." : documentsCount}</p>
               <p className="text-xs text-muted-foreground">Documents requiring attention</p>
             </CardContent>
           </Card>
@@ -79,7 +172,7 @@ const Dashboard = () => {
               <MessageSquare className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold">0</p>
+              <p className="text-2xl font-bold">{isLoading ? "..." : messagesCount}</p>
               <p className="text-xs text-muted-foreground">Unread messages</p>
             </CardContent>
           </Card>
