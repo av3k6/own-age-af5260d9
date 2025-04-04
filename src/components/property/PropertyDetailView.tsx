@@ -11,7 +11,7 @@ import PropertyLocation from "./PropertyLocation";
 import PropertyRoomDetails from "./PropertyRoomDetails";
 import PropertyInformation from "./PropertyInformation";
 import PropertyFloorPlans from "./PropertyFloorPlans";
-import MortgageCalculator from "./MortgageCalculator";
+import MortgageCalculator from "./mortgage/MortgageCalculator";
 import FavoriteButton from "./FavoriteButton";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
