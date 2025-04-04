@@ -61,9 +61,8 @@ export const usePhotoManagement = (propertyId: string | undefined) => {
     const result = await movePhotoUp(photos, index, setPhotos);
     
     // After reordering, synchronize with property_listings
-    if (result && propertyId) {
+    if (propertyId) {
       logger.info("Photos reordered, syncing with property_listings");
-      // Don't check truthiness of void return type
       await syncPhotosWithListing(propertyId);
     }
     
@@ -75,9 +74,8 @@ export const usePhotoManagement = (propertyId: string | undefined) => {
     const result = await movePhotoDown(photos, index, setPhotos);
     
     // After reordering, synchronize with property_listings
-    if (result && propertyId) {
+    if (propertyId) {
       logger.info("Photos reordered, syncing with property_listings");
-      // Don't check truthiness of void return type
       await syncPhotosWithListing(propertyId);
     }
     
