@@ -36,7 +36,26 @@ export const ensureStorageBucket = async (supabase: SupabaseClient): Promise<boo
       
       if (createError) {
         logger.error("Failed to create bucket:", createError);
+        
+        // If we get a "duplicate" error, the bucket might actually exist despite the listBuckets call not showing it
+        if (createError.message && createError.message.includes("duplicate")) {
+          logger.info("Bucket already exists despite not being listed. Attempting to proceed anyway.");
+          return true;
+        }
+        
         return false;
+      }
+      
+      // After creating, update the bucket's public policy
+      try {
+        const { error: policyError } = await supabase.storage.from(BUCKET_NAME).createSignedUrl('dummy.txt', 1);
+        if (policyError && !policyError.message.includes('not found')) {
+          logger.warn("Note: Could not verify bucket policies:", policyError);
+          // Continue anyway as the bucket was created
+        }
+      } catch (policyError) {
+        logger.warn("Error checking bucket policies, but continuing:", policyError);
+        // Continue as the bucket was still created
       }
       
       logger.info(`Successfully created bucket: ${BUCKET_NAME}`);

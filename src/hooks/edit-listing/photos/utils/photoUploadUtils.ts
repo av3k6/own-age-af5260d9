@@ -40,19 +40,52 @@ export const uploadPhotoFile = async (
     
     logger.info(`Uploading file: ${fileName}`);
     
-    // Upload to Supabase Storage
-    const { data, error: uploadError } = await supabase.storage
-      .from(BUCKET_NAME)
-      .upload(fileName, file, {
-        cacheControl: '3600',
-        contentType: file.type,
-      });
+    // Upload to Supabase Storage with retries
+    let attempts = 0;
+    const maxAttempts = 2;
+    let uploadData = null;
+    let uploadError = null;
+    
+    while (attempts < maxAttempts) {
+      attempts++;
+      
+      try {
+        const { data, error } = await supabase.storage
+          .from(BUCKET_NAME)
+          .upload(fileName, file, {
+            cacheControl: '3600',
+            contentType: file.type,
+            upsert: false
+          });
+          
+        if (!error) {
+          uploadData = data;
+          break;
+        }
+        
+        uploadError = error;
+        logger.warn(`Upload attempt ${attempts} failed:`, error);
+        
+        if (error.message && error.message.includes('already exists')) {
+          // If duplicate, modify filename and try again
+          const newFileName = `${propertyId}/${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+          fileName = newFileName;
+        } else {
+          // For other errors, just retry with same filename
+          await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1s between attempts
+        }
+      } catch (err) {
+        uploadError = err;
+        logger.warn(`Upload attempt ${attempts} exception:`, err);
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1s between attempts
+      }
+    }
     
     if (uploadError) {
-      logger.error("Storage upload error:", uploadError);
+      logger.error("Storage upload error after all attempts:", uploadError);
       return {
         success: false,
-        error: `Upload failed: ${uploadError.message}`
+        error: `Upload failed: ${uploadError.message || 'Unknown error'}`
       };
     }
     
