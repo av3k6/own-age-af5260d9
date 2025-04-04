@@ -36,7 +36,8 @@ export const uploadPhotoFile = async (
 
     // Create a unique file name
     const fileExt = file.name.split('.').pop();
-    const fileName = `${propertyId}/${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+    // Changed from const to let since we need to reassign it during retries
+    let fileName = `${propertyId}/${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
     
     logger.info(`Uploading file: ${fileName}`);
     
