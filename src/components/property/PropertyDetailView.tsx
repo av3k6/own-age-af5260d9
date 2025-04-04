@@ -1,7 +1,7 @@
+
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { MapPin, Phone, Mail, Calendar, CheckCircle, XCircle, Edit } from "lucide-react";
-import { format, parseISO } from 'date-fns';
 
 import { PropertyListing } from "@/types";
 import PropertyGallery from "./PropertyGallery";
@@ -9,7 +9,7 @@ import PropertyDescription from "./PropertyDescription";
 import PropertyFeatures from "./PropertyFeatures";
 import PropertyLocation from "./PropertyLocation";
 import PropertyRoomDetails from "./PropertyRoomDetails";
-import ContactAgentForm from "./ContactAgentForm";
+import PropertyInformation from "./PropertyInformation";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { isPropertyOwner } from "@/utils/propertyOwnershipUtils";
@@ -60,54 +60,18 @@ const PropertyDetailView = ({ property }: { property: PropertyListing }) => {
           <PropertyFeatures property={property} />
           <PropertyRoomDetails propertyId={property.id} roomDetails={property.roomDetails} />
           
-          {/* Add Floor Plans Section */}
+          {/* Floor Plans Section */}
           <div className="bg-card rounded-lg p-6 shadow-sm">
             <PropertyFloorPlans propertyId={property.id} />
           </div>
           
           <PropertyLocation property={property} />
-          {/* Open House Section */}
-          {/* <PropertyOpenHouse propertyId={property.id} /> */}
         </div>
 
         {/* Sidebar Content */}
         <div className="space-y-6">
-          {/* Contact Agent Form */}
-          <div className="bg-card rounded-lg p-6 shadow-sm">
-            <h3 className="text-lg font-semibold mb-4">Contact Agent</h3>
-            <ContactAgentForm propertyId={property.id} />
-          </div>
-
-          {/* Property Details Summary */}
-          <div className="bg-card rounded-lg p-6 shadow-sm">
-            <h3 className="text-lg font-semibold mb-4">Property Details</h3>
-            <div className="grid grid-cols-2 gap-2 text-sm">
-              <div>
-                <span className="font-medium">Price:</span>
-                <span className="ml-1">${property.price.toLocaleString()}</span>
-              </div>
-              <div>
-                <span className="font-medium">Bedrooms:</span>
-                <span className="ml-1">{property.bedrooms}</span>
-              </div>
-              <div>
-                <span className="font-medium">Bathrooms:</span>
-                <span className="ml-1">{property.bathrooms}</span>
-              </div>
-              <div>
-                <span className="font-medium">Square Feet:</span>
-                <span className="ml-1">{property.squareFeet}</span>
-              </div>
-              <div>
-                <span className="font-medium">Property Type:</span>
-                <span className="ml-1">{property.propertyType}</span>
-              </div>
-              <div>
-                <span className="font-medium">Year Built:</span>
-                <span className="ml-1">{property.yearBuilt}</span>
-              </div>
-            </div>
-          </div>
+          {/* Property Information with Action Buttons */}
+          <PropertyInformation property={property} />
         </div>
       </div>
     </div>

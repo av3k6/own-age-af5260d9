@@ -5,8 +5,8 @@ import { PropertyListing, ListingStatus } from "@/types";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/formatters";
 import { Edit, Mail, MessageSquare, Phone, User, EyeOff, Eye } from "lucide-react";
-import ScheduleShowingDialog from "./ScheduleShowingDialog";
-import ContactSellerDialog from "./ContactSellerDialog";
+import ScheduleShowingDialog from "./showing/ScheduleShowingDialog";
+import ContactSellerDialog from "./contact/ContactSellerDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSupabase } from "@/hooks/useSupabase";
 import { useToast } from "@/hooks/use-toast";
@@ -24,7 +24,7 @@ export default function PropertyInformation({ property }: PropertyInformationPro
   const [isUpdating, setIsUpdating] = useState(false);
 
   // Determine seller display name based on ownership
-  const sellerDisplayName = isOwner ? "Justin Redmond" : "Seller";
+  const sellerDisplayName = isOwner ? "You (Property Owner)" : "Property Owner";
 
   // Function to toggle listing status
   const toggleListingStatus = async () => {
@@ -111,7 +111,7 @@ export default function PropertyInformation({ property }: PropertyInformationPro
       
       {isOwner ? (
         <div className="space-y-3">
-          <Link to={`/property/${property.id}/edit`}>
+          <Link to={`/edit-listing/${property.id}`}>
             <Button className="w-full">
               <Edit className="h-4 w-4 mr-2" />
               Edit Listing
