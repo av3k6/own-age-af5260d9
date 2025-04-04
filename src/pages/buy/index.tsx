@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { mockListings } from "@/data/mockData";
 import { PropertyListing, ListingStatus, PropertyType } from "@/types";

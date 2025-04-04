@@ -27,6 +27,7 @@ import DocumentRequirements from "./pages/DocumentRequirements";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Professionals from "./pages/Professionals";
+import Buy from "./pages/buy";
 import { AuthProvider } from "./contexts/AuthContext";
 
 function App() {
@@ -57,6 +58,10 @@ function App() {
                     {
                       path: "/sell",
                       element: <Sell />,
+                    },
+                    {
+                      path: "/buy",
+                      element: <Buy />,
                     },
                     {
                       path: "/dashboard",
