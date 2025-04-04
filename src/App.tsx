@@ -23,84 +23,87 @@ import BusinessEdit from "./pages/BusinessEdit";
 import AdminDashboard from "./pages/Admin/AdminDashboard";
 import { Toaster } from "./components/ui/toaster";
 import DocumentRequirements from "./pages/DocumentRequirements";
+import { AuthProvider } from "./contexts/AuthContext";
 
 function App() {
   return (
     <ThemeProvider>
-      <ErrorBoundary fallback={<div>Something went wrong</div>}>
-        <RouterProvider
-          router={createBrowserRouter([
-            {
-              path: "/",
-              element: <Layout />,
-              errorElement: <NotFound />,
-              children: [
-                {
-                  path: "/",
-                  element: <Home />,
-                },
-                {
-                  path: "/login",
-                  element: <Login />,
-                },
-                {
-                  path: "/register",
-                  element: <Register />,
-                },
-                {
-                  path: "/sell",
-                  element: <Sell />,
-                },
-                {
-                  path: "/dashboard",
-                  element: <Dashboard />,
-                },
-                {
-                  path: "/dashboard/listings",
-                  element: <Dashboard />,
-                },
-                {
-                  path: "/profile",
-                  element: <Profile />,
-                },
-                {
-                  path: "/property/:id",
-                  element: <PropertyDetail />,
-                },
-                {
-                  path: "/edit-listing/:id",
-                  element: <EditListing />,
-                },
-                {
-                  path: "/document-management",
-                  element: <DocumentManagement />,
-                },
-                {
-                  path: "/showings",
-                  element: <Showings />,
-                },
-                {
-                  path: "/messages",
-                  element: <Messages />,
-                },
-                {
-                  path: "/business/edit",
-                  element: <BusinessEdit />,
-                },
-                {
-                  path: "/admin/dashboard",
-                  element: <AdminDashboard />,
-                },
-                {
-                  path: "/document-requirements",
-                  element: <DocumentRequirements />,
-                },
-              ],
-            },
-          ])}
-        />
-        <Toaster />
-      </ErrorBoundary>
+      <AuthProvider>
+        <ErrorBoundary fallback={<div>Something went wrong</div>}>
+          <RouterProvider
+            router={createBrowserRouter([
+              {
+                path: "/",
+                element: <Layout />,
+                errorElement: <NotFound />,
+                children: [
+                  {
+                    path: "/",
+                    element: <Home />,
+                  },
+                  {
+                    path: "/login",
+                    element: <Login />,
+                  },
+                  {
+                    path: "/register",
+                    element: <Register />,
+                  },
+                  {
+                    path: "/sell",
+                    element: <Sell />,
+                  },
+                  {
+                    path: "/dashboard",
+                    element: <Dashboard />,
+                  },
+                  {
+                    path: "/dashboard/listings",
+                    element: <Dashboard />,
+                  },
+                  {
+                    path: "/profile",
+                    element: <Profile />,
+                  },
+                  {
+                    path: "/property/:id",
+                    element: <PropertyDetail />,
+                  },
+                  {
+                    path: "/edit-listing/:id",
+                    element: <EditListing />,
+                  },
+                  {
+                    path: "/document-management",
+                    element: <DocumentManagement />,
+                  },
+                  {
+                    path: "/showings",
+                    element: <Showings />,
+                  },
+                  {
+                    path: "/messages",
+                    element: <Messages />,
+                  },
+                  {
+                    path: "/business/edit",
+                    element: <BusinessEdit />,
+                  },
+                  {
+                    path: "/admin/dashboard",
+                    element: <AdminDashboard />,
+                  },
+                  {
+                    path: "/document-requirements",
+                    element: <DocumentRequirements />,
+                  },
+                ],
+              },
+            ])}
+          />
+          <Toaster />
+        </ErrorBoundary>
+      </AuthProvider>
     </ThemeProvider>
   );
 }
