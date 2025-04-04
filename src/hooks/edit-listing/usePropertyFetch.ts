@@ -112,7 +112,7 @@ export const usePropertyFetch = (
           const floorPlans: DocumentMetadata[] = documentData.map(doc => ({
             id: doc.id,
             name: doc.name,
-            type: doc.type, // Using the correct column name
+            type: doc.type,
             size: doc.size,
             url: doc.url,
             path: doc.path,
