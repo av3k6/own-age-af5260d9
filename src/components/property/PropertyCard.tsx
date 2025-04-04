@@ -68,7 +68,7 @@ const PropertyCard = ({ property }: PropertyCardProps) => {
         </div>
         
         <div className="p-4">
-          <h3 className="text-lg font-semibold text-zen-gray-800 dark:text-white line-clamp-1 group-hover:text-zen-blue-500 transition-colors">
+          <h3 className="text-lg font-semibold text-zen-gray-800 dark:text-white line-clamp-1 group-hover:text-zen-blue-500 dark:group-hover:text-zen-blue-300 transition-colors">
             {title}
           </h3>
           
