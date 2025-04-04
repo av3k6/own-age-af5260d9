@@ -42,6 +42,8 @@ const DashboardCardGrid = ({
         icon={Home}
         description="Properties you're managing"
         to="/dashboard/listings"
+        actionLink="/sell"
+        actionText="Create a new listing"
       />
       
       <DashboardCard 

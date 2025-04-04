@@ -9,6 +9,8 @@ interface DashboardCardProps {
   icon: LucideIcon;
   description: string;
   to: string;
+  actionLink?: string;
+  actionText?: string;
 }
 
 const DashboardCard = ({
@@ -17,6 +19,8 @@ const DashboardCard = ({
   icon: Icon,
   description,
   to,
+  actionLink,
+  actionText,
 }: DashboardCardProps) => {
   return (
     <Link to={to}>
@@ -28,6 +32,12 @@ const DashboardCard = ({
         <CardContent>
           {value !== undefined && <p className="text-2xl font-bold">{value}</p>}
           <p className="text-xs text-muted-foreground">{description}</p>
+          
+          {actionLink && actionText && (
+            <Link to={actionLink} className="text-xs text-blue-500 hover:underline mt-2 block">
+              {actionText}
+            </Link>
+          )}
         </CardContent>
       </Card>
     </Link>

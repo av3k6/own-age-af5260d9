@@ -14,6 +14,9 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { isPropertyOwner } from "@/utils/propertyOwnershipUtils";
 import PropertyFloorPlans from "./PropertyFloorPlans";
+import { createLogger } from "@/utils/logger";
+
+const logger = createLogger("PropertyDetailView");
 
 const PropertyDetailView = ({ property }: { property: PropertyListing }) => {
   const { user } = useAuth();
@@ -21,7 +24,9 @@ const PropertyDetailView = ({ property }: { property: PropertyListing }) => {
 
   useEffect(() => {
     if (user && property) {
-      setIsOwner(isPropertyOwner(property, user.id, user.email));
+      const ownershipResult = isPropertyOwner(property, user.id, user.email);
+      logger.info(`PropertyDetailView: Ownership check for ${property.id}: ${ownershipResult}`);
+      setIsOwner(ownershipResult);
     } else {
       setIsOwner(false);
     }
@@ -66,6 +71,14 @@ const PropertyDetailView = ({ property }: { property: PropertyListing }) => {
             sellerId={property.sellerId}
           />
         )}
+        {isOwner && (
+          <Link to={`/edit-listing/${property.id}?tab=basic`} className="block">
+            <Button variant="default" className="w-full flex items-center justify-center gap-2">
+              <Edit className="h-4 w-4" />
+              Edit Listing
+            </Button>
+          </Link>
+        )}
       </div>
 
       {/* Property Details Sections */}
@@ -73,7 +86,11 @@ const PropertyDetailView = ({ property }: { property: PropertyListing }) => {
         <div className="col-span-2 space-y-8">
           <PropertyDescription property={property} />
           <PropertyFeatures property={property} />
-          <PropertyRoomDetails propertyId={property.id} roomDetails={property.roomDetails} />
+          <PropertyRoomDetails 
+            propertyId={property.id} 
+            roomDetails={property.roomDetails}
+            sellerId={property.sellerId}
+          />
           
           {/* Floor Plans Section with enhanced component */}
           <div className="bg-card rounded-lg p-6 shadow-sm">

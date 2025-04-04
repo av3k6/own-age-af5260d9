@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { PropertyListing, ListingStatus } from "@/types";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,10 @@ import ContactSellerDialog from "./contact/ContactSellerDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSupabase } from "@/hooks/useSupabase";
 import { useToast } from "@/hooks/use-toast";
+import { isPropertyOwner } from "@/utils/propertyOwnershipUtils";
+import { createLogger } from "@/utils/logger";
+
+const logger = createLogger("PropertyInformation");
 
 interface PropertyInformationProps {
   property: PropertyListing;
@@ -19,9 +23,20 @@ export default function PropertyInformation({ property }: PropertyInformationPro
   const { user } = useAuth();
   const { supabase } = useSupabase();
   const { toast } = useToast();
-  const isOwner = user?.id === property.sellerId;
+  const [isOwner, setIsOwner] = useState(false);
   const [status, setStatus] = useState<ListingStatus>(property.status);
   const [isUpdating, setIsUpdating] = useState(false);
+
+  // Check ownership status whenever user or property changes
+  useEffect(() => {
+    if (user && property) {
+      const ownershipResult = isPropertyOwner(property, user.id, user.email);
+      logger.info(`Ownership check for property ${property.id}: ${ownershipResult}`);
+      setIsOwner(ownershipResult);
+    } else {
+      setIsOwner(false);
+    }
+  }, [user, property]);
 
   // Determine seller display name based on ownership
   const sellerDisplayName = isOwner ? "You (Property Owner)" : "Property Owner";
