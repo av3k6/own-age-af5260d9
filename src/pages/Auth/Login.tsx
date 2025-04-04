@@ -3,8 +3,6 @@ import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import AuthPageLayout from "@/components/auth/AuthPageLayout";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
 import { useFormValidation } from "@/hooks/useFormValidation";
 import { LoginProgress } from "@/components/auth/LoginProgress";
 import { LoginFormFields } from "@/components/auth/LoginFormFields";
@@ -37,10 +35,10 @@ const Login = () => {
     console.log("Captcha verified with token:", token.substring(0, 10) + "...");
     setCaptchaToken(token);
     // Auto submit the form once captcha is verified
-    handleSubmit(new Event("submit") as unknown as React.FormEvent, token);
+    handleSubmit(new Event("submit") as unknown as React.FormEvent);
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent, token?: string) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError("");
     
@@ -56,7 +54,7 @@ const Login = () => {
       setAuthProgress(10);
       console.log("Login form submitting with email:", email);
       
-      // Fix: Only pass two arguments to signIn
+      // Fix: Only pass two arguments to signIn as expected by the function
       const { error } = await signIn(email, password);
       
       if (error) {

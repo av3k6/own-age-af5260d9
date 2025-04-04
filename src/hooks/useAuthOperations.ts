@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { getAuthErrorMessage } from '@/utils/authErrorUtils';

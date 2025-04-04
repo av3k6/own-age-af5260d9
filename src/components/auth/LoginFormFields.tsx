@@ -19,7 +19,7 @@ interface LoginFormFieldsProps {
   passwordError: string;
   isLoading: boolean;
   redirecting: boolean;
-  handleSubmit: (e: React.FormEvent, captchaToken?: string) => Promise<void>;
+  handleSubmit: (e: React.FormEvent) => Promise<void>;
   onCaptchaVerify: (token: string) => void;
 }
 
@@ -42,12 +42,8 @@ export const LoginFormFields = ({
   
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (captchaRef.current) {
-      captchaRef.current.execute();
-    } else {
-      // Fallback if captcha isn't available
-      await handleSubmit(e);
-    }
+    // Directly submit form without captcha verification to simplify flow
+    await handleSubmit(e);
   };
   
   return (
@@ -117,15 +113,6 @@ export const LoginFormFields = ({
         <Link to="/forgot-password" className="hover:underline text-primary">
           Forgot password?
         </Link>
-      </div>
-      
-      {/* hCaptcha component - hidden, will be executed programmatically */}
-      <div className="hidden">
-        <HCaptcha
-          ref={captchaRef}
-          sitekey="ac90e6af-987f-444f-9c78-a9e7a107ae4b"
-          onVerify={onCaptchaVerify}
-        />
       </div>
       
       <Button
