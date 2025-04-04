@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useSupabase } from "@/hooks/useSupabase";
 import { useToast } from "@/hooks/use-toast";
@@ -5,9 +6,10 @@ import { PhotoUploadResult } from "./types";
 import { createLogger } from "@/utils/logger";
 
 const logger = createLogger("usePhotoUpload");
+const BUCKET_NAME = "property-photos";
 
 export const usePhotoUpload = (propertyId: string | undefined) => {
-  const { supabase, safeUpload, safeGetPublicUrl } = useSupabase();
+  const { supabase } = useSupabase();
   const { toast } = useToast();
   const [isUploading, setIsUploading] = useState(false);
 
@@ -75,6 +77,53 @@ export const usePhotoUpload = (propertyId: string | undefined) => {
     }
   };
 
+  // Create storage bucket if it doesn't exist
+  const ensureStorageBucket = async (): Promise<boolean> => {
+    try {
+      logger.info("Checking if storage bucket exists:", BUCKET_NAME);
+      
+      // Check if bucket exists
+      const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
+      
+      if (bucketsError) {
+        logger.error("Error checking buckets:", bucketsError);
+        return false;
+      }
+      
+      // Check if our bucket exists
+      const bucketExists = buckets?.some(bucket => bucket.name === BUCKET_NAME);
+      
+      if (!bucketExists) {
+        logger.info(`Bucket ${BUCKET_NAME} not found, creating it...`);
+        
+        // Create the bucket with public access
+        const { error: createError } = await supabase.storage.createBucket(BUCKET_NAME, {
+          public: true,
+          fileSizeLimit: 5 * 1024 * 1024 // 5MB limit
+        });
+        
+        if (createError) {
+          logger.error("Failed to create bucket:", createError);
+          toast({
+            title: "Storage Setup Error",
+            description: "Could not create storage for photos. Please try again later.",
+            variant: "destructive",
+          });
+          return false;
+        }
+        
+        logger.info(`Successfully created bucket: ${BUCKET_NAME}`);
+      } else {
+        logger.info(`Bucket ${BUCKET_NAME} already exists`);
+      }
+      
+      return true;
+    } catch (error) {
+      logger.error("Error in ensureStorageBucket:", error);
+      return false;
+    }
+  };
+
   const uploadPhotos = async (files: File[], currentPhotosLength: number): Promise<PhotoUploadResult> => {
     if (!files.length || !propertyId) {
       logger.info("No files or propertyId provided");
@@ -98,6 +147,18 @@ export const usePhotoUpload = (propertyId: string | undefined) => {
           variant: "destructive",
         });
         return { success: false, error: "Database table error" };
+      }
+      
+      // Then ensure the storage bucket exists
+      const bucketExists = await ensureStorageBucket();
+      if (!bucketExists) {
+        logger.error(`${BUCKET_NAME} bucket could not be created or accessed`);
+        toast({
+          title: "Storage Error",
+          description: "Could not prepare the storage for photo uploads. Please try again later.",
+          variant: "destructive",
+        });
+        return { success: false, error: "Storage bucket error" };
       }
       
       // Process each file
@@ -129,13 +190,13 @@ export const usePhotoUpload = (propertyId: string | undefined) => {
           
           // Create a unique file name
           const fileExt = file.name.split('.').pop();
-          const fileName = `property-photos/${propertyId}/${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+          const fileName = `${propertyId}/${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
           
           logger.info(`Uploading file: ${fileName}`);
           
           // Upload to Supabase Storage
           const { data, error: uploadError } = await supabase.storage
-            .from('property-photos')
+            .from(BUCKET_NAME)
             .upload(fileName, file, {
               cacheControl: '3600',
               contentType: file.type,
@@ -151,7 +212,7 @@ export const usePhotoUpload = (propertyId: string | undefined) => {
           
           // Get public URL
           const { data: urlData } = supabase.storage
-            .from('property-photos')
+            .from(BUCKET_NAME)
             .getPublicUrl(fileName);
           
           if (!urlData?.publicUrl) {
@@ -208,7 +269,8 @@ export const usePhotoUpload = (propertyId: string | undefined) => {
       
       return { 
         success: uploadSuccess,
-        uploadedFiles
+        uploadedFiles,
+        count: uploadedFiles.length
       };
     } catch (error) {
       logger.error('Error in photo upload process:', error);

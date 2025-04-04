@@ -11,6 +11,7 @@ export const usePhotoSync = () => {
 
   /**
    * Synchronizes photos from property_photos table to property_listings.images array
+   * @returns boolean indicating success or failure
    */
   const syncPhotosWithListing = async (propertyId: string): Promise<boolean> => {
     if (!propertyId) {
