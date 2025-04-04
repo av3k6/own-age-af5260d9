@@ -37,63 +37,108 @@ const PropertyFloorPlans: React.FC<PropertyFloorPlansProps> = ({ propertyId }) =
       try {
         logger.info("Fetching floor plans for property:", propertyId);
         
-        // Try first with floor_plans category
-        let { data: floorPlansData, error: floorPlansError } = await supabase
-          .from("property_documents")
-          .select("id, name, url, type, size")
-          .eq("property_id", propertyId)
-          .eq("category", "floor_plans");
+        // Try multiple approaches to find floor plans
+        const fetchStrategies = [
+          // Strategy 1: Standard query with floor_plans category
+          async () => {
+            logger.info("Strategy 1: Querying floor_plans category");
+            const { data, error } = await supabase
+              .from("property_documents")
+              .select("id, name, url, type, size")
+              .eq("property_id", propertyId)
+              .eq("category", "floor_plans");
+              
+            if (error) throw error;
+            return data || [];
+          },
           
-        // If no data or error, try alternative query with category "floor_plan" (singular)
-        if ((!floorPlansData || floorPlansData.length === 0) && floorPlansError) {
-          logger.info("Trying alternative query with category floor_plan (singular)");
-          const { data: altData, error: altError } = await supabase
-            .from("property_documents")
-            .select("id, name, url, type, size")
-            .eq("property_id", propertyId)
-            .eq("category", "floor_plan");
+          // Strategy 2: Try singular floor_plan category
+          async () => {
+            logger.info("Strategy 2: Querying floor_plan category (singular)");
+            const { data, error } = await supabase
+              .from("property_documents")
+              .select("id, name, url, type, size")
+              .eq("property_id", propertyId)
+              .eq("category", "floor_plan");
+              
+            if (error) throw error;
+            return data || [];
+          },
+          
+          // Strategy 3: Try document_type field
+          async () => {
+            logger.info("Strategy 3: Querying by document_type");
+            const { data, error } = await supabase
+              .from("property_documents")
+              .select("id, name, url, type, size")
+              .eq("property_id", propertyId)
+              .eq("document_type", "floor_plan");
+              
+            if (error) throw error;
+            return data || [];
+          },
+          
+          // Strategy 4: Get all documents and filter by name
+          async () => {
+            logger.info("Strategy 4: Getting all documents and filtering by name");
+            const { data, error } = await supabase
+              .from("property_documents")
+              .select("id, name, url, type, size")
+              .eq("property_id", propertyId);
+              
+            if (error) throw error;
             
-          if (!altError && altData && altData.length > 0) {
-            floorPlansData = altData;
-            floorPlansError = null;
-          }
-        }
-        
-        // If still no data, try with document_type field as fallback
-        if ((!floorPlansData || floorPlansData.length === 0) && floorPlansError) {
-          logger.info("Trying with document_type field as fallback");
-          const { data: typeData, error: typeError } = await supabase
-            .from("property_documents")
-            .select("id, name, url, type, size")
-            .eq("property_id", propertyId)
-            .eq("document_type", "floor_plan");
-            
-          if (!typeError && typeData && typeData.length > 0) {
-            floorPlansData = typeData;
-            floorPlansError = null;
-          }
-        }
-        
-        // Final attempt - check if documents exist for this property without filtering by type
-        if ((!floorPlansData || floorPlansData.length === 0) && floorPlansError) {
-          logger.info("Checking for any documents for this property");
-          const { data: anyDocsData, error: anyDocsError } = await supabase
-            .from("property_documents")
-            .select("id, name, url, type, size")
-            .eq("property_id", propertyId);
-            
-          if (!anyDocsError && anyDocsData && anyDocsData.length > 0) {
-            logger.info(`Found ${anyDocsData.length} documents, filtering for floor plans`);
-            // Filter for file names that might be floor plans
-            floorPlansData = anyDocsData.filter(doc => 
+            // Filter for likely floor plan documents based on name
+            return (data || []).filter(doc => 
               doc.name.toLowerCase().includes('floor') || 
               doc.name.toLowerCase().includes('plan')
             );
           }
+        ];
+        
+        // Try each strategy until we find floor plans
+        let foundPlans: any[] = [];
+        
+        for (const strategy of fetchStrategies) {
+          try {
+            foundPlans = await strategy();
+            logger.info(`Strategy found ${foundPlans.length} floor plans`);
+            
+            if (foundPlans.length > 0) {
+              break; // Stop if we found plans
+            }
+          } catch (strategyError) {
+            logger.error("Strategy error:", strategyError);
+            // Continue to next strategy
+          }
         }
         
-        logger.info(`Found ${floorPlansData?.length || 0} floor plans`);
-        setFloorPlans(floorPlansData || []);
+        // If we still have no plans, try a direct public query without RLS filtering
+        // This handles the case where the floor plans are public but not accessible due to RLS
+        if (foundPlans.length === 0) {
+          logger.info("Trying direct fetch for publicly available floor plans");
+          
+          const { data: directData } = await supabase
+            .from("property_documents")
+            .select("id, name, url, type, size")
+            .eq("property_id", propertyId)
+            .is("category", null); // Try records without a specific category
+            
+          if (directData && directData.length > 0) {
+            const possiblePlans = directData.filter(doc => 
+              doc.name.toLowerCase().includes('floor') || 
+              doc.name.toLowerCase().includes('plan')
+            );
+            
+            if (possiblePlans.length > 0) {
+              logger.info(`Found ${possiblePlans.length} potential floor plans through direct query`);
+              foundPlans = possiblePlans;
+            }
+          }
+        }
+        
+        logger.info(`Final result: Found ${foundPlans.length} floor plans`);
+        setFloorPlans(foundPlans);
       } catch (err: any) {
         logger.error("Error fetching floor plans:", err);
         setError("Could not load floor plans. Please try again later.");

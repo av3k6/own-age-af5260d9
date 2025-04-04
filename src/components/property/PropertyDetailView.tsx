@@ -29,14 +29,18 @@ const PropertyDetailView = ({ property }: { property: PropertyListing }) => {
   
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Property Header */}
+      {/* Property Header with improved dark mode contrast */}
       <div className="mb-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">{property.title}</h1>
+            <h1 className="text-3xl font-bold text-primary">
+              {property.title}
+            </h1>
             <div className="flex items-center text-muted-foreground">
               <MapPin className="h-4 w-4 mr-1" />
-              <span>{property.address.street}, {property.address.city}, {property.address.state} {property.address.zipCode}</span>
+              <span className="text-secondary-foreground">
+                {property.address.street}, {property.address.city}, {property.address.state} {property.address.zipCode}
+              </span>
             </div>
           </div>
           {isOwner && (
@@ -71,7 +75,7 @@ const PropertyDetailView = ({ property }: { property: PropertyListing }) => {
           <PropertyFeatures property={property} />
           <PropertyRoomDetails propertyId={property.id} roomDetails={property.roomDetails} />
           
-          {/* Floor Plans Section */}
+          {/* Floor Plans Section with enhanced component */}
           <div className="bg-card rounded-lg p-6 shadow-sm">
             <PropertyFloorPlans propertyId={property.id} />
           </div>
