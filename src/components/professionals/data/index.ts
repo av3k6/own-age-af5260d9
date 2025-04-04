@@ -9,7 +9,7 @@ import { roofing } from './roofing';
 import { chimney } from './chimney';
 import { pest } from './pest';
 import { mold } from './mold';
-import { asbestos } from './asbestos';
+import { asbestosInspectors as asbestos } from './asbestos';
 import { radon } from './radon';
 import { septic } from './septic';
 import { well } from './well';
