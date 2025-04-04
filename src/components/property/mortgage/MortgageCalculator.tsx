@@ -158,7 +158,7 @@ const MortgageCalculator = ({ propertyPrice }: MortgageCalculatorProps) => {
     <Card className="p-6 space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Mortgage Calculator</h2>
-        <Tabs defaultValue="calculator" value={activeTab} onValueChange={setActiveTab} className="w-full max-w-md">
+        <Tabs defaultValue={activeTab} value={activeTab} onValueChange={setActiveTab} className="w-full max-w-md">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="calculator" className="flex items-center gap-2">
               <Home className="h-4 w-4" />
@@ -169,66 +169,66 @@ const MortgageCalculator = ({ propertyPrice }: MortgageCalculatorProps) => {
               <span>Compare ({scenarios.length})</span>
             </TabsTrigger>
           </TabsList>
+        
+          <TabsContent value="calculator" className="pt-2">
+            <MortgageInputs 
+              homePrice={currentScenario.homePrice}
+              term={currentScenario.term}
+              rate={currentScenario.rate}
+              downPayment={currentScenario.downPayment}
+              downPaymentPercent={currentScenario.downPaymentPercent}
+              onHomePriceChange={handleHomePriceChange}
+              onTermChange={(value) => setCurrentScenario(prev => ({ ...prev, term: value }))}
+              onRateChange={(value) => setCurrentScenario(prev => ({ ...prev, rate: value }))}
+              onDownPaymentChange={handleDownPaymentChange}
+              onDownPaymentPercentChange={handleDownPaymentPercentChange}
+            />
+            
+            <MortgagePaymentSummary monthlyPayment={currentScenario.monthlyPayment} />
+            
+            <CashFlowAnalysis
+              monthlyPayment={currentScenario.monthlyPayment}
+              propertyTax={currentScenario.propertyTax}
+              maintenanceCost={currentScenario.maintenanceCost}
+              rentalIncome={currentScenario.rentalIncome}
+              cashFlow={currentScenario.cashFlow}
+              onPropertyTaxChange={(value) => setCurrentScenario(prev => ({ ...prev, propertyTax: value }))}
+              onMaintenanceCostChange={(value) => setCurrentScenario(prev => ({ ...prev, maintenanceCost: value }))}
+              onRentalIncomeChange={(value) => setCurrentScenario(prev => ({ ...prev, rentalIncome: value }))}
+            />
+
+            <div className="flex justify-end mt-6">
+              <Button onClick={saveScenario} className="flex items-center gap-2">
+                <PlusCircle className="h-4 w-4" />
+                Save Scenario
+              </Button>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="compare" className="pt-2">
+            {scenarios.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground mb-4">No scenarios to compare yet.</p>
+                <Button onClick={() => {
+                  createNewScenario();
+                  setActiveTab("calculator");
+                }}>
+                  Create First Scenario
+                </Button>
+              </div>
+            ) : (
+              <ScenarioComparison 
+                scenarios={scenarios}
+                onDelete={deleteScenario}
+                onCreateNew={() => {
+                  createNewScenario();
+                  setActiveTab("calculator");
+                }}
+              />
+            )}
+          </TabsContent>
         </Tabs>
       </div>
-      
-      <TabsContent value="calculator" className="pt-2">
-        <MortgageInputs 
-          homePrice={currentScenario.homePrice}
-          term={currentScenario.term}
-          rate={currentScenario.rate}
-          downPayment={currentScenario.downPayment}
-          downPaymentPercent={currentScenario.downPaymentPercent}
-          onHomePriceChange={handleHomePriceChange}
-          onTermChange={(value) => setCurrentScenario(prev => ({ ...prev, term: value }))}
-          onRateChange={(value) => setCurrentScenario(prev => ({ ...prev, rate: value }))}
-          onDownPaymentChange={handleDownPaymentChange}
-          onDownPaymentPercentChange={handleDownPaymentPercentChange}
-        />
-        
-        <MortgagePaymentSummary monthlyPayment={currentScenario.monthlyPayment} />
-        
-        <CashFlowAnalysis
-          monthlyPayment={currentScenario.monthlyPayment}
-          propertyTax={currentScenario.propertyTax}
-          maintenanceCost={currentScenario.maintenanceCost}
-          rentalIncome={currentScenario.rentalIncome}
-          cashFlow={currentScenario.cashFlow}
-          onPropertyTaxChange={(value) => setCurrentScenario(prev => ({ ...prev, propertyTax: value }))}
-          onMaintenanceCostChange={(value) => setCurrentScenario(prev => ({ ...prev, maintenanceCost: value }))}
-          onRentalIncomeChange={(value) => setCurrentScenario(prev => ({ ...prev, rentalIncome: value }))}
-        />
-
-        <div className="flex justify-end mt-6">
-          <Button onClick={saveScenario} className="flex items-center gap-2">
-            <PlusCircle className="h-4 w-4" />
-            Save Scenario
-          </Button>
-        </div>
-      </TabsContent>
-      
-      <TabsContent value="compare" className="pt-2">
-        {scenarios.length === 0 ? (
-          <div className="text-center py-8">
-            <p className="text-muted-foreground mb-4">No scenarios to compare yet.</p>
-            <Button onClick={() => {
-              createNewScenario();
-              setActiveTab("calculator");
-            }}>
-              Create First Scenario
-            </Button>
-          </div>
-        ) : (
-          <ScenarioComparison 
-            scenarios={scenarios}
-            onDelete={deleteScenario}
-            onCreateNew={() => {
-              createNewScenario();
-              setActiveTab("calculator");
-            }}
-          />
-        )}
-      </TabsContent>
     </Card>
   );
 };
