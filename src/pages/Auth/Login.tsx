@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import AuthPageLayout from "@/components/auth/AuthPageLayout";
@@ -17,6 +17,7 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [authProgress, setAuthProgress] = useState(0);
   const [formError, setFormError] = useState("");
+  const [captchaToken, setCaptchaToken] = useState<string | undefined>(undefined);
   
   const { toast } = useToast();
   const { signIn, user, isInitialized, sessionStatus, refreshSession } = useAuth();
@@ -32,7 +33,14 @@ const Login = () => {
     }
   }, [sessionStatus]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleCaptchaVerify = useCallback((token: string) => {
+    console.log("Captcha verified with token:", token.substring(0, 10) + "...");
+    setCaptchaToken(token);
+    // Auto submit the form once captcha is verified
+    handleSubmit(new Event("submit") as unknown as React.FormEvent, token);
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent, token?: string) => {
     e.preventDefault();
     setFormError("");
     
@@ -48,14 +56,15 @@ const Login = () => {
       setAuthProgress(10);
       console.log("Login form submitting with email:", email);
       
-      const { error } = await signIn(email, password);
+      const { error } = await signIn(email, password, token || captchaToken);
       
       if (error) {
         console.error("Login error details:", error);
         
         // Handle specific captcha error and provide clearer message
         if (error.message?.includes('captcha')) {
-          setFormError("There was a captcha verification issue. Please try again or contact support if the issue persists.");
+          setFormError("Please complete the captcha verification to continue.");
+          setCaptchaToken(undefined); // Reset captcha token to trigger a new one
         } else {
           setFormError(error?.message || "Failed to sign in");
         }
@@ -123,6 +132,7 @@ const Login = () => {
           isLoading={isLoading}
           redirecting={redirecting}
           handleSubmit={handleSubmit}
+          onCaptchaVerify={handleCaptchaVerify}
         />
       </div>
     </AuthPageLayout>

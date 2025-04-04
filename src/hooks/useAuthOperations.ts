@@ -13,7 +13,7 @@ export const useAuthOperations = ({ supabase, setLoading }: UseAuthOperationsPro
   const { setupSessionTimeout, clearAllTimers } = useSessionManagement({ supabase });
 
   // Sign in
-  const signIn = useCallback(async (email: string, password: string) => {
+  const signIn = useCallback(async (email: string, password: string, captchaToken?: string) => {
     try {
       console.log('Attempting to sign in:', email);
       setLoading(true);
@@ -22,7 +22,7 @@ export const useAuthOperations = ({ supabase, setLoading }: UseAuthOperationsPro
         email,
         password,
         options: {
-          captchaToken: undefined // Set to undefined to avoid captcha requirement locally
+          captchaToken: captchaToken || undefined
         }
       });
       
@@ -50,7 +50,7 @@ export const useAuthOperations = ({ supabase, setLoading }: UseAuthOperationsPro
   }, [supabase, setLoading, setupSessionTimeout]);
 
   // Sign up
-  const signUp = useCallback(async (email: string, password: string, userData: { name?: string; role?: string }) => {
+  const signUp = useCallback(async (email: string, password: string, userData: { name?: string; role?: string }, captchaToken?: string) => {
     setLoading(true);
     try {
       // Simple signup with minimal data
@@ -62,7 +62,7 @@ export const useAuthOperations = ({ supabase, setLoading }: UseAuthOperationsPro
             full_name: userData.name || '',
             role: userData.role || 'buyer',
           },
-          captchaToken: undefined // Set to undefined to avoid captcha requirement locally
+          captchaToken: captchaToken || undefined
         }
       });
 

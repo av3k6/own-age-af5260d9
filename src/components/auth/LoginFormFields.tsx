@@ -1,11 +1,12 @@
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Icons } from "@/components/Icons";
 import { ValidationResult } from "@/hooks/useFormValidation";
+import HCaptcha from '@hcaptcha/react-hcaptcha';
 
 interface LoginFormFieldsProps {
   email: string;
@@ -18,7 +19,8 @@ interface LoginFormFieldsProps {
   passwordError: string;
   isLoading: boolean;
   redirecting: boolean;
-  handleSubmit: (e: React.FormEvent) => Promise<void>;
+  handleSubmit: (e: React.FormEvent, captchaToken?: string) => Promise<void>;
+  onCaptchaVerify: (token: string) => void;
 }
 
 export const LoginFormFields = ({
@@ -32,12 +34,24 @@ export const LoginFormFields = ({
   passwordError,
   isLoading,
   redirecting,
-  handleSubmit
+  handleSubmit,
+  onCaptchaVerify
 }: LoginFormFieldsProps) => {
   const [showPassword, setShowPassword] = useState(false);
+  const captchaRef = useRef<HCaptcha>(null);
+  
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (captchaRef.current) {
+      captchaRef.current.execute();
+    } else {
+      // Fallback if captcha isn't available
+      await handleSubmit(e);
+    }
+  };
   
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <form onSubmit={onSubmit} className="space-y-5">
       <div className="space-y-1">
         <div className="relative">
           <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
@@ -103,6 +117,15 @@ export const LoginFormFields = ({
         <Link to="/forgot-password" className="hover:underline text-primary">
           Forgot password?
         </Link>
+      </div>
+      
+      {/* hCaptcha component - hidden, will be executed programmatically */}
+      <div className="hidden">
+        <HCaptcha
+          ref={captchaRef}
+          sitekey="ac90e6af-987f-444f-9c78-a9e7a107ae4b"
+          onVerify={onCaptchaVerify}
+        />
       </div>
       
       <Button
