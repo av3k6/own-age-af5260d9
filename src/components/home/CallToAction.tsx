@@ -15,10 +15,9 @@ const CallToAction = () => {
       </div>
       <div className="relative container mx-auto px-6 py-8 text-white z-10">
         <div className="max-w-2xl">
-          <h2 className="text-4xl font-bold mb-4">Ready to Experience Agent-Free Real Estate?</h2>
+          <h2 className="text-4xl font-bold mb-4">Ready to Start Your Journey?</h2>
           <p className="text-lg mb-8">
-            Join thousands of buyers and sellers who are saving money and enjoying a stress-free
-            real estate experience with our platform.
+            Find your dream property or sell your home with our simple, agent-free platform.
           </p>
           <div className="flex flex-wrap gap-4">
             <Link to="/register">
