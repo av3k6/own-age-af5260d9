@@ -6,6 +6,10 @@ import { usePhotoOrder } from "./photos/usePhotoOrder";
 import { usePrimaryPhoto } from "./photos/usePrimaryPhoto";
 import { useDeletePhoto } from "./photos/useDeletePhoto";
 import { PropertyPhoto } from "./photos/types";
+import { usePhotoSync } from "./photos/usePhotoSync";
+import { createLogger } from "@/utils/logger";
+
+const logger = createLogger("usePhotoManagement");
 
 export const usePhotoManagement = (propertyId: string | undefined) => {
   // Combine all the hooks
@@ -14,16 +18,25 @@ export const usePhotoManagement = (propertyId: string | undefined) => {
   const { updatePhotoOrder, movePhotoUp, movePhotoDown } = usePhotoOrder(propertyId);
   const { setPrimaryPhoto } = usePrimaryPhoto(propertyId);
   const { deletePhoto: deletePhotoBase } = useDeletePhoto(propertyId);
+  const { syncPhotosWithListing } = usePhotoSync();
   
   // Custom deletePhoto function that combines all the needed hooks
   const deletePhoto = async (photoId: string) => {
-    return deletePhotoBase(
+    const result = await deletePhotoBase(
       photoId, 
       photos, 
       updatePhotoOrder, 
       setPrimaryPhoto,
       fetchPhotos
     );
+    
+    // After deletion, synchronize with property_listings
+    if (result && propertyId) {
+      logger.info("Photo deleted, syncing with property_listings");
+      await syncPhotosWithListing(propertyId);
+    }
+    
+    return result;
   };
   
   // Handle photo upload with current order context
@@ -31,6 +44,13 @@ export const usePhotoManagement = (propertyId: string | undefined) => {
     const result = await uploadPhotos(files, photos.length);
     if (result.success) {
       await fetchPhotos();
+      
+      // After upload, synchronize with property_listings
+      if (propertyId) {
+        logger.info("Photos uploaded, syncing with property_listings");
+        await syncPhotosWithListing(propertyId);
+      }
+      
       return true;
     }
     return false;
@@ -38,12 +58,28 @@ export const usePhotoManagement = (propertyId: string | undefined) => {
 
   // Move photo up wrapper
   const handleMovePhotoUp = async (index: number) => {
-    return movePhotoUp(photos, index, setPhotos);
+    const result = await movePhotoUp(photos, index, setPhotos);
+    
+    // After reordering, synchronize with property_listings
+    if (result && propertyId) {
+      logger.info("Photos reordered, syncing with property_listings");
+      await syncPhotosWithListing(propertyId);
+    }
+    
+    return result;
   };
 
   // Move photo down wrapper
   const handleMovePhotoDown = async (index: number) => {
-    return movePhotoDown(photos, index, setPhotos);
+    const result = await movePhotoDown(photos, index, setPhotos);
+    
+    // After reordering, synchronize with property_listings
+    if (result && propertyId) {
+      logger.info("Photos reordered, syncing with property_listings");
+      await syncPhotosWithListing(propertyId);
+    }
+    
+    return result;
   };
   
   // Support drag and drop reordering
@@ -64,7 +100,26 @@ export const usePhotoManagement = (propertyId: string | undefined) => {
     // Save to database
     await updatePhotoOrder(updatedPhotos);
     
+    // After reordering, synchronize with property_listings
+    if (propertyId) {
+      logger.info("Photos reordered via drag-drop, syncing with property_listings");
+      await syncPhotosWithListing(propertyId);
+    }
+    
     return true;
+  };
+
+  // Handle setting primary photo with synchronization
+  const handleSetPrimaryPhoto = async (photoId: string) => {
+    const result = await setPrimaryPhoto(photoId);
+    
+    // After setting primary photo, synchronize with property_listings
+    if (result && propertyId) {
+      logger.info("Primary photo updated, syncing with property_listings");
+      await syncPhotosWithListing(propertyId);
+    }
+    
+    return result;
   };
 
   // Initialize
@@ -73,6 +128,14 @@ export const usePhotoManagement = (propertyId: string | undefined) => {
       fetchPhotos();
     }
   }, [propertyId]);
+
+  // Perform initial sync when photos are first loaded
+  useEffect(() => {
+    if (propertyId && photos.length > 0) {
+      logger.info("Initial photo sync for property:", propertyId);
+      syncPhotosWithListing(propertyId);
+    }
+  }, [propertyId, photos.length === 0]); // Only run on initial load when photos change from 0
 
   return {
     photos,
@@ -83,8 +146,9 @@ export const usePhotoManagement = (propertyId: string | undefined) => {
     deletePhoto,
     movePhotoUp: handleMovePhotoUp,
     movePhotoDown: handleMovePhotoDown,
-    setPrimaryPhoto,
-    reorderPhotos
+    setPrimaryPhoto: handleSetPrimaryPhoto,
+    reorderPhotos,
+    syncPhotosWithListing
   };
 };
 

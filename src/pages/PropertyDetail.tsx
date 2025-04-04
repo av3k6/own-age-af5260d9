@@ -113,7 +113,30 @@ const PropertyDetail = () => {
           propertyData = data;
         }
         
+        // If we found a property, check if we need to fetch photos from property_photos table
         if (propertyData) {
+          // ENHANCEMENT: Check if we should fetch images from property_photos table
+          try {
+            logger.info("Fetching photos from property_photos table");
+            const { data: photoData, error: photoError } = await supabase
+              .from('property_photos')
+              .select('*')
+              .eq('property_id', id)
+              .order('display_order', { ascending: true });
+              
+            if (!photoError && photoData && photoData.length > 0) {
+              logger.info(`Found ${photoData.length} photos in property_photos table`);
+              // Override the images array from property_listings with photos from property_photos
+              const photoUrls = photoData.map(photo => photo.url);
+              propertyData.images = photoUrls;
+            } else {
+              logger.info("No photos found in property_photos or error occurred:", photoError);
+            }
+          } catch (photoFetchError) {
+            logger.error("Error fetching from property_photos:", photoFetchError);
+            // Continue with existing images if any
+          }
+          
           logger.info("Found property in database:", { id, title: propertyData.title });
           
           // Check if listing is pending and user is not the owner
