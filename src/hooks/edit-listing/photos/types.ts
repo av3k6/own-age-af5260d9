@@ -12,4 +12,5 @@ export interface PhotoUploadResult {
   success: boolean;
   error?: string;
   uploadedFiles?: File[];
+  count?: number; // Added this property to match the implementation
 }

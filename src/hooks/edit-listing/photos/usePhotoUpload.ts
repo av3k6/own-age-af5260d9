@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useSupabase } from "@/hooks/useSupabase";
 import { useToast } from "@/hooks/use-toast";
@@ -209,8 +208,7 @@ export const usePhotoUpload = (propertyId: string | undefined) => {
       
       return { 
         success: uploadSuccess,
-        uploadedFiles,
-        count: uploadedFiles.length
+        uploadedFiles
       };
     } catch (error) {
       logger.error('Error in photo upload process:', error);
