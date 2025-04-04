@@ -1,3 +1,4 @@
+
 import { supabase } from '@/lib/supabase';
 import { useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
@@ -37,10 +38,18 @@ export const useSupabase = () => {
   // Create a safe upload function that will always use the 'storage' bucket
   const safeUpload = async (path: string, fileBody: File, options?: any) => {
     try {
-      // Always use the 'storage' bucket which exists by default in Supabase
+      // Always use the 'property-photos' bucket first, fallback to 'storage' bucket
       const { data, error } = await supabase.storage
         .from('property-photos')
         .upload(path, fileBody, options);
+      
+      if (error && error.message && error.message.includes('violates row-level security policy')) {
+        // If RLS error, try with the default storage bucket
+        console.log('Falling back to default storage bucket due to RLS policy');
+        return await supabase.storage
+          .from('storage')
+          .upload(`property-photos/${path}`, fileBody, options);
+      }
       
       return { data, error };
     } catch (error) {
