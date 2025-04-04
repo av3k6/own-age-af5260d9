@@ -14,6 +14,8 @@ import ListingNumberDisplay from "@/components/property/ListingNumberDisplay";
 import { OpenHouseProvider } from "@/contexts/OpenHouseContext";
 import PropertyNotFound from "@/components/property/PropertyNotFound";
 import { createLogger } from "@/utils/logger";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { RefreshCcw } from "lucide-react";
 
 const logger = createLogger("EditListing");
 
@@ -25,7 +27,6 @@ export default function EditListing() {
   // Get tab from URL query or default to "basic"
   const tabFromQuery = searchParams.get("tab");
   const [activeTab, setActiveTab] = useState(tabFromQuery || "basic");
-  const [errorLoading, setErrorLoading] = useState<boolean>(false);
   
   const {
     form,
@@ -39,7 +40,9 @@ export default function EditListing() {
     setFloorPlans,
     saveProperty,
     propertyDetails,
-    error
+    error,
+    errorLoading,
+    fetchAttempted
   } = useEditListing(id);
 
   // Update URL when tab changes
@@ -55,10 +58,8 @@ export default function EditListing() {
     logger.info("EditListing: Rendered with activeTab:", activeTab);
     logger.info("EditListing: propertyId:", id);
     
-    // Check for error after initial loading
     if (error) {
       logger.error("EditListing: Error loading property:", error);
-      setErrorLoading(true);
     }
   }, [activeTab, id, error]);
 
@@ -67,8 +68,14 @@ export default function EditListing() {
     saveProperty(data);
   });
 
+  // Handle retrying the fetch
+  const handleRetry = () => {
+    logger.info("EditListing: Retrying property fetch");
+    window.location.reload();
+  };
+
   // Show property not found if there was an error loading the property
-  if (errorLoading) {
+  if (errorLoading && fetchAttempted) {
     return <PropertyNotFound errorType="edit-not-found" propertyId={id} />;
   }
 
@@ -80,6 +87,35 @@ export default function EditListing() {
             <div className="animate-pulse text-center">
               <p className="text-lg font-medium text-gray-500">Loading property data...</p>
             </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show an error message with retry button if there was an error but we don't want to show the not found page
+  if (error && !errorLoading) {
+    return (
+      <div className="container mx-auto px-4 py-12">
+        <div className="max-w-2xl mx-auto">
+          <Alert className="mb-6 bg-red-50 dark:bg-red-950/20 border-red-300">
+            <AlertTitle className="text-red-800 dark:text-red-300 text-lg font-semibold">
+              Error Loading Property
+            </AlertTitle>
+            <AlertDescription className="text-red-700 dark:text-red-400">
+              There was an issue loading the property data. This could be due to a network issue or the property may not exist.
+            </AlertDescription>
+          </Alert>
+          <div className="flex justify-center mt-4">
+            <Button onClick={handleRetry} className="flex items-center gap-2">
+              <RefreshCcw size={16} />
+              Retry
+            </Button>
+          </div>
+          <div className="mt-4 text-center">
+            <Link to={`/dashboard`} className="text-blue-600 hover:underline">
+              Return to dashboard
+            </Link>
           </div>
         </div>
       </div>

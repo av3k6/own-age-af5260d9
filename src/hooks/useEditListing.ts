@@ -8,11 +8,15 @@ import { usePropertyFetch } from "./edit-listing/usePropertyFetch";
 import { usePropertySave } from "./edit-listing/usePropertySave";
 import { editListingFormSchema, EditListingFormValues } from "@/types/edit-listing";
 import { PropertyRoomDetails } from "@/types";
+import { createLogger } from "@/utils/logger";
+
+const logger = createLogger("useEditListing");
 
 export const useEditListing = (propertyId: string | undefined) => {
   const [floorPlans, setFloorPlans] = useState<DocumentMetadata[]>([]);
   const [propertyDetails, setPropertyDetails] = useState<PropertyRoomDetails | undefined>(undefined);
   const [error, setError] = useState<Error | null>(null);
+  const [errorLoading, setErrorLoading] = useState(false);
 
   const form = useForm<EditListingFormValues>({
     resolver: zodResolver(editListingFormSchema),
@@ -39,7 +43,7 @@ export const useEditListing = (propertyId: string | undefined) => {
     form.watch
   );
 
-  const { isLoading, fetchError } = usePropertyFetch(
+  const { isLoading, fetchError, fetchAttempted } = usePropertyFetch(
     propertyId,
     { reset: form.reset },
     setBedroomRooms,
@@ -51,10 +55,18 @@ export const useEditListing = (propertyId: string | undefined) => {
   // Track any errors from property fetching
   useEffect(() => {
     if (fetchError) {
-      console.error("Error fetching property:", fetchError);
+      logger.error("Error fetching property:", fetchError);
       setError(fetchError);
+      setErrorLoading(true);
     }
   }, [fetchError]);
+
+  // Ensure we set errorLoading to true if we've attempted a fetch and got an error
+  useEffect(() => {
+    if (fetchAttempted && fetchError) {
+      setErrorLoading(true);
+    }
+  }, [fetchAttempted, fetchError]);
 
   const { isSaving, saveProperty } = usePropertySave(
     propertyId,
@@ -75,7 +87,9 @@ export const useEditListing = (propertyId: string | undefined) => {
     setFloorPlans,
     saveProperty,
     propertyDetails,
-    error
+    error,
+    errorLoading,
+    fetchAttempted
   };
 };
 

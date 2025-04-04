@@ -20,15 +20,23 @@ export const usePropertyFetch = (
   const { supabase } = useSupabase();
   const [isLoading, setIsLoading] = useState(true);
   const [fetchError, setFetchError] = useState<Error | null>(null);
+  const [fetchAttempted, setFetchAttempted] = useState(false);
 
   useEffect(() => {
     if (!propertyId) {
+      logger.error("No property ID provided");
       setIsLoading(false);
       setFetchError(new Error("No property ID provided"));
+      setFetchAttempted(true);
       return;
     }
 
     const fetchProperty = async () => {
+      if (fetchAttempted) {
+        // Prevent duplicate fetch attempts
+        return;
+      }
+      
       setIsLoading(true);
       setFetchError(null); // Reset error state
 
@@ -131,11 +139,12 @@ export const usePropertyFetch = (
         console.error("Failed to fetch property details:", error);
       } finally {
         setIsLoading(false);
+        setFetchAttempted(true);
       }
     };
 
     fetchProperty();
-  }, [propertyId, form, setBedroomRooms, setOtherRooms, setFloorPlans, setPropertyDetails, supabase, toast]);
+  }, [propertyId, form, setBedroomRooms, setOtherRooms, setFloorPlans, setPropertyDetails, supabase, toast, fetchAttempted]);
 
-  return { isLoading, fetchError };
+  return { isLoading, fetchError, fetchAttempted };
 };
