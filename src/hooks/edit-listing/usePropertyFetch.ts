@@ -1,133 +1,126 @@
-
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useSupabase } from "@/hooks/useSupabase";
-import { useAuth } from "@/contexts/AuthContext";
-import { Room, PropertyRoomDetails } from "@/types";
+import { Room } from "@/types";
 import { DocumentMetadata } from "@/types/document";
-import { UseFormReset } from "react-hook-form";
-import { EditListingFormValues } from "@/types/edit-listing";
 import { createLogger } from "@/utils/logger";
 
 const logger = createLogger("usePropertyFetch");
 
-export function usePropertyFetch(
+export const usePropertyFetch = (
   propertyId: string | undefined,
-  form: { reset: UseFormReset<EditListingFormValues> },
+  form: { reset: (values: any) => void },
   setBedroomRooms: (rooms: Room[]) => void,
   setOtherRooms: (rooms: Room[]) => void,
-  setFloorPlans: (floorPlans: DocumentMetadata[]) => void,
-  setPropertyDetails?: (details: PropertyRoomDetails) => void
-) {
-  const navigate = useNavigate();
+  setFloorPlans: (plans: DocumentMetadata[]) => void,
+  setPropertyDetails: (details: any) => void
+) => {
   const { toast } = useToast();
   const { supabase } = useSupabase();
-  const { user } = useAuth();
-  
   const [isLoading, setIsLoading] = useState(true);
-  const [hasInitialized, setHasInitialized] = useState(false);
-  
+
   useEffect(() => {
+    if (!propertyId) {
+      setIsLoading(false);
+      return;
+    }
+
     const fetchProperty = async () => {
-      if (!propertyId || !user) return;
+      setIsLoading(true);
 
       try {
-        logger.debug("Fetching property data for ID:", propertyId);
-        
-        const { data, error } = await supabase
+        // Fetch property listing data
+        const { data: propertyData, error: propertyError } = await supabase
           .from("property_listings")
           .select("*")
           .eq("id", propertyId)
           .single();
 
-        if (error) throw error;
-
-        if (data.seller_id !== user.id) {
-          toast({
-            title: "Permission Denied",
-            description: "You don't have permission to edit this listing.",
-            variant: "destructive",
-          });
-          navigate(`/property/${propertyId}`);
-          return;
+        if (propertyError || !propertyData) {
+          throw propertyError || new Error("Property not found");
         }
 
-        if (data.room_details?.bedrooms) {
-          setBedroomRooms(data.room_details.bedrooms);
-        }
+        // Format and set form data
+        form.reset({
+          title: propertyData.title || "",
+          description: propertyData.description || "",
+          price: propertyData.price || 0,
+          propertyType: propertyData.property_type || "HOUSE",
+          bedrooms: propertyData.bedrooms || 0,
+          bathrooms: propertyData.bathrooms || 0,
+          squareFeet: propertyData.square_feet || 0,
+          yearBuilt: propertyData.year_built || new Date().getFullYear(),
+          street: propertyData.address?.street || "",
+          city: propertyData.address?.city || "",
+          state: propertyData.address?.state || "",
+          zipCode: propertyData.address?.zipCode || "",
+          features: propertyData.features?.join(", ") || "",
+          status: propertyData.status || "ACTIVE",
+        });
+
+        // Set room details
+        const roomDetails = propertyData.room_details || {};
         
-        if (data.room_details?.otherRooms) {
-          setOtherRooms(data.room_details.otherRooms);
+        if (roomDetails.bedrooms) {
+          setBedroomRooms(roomDetails.bedrooms);
         }
+
+        if (roomDetails.otherRooms) {
+          setOtherRooms(roomDetails.otherRooms);
+        }
+
+        setPropertyDetails({
+          ...roomDetails,
+          listingNumber: propertyData.listing_number || undefined,
+        });
+
+        // Fetch floor plans from property_documents
+        logger.info("Fetching floor plans for property:", propertyId);
+        const { data: documentData, error: documentError } = await supabase
+          .from("property_documents")
+          .select("*")
+          .eq("property_id", propertyId)
+          .eq("category", "floor_plans");
         
-        // Save room details for use elsewhere
-        if (setPropertyDetails && data.room_details) {
-          // Add listing number to room details if available
-          const details = {
-            ...data.room_details,
-            listingNumber: data.listing_number || undefined
-          };
-          setPropertyDetails(details);
-        }
-
-        try {
-          const { data: documentsData, error: documentsError } = await supabase
-            .from("property_documents")
-            .select("*")
-            .eq("property_id", propertyId)
-            .eq("document_type", "floor_plan");
+        if (documentError) {
+          logger.error("Error fetching floor plans:", documentError);
+          // Non-fatal, continue without floor plans
+        } else if (documentData && documentData.length > 0) {
+          // Transform DB documents to DocumentMetadata format
+          const floorPlans: DocumentMetadata[] = documentData.map(doc => ({
+            id: doc.id,
+            name: doc.name,
+            type: doc.type,
+            size: doc.size,
+            url: doc.url,
+            path: doc.path,
+            uploadedBy: doc.uploaded_by,
+            createdAt: doc.created_at,
+            propertyId: doc.property_id,
+            category: doc.category,
+            description: doc.description
+          }));
           
-          if (documentsError) {
-            console.log("Property documents table may not exist:", documentsError);
-            
-            if (data.floor_plans && Array.isArray(data.floor_plans)) {
-              setFloorPlans(data.floor_plans);
-            }
-          } else if (documentsData && documentsData.length > 0) {
-            setFloorPlans(documentsData as unknown as DocumentMetadata[]);
-          }
-        } catch (docError) {
-          console.error("Error fetching floor plans:", docError);
+          logger.info(`Found ${floorPlans.length} floor plans`);
+          setFloorPlans(floorPlans);
+        } else {
+          logger.info("No floor plans found for property");
+          setFloorPlans([]);
         }
-
-        if (data && !hasInitialized) {
-          logger.debug("Initializing form with data. Status:", data.status);
-          
-          form.reset({
-            title: data.title,
-            description: data.description,
-            price: data.price,
-            propertyType: data.property_type,
-            bedrooms: data.bedrooms,
-            bathrooms: data.bathrooms,
-            squareFeet: data.square_feet,
-            yearBuilt: data.year_built,
-            street: data.address?.street || "",
-            city: data.address?.city || "",
-            state: data.address?.state || "",
-            zipCode: data.address?.zipCode || "",
-            features: data.features?.join(", ") || "",
-            status: data.status,
-          });
-          
-          setHasInitialized(true);
-        }
-      } catch (error) {
-        console.error("Error fetching property:", error);
+      } catch (error: any) {
         toast({
           title: "Error",
-          description: "Failed to load property details",
+          description: "Could not load property data. Please try again later.",
           variant: "destructive",
         });
-        navigate("/property-not-found");
+        console.error("Failed to fetch property details:", error);
       } finally {
         setIsLoading(false);
       }
     };
-    
+
     fetchProperty();
-  }, [propertyId, supabase, navigate, toast, user, form, setBedroomRooms, setOtherRooms, setFloorPlans, setPropertyDetails, hasInitialized]);
+  }, [propertyId, form, setBedroomRooms, setOtherRooms, setFloorPlans, setPropertyDetails, supabase, toast]);
 
   return { isLoading };
-}
+};

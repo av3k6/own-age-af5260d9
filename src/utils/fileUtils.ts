@@ -1,29 +1,38 @@
 
-export function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return bytes + ' bytes';
-  else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
-  else return (bytes / 1048576).toFixed(1) + ' MB';
-}
-
-export const getFileIcon = (fileName: string) => {
-  const extension = fileName.split('.').pop()?.toLowerCase();
+/**
+ * Formats a file size in bytes to a human-readable string
+ * @param bytes File size in bytes
+ * @returns Formatted string like "1.5 MB" or "800 KB"
+ */
+export const formatFileSize = (bytes: number): string => {
+  if (bytes === 0) return '0 Bytes';
   
-  switch(extension) {
-    case 'pdf':
-      return 'pdf';
-    case 'doc':
-    case 'docx':
-      return 'doc';
-    case 'xls':
-    case 'xlsx':
-      return 'xls';
-    case 'jpg':
-    case 'jpeg':
-    case 'png':
-      return 'image';
-    case 'txt':
-      return 'text';
-    default:
-      return 'file';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+  
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+};
+
+/**
+ * Gets the file extension from a filename
+ */
+export const getFileExtension = (filename: string): string => {
+  return filename.split('.').pop()?.toLowerCase() || '';
+};
+
+/**
+ * Checks if a file is an image based on its extension or type
+ */
+export const isImageFile = (file: File | string): boolean => {
+  const imageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+  const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+  
+  if (typeof file === 'string') {
+    const extension = getFileExtension(file);
+    return imageExtensions.includes(extension);
   }
+  
+  return imageTypes.includes(file.type);
 };

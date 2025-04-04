@@ -76,7 +76,8 @@ const FloorPlanUploader = ({ floorPlans, setFloorPlans, propertyId }: FloorPlanU
           ? `floor_plans/${propertyId}` 
           : `floor_plans/temp_${Date.now()}`;
           
-        const filePath = `${folderPath}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+        const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+        const filePath = `${folderPath}/${fileName}`;
         
         // Set intermediate progress
         setUploadProgress(30);
@@ -105,15 +106,16 @@ const FloorPlanUploader = ({ floorPlans, setFloorPlans, propertyId }: FloorPlanU
   
           // Create metadata for the new floor plan
           const newFloorPlan: DocumentMetadata = {
-            id: data.path || `${Date.now()}-${file.name}`,
+            id: `${Date.now()}-${file.name}`,
             name: file.name,
-            type: file.type,
+            type: file.type || 'application/octet-stream', // Ensure we have a type
             size: file.size,
             url: urlData.publicUrl,
             path: filePath,
             uploadedBy: user?.id || '',
             createdAt: new Date().toISOString(),
-            propertyId: propertyId
+            propertyId: propertyId,
+            category: 'floor_plans' // Add category for proper filtering
           };
   
           // Add the new floor plan to the list
@@ -137,7 +139,7 @@ const FloorPlanUploader = ({ floorPlans, setFloorPlans, propertyId }: FloorPlanU
           title: `${successCount} floor plan${successCount > 1 ? 's' : ''} uploaded`,
           description: errorCount > 0 
             ? `${errorCount} file${errorCount > 1 ? 's' : ''} failed to upload.` 
-            : "All floor plans uploaded successfully.",
+            : "All floor plans uploaded successfully. Be sure to save the listing to preserve your changes.",
           variant: errorCount > 0 ? "default" : "default"
         });
       }
@@ -182,6 +184,7 @@ const FloorPlanUploader = ({ floorPlans, setFloorPlans, propertyId }: FloorPlanU
         <Upload className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
         <h4 className="font-medium">Upload Floor Plans</h4>
         <p className="text-sm text-muted-foreground">Click to browse or drag and drop</p>
+        <p className="text-xs text-muted-foreground mt-1">Supported formats: PDF, JPG, PNG, DWG, DXF</p>
         <Input
           ref={fileInputRef}
           type="file"
@@ -203,6 +206,14 @@ const FloorPlanUploader = ({ floorPlans, setFloorPlans, propertyId }: FloorPlanU
           </div>
           <p className="text-xs text-center">Uploading: {uploadProgress}%</p>
         </div>
+      )}
+      
+      {floorPlans.length > 0 && (
+        <Alert>
+          <AlertDescription className="text-sm font-medium text-center">
+            Remember to click "Update Listing" to save your uploaded floor plans!
+          </AlertDescription>
+        </Alert>
       )}
     </div>
   );

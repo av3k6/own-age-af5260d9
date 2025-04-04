@@ -1,9 +1,14 @@
 
 import { DocumentMetadata } from "@/types/document";
 import { useSupabase } from "@/hooks/useSupabase";
+import { useToast } from "@/hooks/use-toast";
+import { createLogger } from "@/utils/logger";
+
+const logger = createLogger("useFloorPlanUpdate");
 
 export function useFloorPlanUpdate() {
   const { supabase } = useSupabase();
+  const { toast } = useToast();
 
   const updateFloorPlans = async (
     floorPlans: DocumentMetadata[], 
@@ -11,23 +16,28 @@ export function useFloorPlanUpdate() {
     userId: string
   ) => {
     try {
+      logger.info(`Updating ${floorPlans.length} floor plans for property ${propertyId}`);
+      
       if (floorPlans.length > 0) {
         for (const floorPlan of floorPlans) {
-          if (!floorPlan.id || !floorPlan.id.includes('/')) continue;
+          // Create a safe document ID
+          const documentId = floorPlan.id.replace(/[^a-zA-Z0-9-_]/g, '_');
           
           const documentData = {
-            id: floorPlan.id.replace(/\//g, '_'),
+            id: documentId,
             name: floorPlan.name,
             url: floorPlan.url,
             type: floorPlan.type,
             size: floorPlan.size,
             property_id: propertyId,
             uploaded_by: userId,
-            document_type: "floor_plan",
+            category: 'floor_plans',
             path: floorPlan.path,
-            created_at: floorPlan.createdAt
+            created_at: floorPlan.createdAt,
+            updated_at: new Date().toISOString()
           };
 
+          logger.info(`Checking if floor plan already exists: ${floorPlan.name}`);
           const { data: existingDoc, error: checkError } = await supabase
             .from("property_documents")
             .select("id")
@@ -35,23 +45,45 @@ export function useFloorPlanUpdate() {
             .eq("path", floorPlan.path)
             .maybeSingle();
 
-          if (!checkError) {
-            if (existingDoc) {
-              await supabase
-                .from("property_documents")
-                .update(documentData)
-                .eq("id", existingDoc.id);
-            } else {
-              await supabase
-                .from("property_documents")
-                .insert(documentData);
-            }
+          if (checkError) {
+            logger.error("Error checking existing document:", checkError);
+            continue;
+          }
+
+          let result;
+          if (existingDoc) {
+            logger.info(`Updating existing floor plan: ${existingDoc.id}`);
+            result = await supabase
+              .from("property_documents")
+              .update(documentData)
+              .eq("id", existingDoc.id);
+          } else {
+            logger.info(`Inserting new floor plan: ${documentId}`);
+            result = await supabase
+              .from("property_documents")
+              .insert(documentData);
+          }
+          
+          if (result?.error) {
+            logger.error("Error saving floor plan document:", result.error);
+            toast({
+              title: "Error saving floor plan",
+              description: `Could not save ${floorPlan.name} to the database`,
+              variant: "destructive",
+            });
+          } else {
+            logger.info(`Successfully saved floor plan: ${floorPlan.name}`);
           }
         }
       }
       return { success: true };
     } catch (documentError) {
-      console.warn("Could not save to property_documents table:", documentError);
+      logger.error("Could not save floor plans:", documentError);
+      toast({
+        title: "Error saving floor plans",
+        description: "Some floor plans could not be saved. Please try again.",
+        variant: "destructive",
+      });
       return { success: false, error: documentError };
     }
   };
