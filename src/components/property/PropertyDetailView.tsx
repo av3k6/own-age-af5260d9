@@ -33,8 +33,8 @@ const PropertyDetailView = ({ property }: { property: PropertyListing }) => {
       <div className="mb-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-zen-gray-800">{property.title}</h1>
-            <div className="flex items-center text-zen-gray-500">
+            <h1 className="text-3xl font-bold text-foreground">{property.title}</h1>
+            <div className="flex items-center text-muted-foreground">
               <MapPin className="h-4 w-4 mr-1" />
               <span>{property.address.street}, {property.address.city}, {property.address.state} {property.address.zipCode}</span>
             </div>
