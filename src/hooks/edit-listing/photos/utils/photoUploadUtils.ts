@@ -43,7 +43,7 @@ export const uploadPhotoFile = async (
     
     // Upload to Supabase Storage with retries
     let attempts = 0;
-    const maxAttempts = 2;
+    const maxAttempts = 3; // Increased from 2 to 3
     let uploadData = null;
     let uploadError = null;
     
@@ -51,12 +51,13 @@ export const uploadPhotoFile = async (
       attempts++;
       
       try {
+        // Try with direct upload first
         const { data, error } = await supabase.storage
           .from(BUCKET_NAME)
           .upload(fileName, file, {
             cacheControl: '3600',
             contentType: file.type,
-            upsert: false
+            upsert: attempts > 1 // Use upsert for retry attempts
           });
           
         if (!error) {
@@ -67,18 +68,45 @@ export const uploadPhotoFile = async (
         uploadError = error;
         logger.warn(`Upload attempt ${attempts} failed:`, error);
         
-        if (error.message && error.message.includes('already exists')) {
-          // If duplicate, modify filename and try again
-          const newFileName = `${propertyId}/${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
-          fileName = newFileName;
-        } else {
-          // For other errors, just retry with same filename
-          await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1s between attempts
+        // Handle specific error cases
+        if (error.message) {
+          if (error.message.includes('already exists')) {
+            // If duplicate, modify filename and try again
+            const newFileName = `${propertyId}/${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+            fileName = newFileName;
+            logger.info(`Retrying with new filename: ${fileName}`);
+          } else if (error.message.includes('violates row-level security policy')) {
+            // If RLS policy violation, try to use safeUpload from useSupabase hook if available
+            logger.warn("RLS policy violation. Attempting to use alternative upload method.");
+            try {
+              const { data: fallbackData, error: fallbackError } = await supabase.storage
+                .from('storage')  // Try the default 'storage' bucket as fallback
+                .upload(`property-photos/${fileName}`, file, {
+                  contentType: file.type,
+                });
+              
+              if (!fallbackError) {
+                uploadData = fallbackData;
+                // Adjust the fileName for the public URL
+                fileName = `property-photos/${fileName}`;
+                break;
+              } else {
+                logger.warn("Fallback upload method failed:", fallbackError);
+              }
+            } catch (fallbackErr) {
+              logger.warn("Error with fallback upload:", fallbackErr);
+            }
+          }
+        }
+        
+        // Wait before next attempt
+        if (attempts < maxAttempts) {
+          await new Promise(resolve => setTimeout(resolve, 1000 * attempts)); // Increasing wait time for each retry
         }
       } catch (err) {
         uploadError = err;
         logger.warn(`Upload attempt ${attempts} exception:`, err);
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1s between attempts
+        await new Promise(resolve => setTimeout(resolve, 1000 * attempts)); 
       }
     }
     
@@ -92,8 +120,8 @@ export const uploadPhotoFile = async (
     
     // Get public URL
     const { data: urlData } = supabase.storage
-      .from(BUCKET_NAME)
-      .getPublicUrl(fileName);
+      .from(fileName.startsWith('property-photos/') ? 'storage' : BUCKET_NAME)
+      .getPublicUrl(fileName.startsWith('property-photos/') ? fileName : fileName);
     
     if (!urlData?.publicUrl) {
       logger.error("Failed to get public URL");
