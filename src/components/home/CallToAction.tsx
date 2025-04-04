@@ -8,7 +8,7 @@ const CallToAction = () => {
     <section className="relative py-16 overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-r from-zen-blue-700 to-zen-blue-500 opacity-90">
         <img
-          src="public/lovable-uploads/f8ab30ab-c80f-45ce-bfa8-72ad4cb2d8c3.png"
+          src="/lovable-uploads/f8ab30ab-c80f-45ce-bfa8-72ad4cb2d8c3.png"
           alt="Luxury home with pool"
           className="w-full h-full object-cover mix-blend-overlay"
         />
@@ -30,7 +30,7 @@ const CallToAction = () => {
               <Button 
                 size="lg" 
                 variant="outline" 
-                className="border-white text-white bg-transparent hover:bg-white/20 dark:text-white dark:border-white dark:hover:bg-white/20 font-semibold"
+                className="border-white text-white bg-transparent hover:bg-white/20 hover:text-white dark:text-white dark:border-white dark:hover:bg-white/20 font-semibold"
               >
                 Learn More
               </Button>
