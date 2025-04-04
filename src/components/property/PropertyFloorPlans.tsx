@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useSupabase } from "@/hooks/useSupabase";
 import { Button } from "@/components/ui/button";
 import { FileIcon, Download, File } from "lucide-react";
-import { formatFileSize } from "@/utils/fileUtils"; 
+import { formatFileSize, getFileIconColor } from "@/utils/fileUtils"; 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { createLogger } from "@/utils/logger";
 
@@ -67,20 +67,9 @@ const PropertyFloorPlans: React.FC<PropertyFloorPlansProps> = ({ propertyId }) =
   // Get appropriate file icon based on file type
   const getFileIcon = (fileName: string) => {
     const extension = fileName.split('.').pop()?.toLowerCase();
+    const colorClass = getFileIconColor(fileName);
     
-    switch(extension) {
-      case 'pdf':
-        return <File className="h-8 w-8 text-red-500" />;
-      case 'dwg':
-      case 'dxf':
-        return <File className="h-8 w-8 text-blue-500" />;
-      case 'jpg':
-      case 'jpeg':
-      case 'png':
-        return <File className="h-8 w-8 text-green-500" />;
-      default:
-        return <FileIcon className="h-8 w-8 text-gray-500" />;
-    }
+    return <File className={`h-8 w-8 ${colorClass}`} />;
   };
 
   if (isLoading) {

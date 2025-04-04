@@ -37,31 +37,41 @@ export const isImageFile = (file: File | string): boolean => {
   return imageTypes.includes(file.type);
 };
 
-/**
- * Returns the appropriate file icon component for a given file name
- * @param fileName File name with extension
- * @returns A JSX element representing the file icon
- */
 import { File as FileIcon } from 'lucide-react';
 
-export const getFileIcon = (fileName: string) => {
+/**
+ * Returns the color class for a file icon based on the file extension
+ * @param fileName File name with extension
+ * @returns A color string to be used with the file icon
+ */
+export const getFileIconColor = (fileName: string): string => {
   const extension = getFileExtension(fileName);
-  
-  const iconProps = {
-    className: "h-8 w-8",
-  };
   
   switch(extension) {
     case 'pdf':
-      return <FileIcon {...iconProps} className="h-8 w-8 text-red-500" />;
+      return 'text-red-500';
     case 'dwg':
     case 'dxf':
-      return <FileIcon {...iconProps} className="h-8 w-8 text-blue-500" />;
+      return 'text-blue-500';
     case 'jpg':
     case 'jpeg':
     case 'png':
-      return <FileIcon {...iconProps} className="h-8 w-8 text-green-500" />;
+      return 'text-green-500';
     default:
-      return <FileIcon {...iconProps} className="h-8 w-8 text-gray-500" />;
+      return 'text-gray-500';
   }
+};
+
+/**
+ * Returns the appropriate file icon props for a given file name
+ * This is a utility function that doesn't return JSX elements directly
+ * It is used in components that render file icons
+ * 
+ * @param fileName File name with extension
+ * @returns Props to be applied to a FileIcon component
+ */
+export const getFileIconProps = (fileName: string) => {
+  return {
+    className: `h-8 w-8 ${getFileIconColor(fileName)}`,
+  };
 };
