@@ -52,7 +52,13 @@ const Login = () => {
       
       if (error) {
         console.error("Login error details:", error);
-        setFormError(error?.message || "Failed to sign in");
+        
+        // Handle specific captcha error and provide clearer message
+        if (error.message?.includes('captcha')) {
+          setFormError("There was a captcha verification issue. Please try again or contact support if the issue persists.");
+        } else {
+          setFormError(error?.message || "Failed to sign in");
+        }
         return;
       }
       

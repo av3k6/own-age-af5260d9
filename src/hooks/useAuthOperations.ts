@@ -21,6 +21,9 @@ export const useAuthOperations = ({ supabase, setLoading }: UseAuthOperationsPro
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
+        options: {
+          captchaToken: undefined // Set to undefined to avoid captcha requirement locally
+        }
       });
       
       if (error) {
@@ -59,7 +62,8 @@ export const useAuthOperations = ({ supabase, setLoading }: UseAuthOperationsPro
             full_name: userData.name || '',
             role: userData.role || 'buyer',
           },
-        },
+          captchaToken: undefined // Set to undefined to avoid captcha requirement locally
+        }
       });
 
       if (error) {

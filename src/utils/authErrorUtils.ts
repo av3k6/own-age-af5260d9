@@ -19,6 +19,8 @@ export const getAuthErrorMessage = (error: AuthError | Error | any): string => {
       return 'Your session has expired. Please sign in again.';
     } else if (error.message.includes('token expired')) {
       return 'Your authentication token has expired. Please sign in again.';
+    } else if (error.message.includes('captcha')) {
+      return 'Captcha verification is needed but not enabled on this device. Please try again.';
     }
   }
   

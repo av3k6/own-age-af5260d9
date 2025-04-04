@@ -56,6 +56,9 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
                 Sell
               </MobileNavLink>
             )}
+            <MobileNavLink to="/about" onClick={() => setOpen(false)}>
+              About
+            </MobileNavLink>
             <MobileNavLink to="/professionals" onClick={() => setOpen(false)}>
               Professionals
             </MobileNavLink>
