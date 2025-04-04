@@ -1,6 +1,9 @@
 
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Home, RefreshCw } from "lucide-react";
 
 interface MortgageInputsProps {
   homePrice: number;
@@ -27,80 +30,154 @@ const MortgageInputs = ({
   onDownPaymentChange,
   onDownPaymentPercentChange
 }: MortgageInputsProps) => {
+  // Available terms
+  const terms = [1, 2, 3, 4, 5, 6, 7, 10, 15, 20, 25, 30];
+  
+  // Current average rates based on the screenshot
+  const currentRates = [
+    { term: 1, rate: 5.19 },
+    { term: 2, rate: 4.24 },
+    { term: 3, rate: 3.79 },
+    { term: 4, rate: 4.19 },
+    { term: 5, rate: 3.74 },
+    { term: 6, rate: 5.14 },
+    { term: 7, rate: 4.49 },
+    { term: 10, rate: 5.25 },
+    { term: 15, rate: 4.95 },
+    { term: 20, rate: 5.15 },
+    { term: 25, rate: 5.35 },
+    { term: 30, rate: 5.45 },
+  ];
+  
+  // Get the current rate for the selected term
+  const getCurrentRate = (selectedTerm: number) => {
+    const found = currentRates.find(item => item.term === selectedTerm);
+    return found ? found.rate : rate;
+  };
+  
+  // Handle term change and auto-update rate based on current market rates
+  const handleTermChange = (value: string) => {
+    const newTerm = parseInt(value, 10);
+    onTermChange(newTerm);
+    
+    // Auto-update rate when term changes
+    const newRate = getCurrentRate(newTerm);
+    onRateChange(newRate);
+  };
+  
   return (
-    <div className="grid gap-4">
-      <div className="grid gap-2">
-        <label htmlFor="homePrice">Home Price:</label>
-        <div className="flex">
-          <span className="inline-flex items-center px-3 border border-r-0 border-input rounded-l-md bg-muted">
-            $
-          </span>
-          <Input 
-            id="homePrice"
-            type="text" 
-            value={homePrice.toLocaleString()}
-            onChange={(e) => onHomePriceChange(e.target.value)}
-            className="rounded-l-none"
-          />
+    <div className="space-y-6">
+      <div className="grid gap-6 sm:grid-cols-2">
+        {/* Transaction Type */}
+        <div className="space-y-2">
+          <Label>Transaction Type</Label>
+          <Select defaultValue="buying">
+            <SelectTrigger className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+              <SelectValue placeholder="Select transaction type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="buying">
+                <div className="flex items-center gap-2">
+                  <Home className="h-4 w-4" />
+                  <span>Buying a home</span>
+                </div>
+              </SelectItem>
+              <SelectItem value="refinancing">
+                <div className="flex items-center gap-2">
+                  <RefreshCw className="h-4 w-4" />
+                  <span>Refinancing</span>
+                </div>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        
+        {/* Home Price */}
+        <div className="space-y-2">
+          <Label htmlFor="homePrice">Purchase Price</Label>
+          <div className="flex">
+            <span className="inline-flex items-center px-3 border border-r-0 border-input rounded-l-md bg-muted">
+              $
+            </span>
+            <Input 
+              id="homePrice"
+              type="text" 
+              value={homePrice.toLocaleString()}
+              onChange={(e) => onHomePriceChange(e.target.value)}
+              className="rounded-l-none"
+            />
+          </div>
         </div>
       </div>
       
-      <div className="grid gap-2">
-        <label htmlFor="term">Term:</label>
-        <select 
-          id="term"
-          value={term}
-          onChange={(e) => onTermChange(Number(e.target.value))}
-          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-        >
-          <option value={15}>15 years</option>
-          <option value={20}>20 years</option>
-          <option value={25}>25 years</option>
-          <option value={30}>30 years</option>
-        </select>
-      </div>
-      
-      <div className="grid gap-2">
-        <label htmlFor="rate">Rate:</label>
-        <div className="flex">
-          <Input 
-            id="rate"
-            type="number"
-            step="0.01" 
-            value={rate}
-            onChange={(e) => onRateChange(Number(e.target.value))} 
-            className="rounded-r-none"
+      <div className="grid gap-6 sm:grid-cols-2">
+        {/* Down Payment */}
+        <div className="space-y-2">
+          <Label htmlFor="downPayment">Down Payment</Label>
+          <div className="flex">
+            <span className="inline-flex items-center px-3 border border-r-0 border-input rounded-l-md bg-muted">
+              $
+            </span>
+            <Input 
+              id="downPayment"
+              type="text"
+              value={downPayment.toLocaleString()}
+              onChange={(e) => onDownPaymentChange(e.target.value)}
+              className="rounded-l-none rounded-r-none"
+            />
+            <span className="inline-flex items-center px-3 border border-l-0 border-input rounded-r-md bg-muted min-w-[60px] justify-center">
+              {downPaymentPercent.toFixed(0)}%
+            </span>
+          </div>
+          <Slider
+            value={[downPaymentPercent]}
+            min={0}
+            max={100}
+            step={1}
+            onValueChange={onDownPaymentPercentChange}
+            className="mt-2"
           />
-          <span className="inline-flex items-center px-3 border border-l-0 border-input rounded-r-md bg-muted">
-            %
-          </span>
+        </div>
+      
+        {/* Term */}
+        <div className="space-y-2">
+          <Label htmlFor="term">Term</Label>
+          <Select value={term.toString()} onValueChange={handleTermChange}>
+            <SelectTrigger className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+              <SelectValue placeholder="Select term" />
+            </SelectTrigger>
+            <SelectContent>
+              {terms.map((t) => (
+                <SelectItem key={t} value={t.toString()}>
+                  {t}-yr {t === term && `(${getCurrentRate(t)}%)`}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
       
-      <div className="grid gap-2">
-        <label htmlFor="downPayment">Down Payment:</label>
-        <div className="flex">
-          <span className="inline-flex items-center px-3 border border-r-0 border-input rounded-l-md bg-muted">
-            $
-          </span>
-          <Input 
-            id="downPayment"
-            type="text"
-            value={downPayment.toLocaleString()}
-            onChange={(e) => onDownPaymentChange(e.target.value)}
-            className="rounded-l-none rounded-r-none"
-          />
-          <span className="inline-flex items-center px-3 border border-l-0 border-input rounded-r-md bg-muted">
-            {downPaymentPercent.toFixed(0)}%
-          </span>
+      {/* Interest Rate */}
+      <div className="grid gap-6 sm:grid-cols-2">
+        <div className="space-y-2">
+          <Label htmlFor="rate">Interest Rate</Label>
+          <div className="flex">
+            <Input 
+              id="rate"
+              type="number"
+              step="0.01" 
+              value={rate}
+              onChange={(e) => onRateChange(Number(e.target.value))} 
+              className="rounded-r-none"
+            />
+            <span className="inline-flex items-center px-3 border border-l-0 border-input rounded-r-md bg-muted">
+              %
+            </span>
+          </div>
+          <div className="text-xs text-muted-foreground mt-1">
+            Current market rate for {term}-year term: {getCurrentRate(term)}%
+          </div>
         </div>
-        <Slider
-          value={[downPaymentPercent]}
-          min={0}
-          max={100}
-          step={1}
-          onValueChange={onDownPaymentPercentChange}
-        />
       </div>
     </div>
   );
