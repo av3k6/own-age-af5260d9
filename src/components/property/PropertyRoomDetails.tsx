@@ -5,9 +5,10 @@ import { PropertyRoomDetails as PropertyRoomDetailsType } from '@/types';
 interface PropertyRoomDetailsProps {
   propertyId: string;
   roomDetails?: PropertyRoomDetailsType;
+  sellerId?: string; // Add the sellerId prop to fix the error
 }
 
-const PropertyRoomDetails: React.FC<PropertyRoomDetailsProps> = ({ propertyId, roomDetails }) => {
+const PropertyRoomDetails: React.FC<PropertyRoomDetailsProps> = ({ propertyId, roomDetails, sellerId }) => {
   if (!roomDetails) {
     return null;
   }
