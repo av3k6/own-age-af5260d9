@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { PropertyListing, ListingStatus } from "@/types";
@@ -24,7 +23,7 @@ export default function PropertyInformation({ property }: PropertyInformationPro
   const [isUpdating, setIsUpdating] = useState(false);
 
   // Determine seller display name based on ownership
-  const sellerDisplayName = isOwner ? "You (Property Owner)" : "Property Owner";
+  const sellerDisplayName = isOwner ? "You (Property Owner)" : property.sellerName || "Property Owner";
 
   // Function to toggle listing status
   const toggleListingStatus = async () => {
@@ -103,7 +102,7 @@ export default function PropertyInformation({ property }: PropertyInformationPro
           </div>
           
           <div className="text-center">
-            <p className="text-lg font-medium">{property.yearBuilt}</p>
+            <p className="text-lg font-medium">{property.yearBuilit || 'N/A'}</p>
             <p className="text-xs text-zen-gray-600">Year Built</p>
           </div>
         </div>

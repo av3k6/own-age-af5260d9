@@ -15,6 +15,8 @@ export interface PropertyListing {
   features: string[];
   images: string[];
   sellerId: string;
+  sellerName?: string; // Add seller name
+  sellerEmail?: string; // Add seller email
   status: ListingStatus;
   createdAt: Date;
   updatedAt: Date;

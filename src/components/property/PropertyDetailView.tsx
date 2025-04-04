@@ -10,10 +10,11 @@ import PropertyFeatures from "./PropertyFeatures";
 import PropertyLocation from "./PropertyLocation";
 import PropertyRoomDetails from "./PropertyRoomDetails";
 import PropertyInformation from "./PropertyInformation";
+import PropertyFloorPlans from "./PropertyFloorPlans";
+import MortgageCalculator from "./MortgageCalculator";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { isPropertyOwner } from "@/utils/propertyOwnershipUtils";
-import PropertyFloorPlans from "./PropertyFloorPlans";
 
 const PropertyDetailView = ({ property }: { property: PropertyListing }) => {
   const { user } = useAuth();
@@ -77,6 +78,9 @@ const PropertyDetailView = ({ property }: { property: PropertyListing }) => {
           </div>
           
           <PropertyLocation property={property} />
+          
+          {/* Add Mortgage Calculator below Location */}
+          <MortgageCalculator propertyPrice={property.price} />
         </div>
 
         {/* Sidebar Content - Only show on desktop */}

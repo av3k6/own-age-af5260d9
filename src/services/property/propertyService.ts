@@ -22,7 +22,7 @@ export const fetchPropertyFromDatabase = async (
     // Try the primary query with property ID
     const { data, error } = await supabase
       .from("property_listings")
-      .select("*")
+      .select("*, room_details, seller_name, seller_email")
       .eq("id", propertyId)
       .single();
       
@@ -33,7 +33,7 @@ export const fetchPropertyFromDatabase = async (
       
       const { data: emailData, error: emailError } = await supabase
         .from("property_listings")
-        .select("*")
+        .select("*, room_details, seller_name, seller_email")
         .eq("seller_email", userEmail)
         .eq("id", propertyId)
         .single();

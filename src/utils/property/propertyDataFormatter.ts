@@ -22,6 +22,8 @@ export const formatPropertyData = (
     features: propertyData.features || [],
     images: propertyData.images || [],
     sellerId: propertyData.seller_id || userId || "",
+    sellerName: propertyData.seller_name || "Property Owner", // Add default seller name
+    sellerEmail: propertyData.seller_email || "", // Add seller email
     status: propertyData.status,
     createdAt: new Date(propertyData.created_at),
     updatedAt: new Date(propertyData.updated_at),

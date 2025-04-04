@@ -37,7 +37,7 @@ const PropertyFloorPlans: React.FC<PropertyFloorPlansProps> = ({ propertyId }) =
       try {
         logger.info("Fetching floor plans for property:", propertyId);
         
-        // Try first with floor_plans category (plural form)
+        // Try first with more specific query for property_documents table with "floor_plans" category
         let { data: floorPlansData, error: floorPlansError } = await supabase
           .from("property_documents")
           .select("id, name, url, type, size")
@@ -63,7 +63,7 @@ const PropertyFloorPlans: React.FC<PropertyFloorPlansProps> = ({ propertyId }) =
           }
         }
         
-        // If still no data, try with document_type field as fallback
+        // Try with document_type field as fallback
         if (!floorPlansData || floorPlansData.length === 0) {
           logger.info("No data with categories, trying with document_type field");
           const { data: typeData, error: typeError } = await supabase
@@ -80,9 +80,9 @@ const PropertyFloorPlans: React.FC<PropertyFloorPlansProps> = ({ propertyId }) =
           }
         }
         
-        // Final attempt - check if documents exist for this property without filtering by type
+        // Fallback to any documents with "floor" or "plan" in their name
         if (!floorPlansData || floorPlansData.length === 0) {
-          logger.info("No floor plans found with specific categories, checking for any documents with floor plan in the name");
+          logger.info("No floor plans found with specific categories, checking for any documents");
           const { data: anyDocsData, error: anyDocsError } = await supabase
             .from("property_documents")
             .select("id, name, url, type, size")
@@ -91,24 +91,63 @@ const PropertyFloorPlans: React.FC<PropertyFloorPlansProps> = ({ propertyId }) =
           logger.info(`Any documents query result: ${anyDocsData?.length || 0} documents found, error: ${anyDocsError?.message || 'none'}`);
             
           if (!anyDocsError && anyDocsData && anyDocsData.length > 0) {
-            logger.info(`Found ${anyDocsData.length} documents, filtering for floor plans`);
             // Filter for file names that might be floor plans
             floorPlansData = anyDocsData.filter(doc => 
               doc.name.toLowerCase().includes('floor') || 
               doc.name.toLowerCase().includes('plan')
             );
             
-            logger.info(`After filtering for floor plans: ${floorPlansData.length} documents found`);
+            logger.info(`After filtering for floor plans: ${floorPlansData?.length || 0} documents found`);
           }
         }
         
-        logger.info(`Found ${floorPlansData?.length || 0} floor plans`);
+        // Fallback to try the property_listings.documents field if it's an array
+        if (!floorPlansData || floorPlansData.length === 0) {
+          logger.info("Checking property_listings.documents field as a last resort");
+          const { data: listingData, error: listingError } = await supabase
+            .from("property_listings")
+            .select("documents")
+            .eq("id", propertyId)
+            .single();
+          
+          if (!listingError && listingData && Array.isArray(listingData.documents) && listingData.documents.length > 0) {
+            // Filter documents that might be floor plans
+            const possibleFloorPlans = listingData.documents.filter((doc: any) => {
+              if (!doc || typeof doc !== 'object') return false;
+              
+              const nameMatch = doc.name && typeof doc.name === 'string' && (
+                doc.name.toLowerCase().includes('floor') || 
+                doc.name.toLowerCase().includes('plan')
+              );
+              
+              const categoryMatch = doc.category && typeof doc.category === 'string' && (
+                doc.category.toLowerCase() === 'floor_plan' || 
+                doc.category.toLowerCase() === 'floor_plans'
+              );
+              
+              return nameMatch || categoryMatch;
+            });
+            
+            if (possibleFloorPlans.length > 0) {
+              floorPlansData = possibleFloorPlans;
+              logger.info(`Found ${possibleFloorPlans.length} floor plans in property_listings.documents`);
+            }
+          }
+        }
+        
+        logger.info(`Final floor plans count: ${floorPlansData?.length || 0}`);
         
         if (floorPlansData && floorPlansData.length > 0) {
           // Validate URLs before setting the data
-          const validatedPlans = floorPlansData.filter(plan => plan.url && typeof plan.url === 'string');
-          logger.info(`After URL validation: ${validatedPlans.length} floor plans with valid URLs`);
+          const validatedPlans = floorPlansData.filter(plan => 
+            plan && 
+            plan.url && 
+            typeof plan.url === 'string' && 
+            plan.name && 
+            typeof plan.name === 'string'
+          );
           
+          logger.info(`After validation: ${validatedPlans.length} floor plans with valid URLs`);
           setFloorPlans(validatedPlans);
         } else {
           setFloorPlans([]);
