@@ -10,7 +10,8 @@ import {
   MessageSquare, 
   Settings,
   Building2,
-  Users
+  Users,
+  File
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useSupabase } from "@/hooks/useSupabase";
@@ -186,6 +187,19 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <p className="text-xs text-muted-foreground">Update your personal information and preferences</p>
+            </CardContent>
+          </Card>
+        </Link>
+        
+        {/* New card for Document Requirements */}
+        <Link to="/document-requirements">
+          <Card className="h-full transition-all hover:shadow-md">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Document Requirements</CardTitle>
+              <File className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <p className="text-xs text-muted-foreground">View required documents for listing your property by province</p>
             </CardContent>
           </Card>
         </Link>

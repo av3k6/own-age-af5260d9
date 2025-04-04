@@ -1,159 +1,111 @@
-
-import React, { Suspense } from 'react';
+import React from "react";
 import {
-  BrowserRouter as Router,
-  Route,
-  Routes,
-  Navigate,
-} from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
-import { ThemeProvider } from './contexts/ThemeContext';
-import { Toaster } from '@/components/ui/toaster';
-import { ErrorBoundary } from '@/components/ErrorBoundary';
-import ProtectedRoute from '@/components/auth/ProtectedRoute';
-import { UserRole } from '@/types';
-import { HelmetProvider } from 'react-helmet-async';
+  createBrowserRouter,
+  RouterProvider,
+} from "react-router-dom";
+import { ThemeProvider } from "@/components/theme-provider"
+import { ErrorBoundary } from 'react-error-boundary';
+import Layout from "@/components/layout/Layout";
+import Home from "@/pages/Home";
+import Login from "@/pages/Login";
+import Register from "@/pages/Register";
+import NotFound from "@/pages/NotFound";
+import Sell from "@/pages/Sell";
+import Dashboard from "@/pages/Dashboard";
+import Profile from "@/pages/Profile";
+import PropertyDetail from "@/pages/PropertyDetail";
+import EditListing from "@/pages/EditListing";
+import DocumentManagement from "@/pages/DocumentManagement";
+import Showings from "@/pages/Showings";
+import Messages from "@/pages/Messages";
+import BusinessEdit from "@/pages/BusinessEdit";
+import AdminDashboard from "@/pages/AdminDashboard";
+import { Toaster } from "@/components/ui/toaster"
 
-// Pages
-import Home from './pages/Index';
-import Buy from "@/pages/buy";
-import Sell from './pages/Sell';
-import Dashboard from './pages/Dashboard';
-import Login from './pages/Auth/Login';
-import Signup from './pages/Auth/Signup';
-import Profile from './pages/UserProfile';
-import PropertyDetail from './pages/PropertyDetail';
-import MakeOffer from "./pages/MakeOffer";
-import EditListing from "./pages/EditListing";
-import UserShowings from "./pages/UserShowings";
-import Layout from './pages/Layout';
-import NotFound from './pages/NotFound';
-import DocumentManagement from './pages/DocumentManagement';
-import Messaging from './pages/Messaging';
-import Professionals from './pages/Professionals';
-import AdminLogin from './pages/Admin/AdminLogin';
-import AdminDashboard from './pages/Admin/AdminDashboard';
-import UserListings from './components/user/UserListings';
-import Contact from './pages/Contact';
-import About from './pages/About';
-
-// Professional components - lazy loaded
-const ProfessionalsList = React.lazy(() => import('./components/professionals/ProfessionalsList'));
-const ProfessionalDetail = React.lazy(() => import('./components/professionals/ProfessionalDetail'));
-const EditBusinessProfile = React.lazy(() => import('./components/professionals/EditBusinessProfile'));
-
-// Loading fallback component
-const LoadingFallback = () => (
-  <div className="flex h-screen w-full items-center justify-center">
-    <div className="animate-pulse text-center">
-      <p className="text-lg font-medium text-gray-500">Loading application...</p>
-    </div>
-  </div>
-);
+// Add the import for DocumentRequirements
+import DocumentRequirements from "./pages/DocumentRequirements";
 
 function App() {
-  console.log("App component rendering");
   return (
-    <Router>
-      <ErrorBoundary>
-        <HelmetProvider>
-          <ThemeProvider>
-            <AuthProvider>
-              <Suspense fallback={<LoadingFallback />}>
-                <Routes>
-                  {/* Auth routes without Layout */}
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/signup" element={<Signup />} />
-                  <Route path="/admin/login" element={<AdminLogin />} />
-                  
-                  {/* Public routes with Layout */}
-                  <Route element={<Layout />}>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/buy" element={<Buy />} />
-                    <Route path="/about" element={<About />} />
-                    <Route path="/property/:id" element={<PropertyDetail />} />
-                    <Route path="/professionals" element={<Professionals />} />
-                    <Route path="/professionals/:category" element={<ProfessionalsList />} />
-                    <Route path="/professionals/:category/:id" element={<ProfessionalDetail />} />
-                    <Route path="/contact" element={<Contact />} />
-                  </Route>
-                  
-                  {/* Protected routes with Layout */}
-                  <Route element={<Layout />}>
-                    <Route path="/dashboard" element={
-                      <ProtectedRoute>
-                        <Dashboard />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/dashboard/listings" element={
-                      <ProtectedRoute>
-                        <UserListings />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/profile" element={
-                      <ProtectedRoute>
-                        <Profile />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/sell" element={
-                      <ProtectedRoute requiredRole={[UserRole.SELLER, UserRole.PROFESSIONAL]}>
-                        <Sell />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/showings" element={
-                      <ProtectedRoute>
-                        <UserShowings />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/property/:id/make-offer" element={
-                      <ProtectedRoute requiredRole={UserRole.BUYER}>
-                        <MakeOffer />
-                      </ProtectedRoute>
-                    } />
-                    
-                    {/* Edit listing routes - support both URL patterns */}
-                    <Route path="/property/:id/edit" element={
-                      <ProtectedRoute requiredRole={UserRole.SELLER}>
-                        <EditListing />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/edit-listing/:id" element={
-                      <ProtectedRoute requiredRole={UserRole.SELLER}>
-                        <EditListing />
-                      </ProtectedRoute>
-                    } />
-                    
-                    <Route path="/documents" element={
-                      <ProtectedRoute>
-                        <DocumentManagement />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/messages" element={
-                      <ProtectedRoute>
-                        <Messaging />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/business/edit" element={
-                      <ProtectedRoute requiredRole={UserRole.PROFESSIONAL}>
-                        <EditBusinessProfile />
-                      </ProtectedRoute>
-                    } />
-                    <Route path="/admin/dashboard" element={
-                      <ProtectedRoute adminRoute={true}>
-                        <AdminDashboard />
-                      </ProtectedRoute>
-                    } />
-                  </Route>
-                  
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-                <Toaster />
-              </Suspense>
-            </AuthProvider>
-          </ThemeProvider>
-        </HelmetProvider>
-      </ErrorBoundary>
-    </Router>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <RouterProvider
+          router={createBrowserRouter([
+            {
+              path: "/",
+              element: <Layout />,
+              errorElement: <NotFound />,
+              children: [
+                {
+                  path: "/",
+                  element: <Home />,
+                },
+                {
+                  path: "/login",
+                  element: <Login />,
+                },
+                {
+                  path: "/register",
+                  element: <Register />,
+                },
+                {
+                  path: "/sell",
+                  element: <Sell />,
+                },
+                {
+                  path: "/dashboard",
+                  element: <Dashboard />,
+                },
+                {
+                  path: "/dashboard/listings",
+                  element: <Dashboard />,
+                },
+                {
+                  path: "/profile",
+                  element: <Profile />,
+                },
+                {
+                  path: "/property/:id",
+                  element: <PropertyDetail />,
+                },
+                {
+                  path: "/edit-listing/:id",
+                  element: <EditListing />,
+                },
+                {
+                  path: "/document-management",
+                  element: <DocumentManagement />,
+                },
+                {
+                  path: "/showings",
+                  element: <Showings />,
+                },
+                {
+                  path: "/messages",
+                  element: <Messages />,
+                },
+                {
+                  path: "/business/edit",
+                  element: <BusinessEdit />,
+                },
+                {
+                  path: "/admin/dashboard",
+                  element: <AdminDashboard />,
+                },
+                
+                // Add the new route for DocumentRequirements
+                {
+                  path: "/document-requirements",
+                  element: <DocumentRequirements />,
+                },
+                
+              ],
+            },
+          ])}
+        />
+        <Toaster />
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }
 
