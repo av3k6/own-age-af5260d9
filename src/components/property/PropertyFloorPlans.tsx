@@ -66,9 +66,7 @@ const PropertyFloorPlans: React.FC<PropertyFloorPlansProps> = ({ propertyId }) =
   
   // Get appropriate file icon based on file type
   const getFileIcon = (fileName: string) => {
-    const extension = fileName.split('.').pop()?.toLowerCase();
     const colorClass = getFileIconColor(fileName);
-    
     return <File className={`h-8 w-8 ${colorClass}`} />;
   };
 

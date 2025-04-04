@@ -3,6 +3,7 @@ import { DocumentMetadata } from "@/types/document";
 import { useSupabase } from "@/hooks/useSupabase";
 import { useToast } from "@/hooks/use-toast";
 import { createLogger } from "@/utils/logger";
+import { v4 as uuidv4 } from 'uuid';
 
 const logger = createLogger("useFloorPlanUpdate");
 
@@ -20,8 +21,8 @@ export function useFloorPlanUpdate() {
       
       if (floorPlans.length > 0) {
         for (const floorPlan of floorPlans) {
-          // Create a safe document ID
-          const documentId = floorPlan.id.replace(/[^a-zA-Z0-9-_]/g, '_');
+          // Generate a valid UUID for document ID instead of using the filename
+          const documentId = uuidv4();
           
           const documentData = {
             id: documentId,
@@ -33,7 +34,7 @@ export function useFloorPlanUpdate() {
             uploaded_by: userId,
             category: 'floor_plans',
             path: floorPlan.path,
-            created_at: floorPlan.createdAt,
+            created_at: floorPlan.createdAt || new Date().toISOString(),
             updated_at: new Date().toISOString()
           };
 

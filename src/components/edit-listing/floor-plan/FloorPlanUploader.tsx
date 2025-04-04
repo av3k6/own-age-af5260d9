@@ -8,6 +8,7 @@ import { DocumentMetadata } from "@/types/document";
 import { Upload } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { createLogger } from "@/utils/logger";
+import { v4 as uuidv4 } from 'uuid';
 
 const logger = createLogger("FloorPlanUploader");
 
@@ -104,9 +105,9 @@ const FloorPlanUploader = ({ floorPlans, setFloorPlans, propertyId }: FloorPlanU
             throw new Error("Failed to get public URL for the uploaded file");
           }
   
-          // Create metadata for the new floor plan
+          // Create metadata for the new floor plan with a valid UUID as id
           const newFloorPlan: DocumentMetadata = {
-            id: `${Date.now()}-${file.name}`,
+            id: uuidv4(),
             name: file.name,
             type: file.type || 'application/octet-stream', // Ensure we have a type
             size: file.size,
