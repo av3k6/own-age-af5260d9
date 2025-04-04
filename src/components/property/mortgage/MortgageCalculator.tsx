@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -47,7 +46,6 @@ const MortgageCalculator = ({ propertyPrice }: MortgageCalculatorProps) => {
     cashFlow: 0
   });
   
-  // Calculate mortgage payment
   const calculateMortgage = (scenario: MortgageScenario) => {
     const principal = scenario.homePrice - scenario.downPayment;
     const monthlyInterest = scenario.rate / 100 / 12;
@@ -64,12 +62,10 @@ const MortgageCalculator = ({ propertyPrice }: MortgageCalculatorProps) => {
     return monthlyPayment;
   };
 
-  // Calculate cash flow
   const calculateCashFlow = (mortgagePayment: number, scenario: MortgageScenario) => {
     return scenario.rentalIncome - mortgagePayment - scenario.propertyTax - scenario.maintenanceCost;
   };
 
-  // Update current scenario calculations
   useEffect(() => {
     const payment = calculateMortgage(currentScenario);
     const flow = calculateCashFlow(payment, currentScenario);
@@ -89,7 +85,6 @@ const MortgageCalculator = ({ propertyPrice }: MortgageCalculatorProps) => {
     currentScenario.rentalIncome
   ]);
 
-  // Handle home price changes
   const handleHomePriceChange = (value: string) => {
     const price = parseFloat(value.replace(/,/g, '')) || 0;
     setCurrentScenario(prev => ({
@@ -100,7 +95,6 @@ const MortgageCalculator = ({ propertyPrice }: MortgageCalculatorProps) => {
     }));
   };
 
-  // Handle down payment changes
   const handleDownPaymentChange = (value: string) => {
     const payment = parseFloat(value.replace(/,/g, '')) || 0;
     setCurrentScenario(prev => ({
@@ -110,7 +104,6 @@ const MortgageCalculator = ({ propertyPrice }: MortgageCalculatorProps) => {
     }));
   };
 
-  // Handle down payment percent slider
   const handleDownPaymentPercentChange = (value: number[]) => {
     const percent = value[0];
     setCurrentScenario(prev => ({
@@ -120,7 +113,6 @@ const MortgageCalculator = ({ propertyPrice }: MortgageCalculatorProps) => {
     }));
   };
 
-  // Save current scenario
   const saveScenario = () => {
     const newScenario = {
       ...currentScenario,
@@ -131,7 +123,6 @@ const MortgageCalculator = ({ propertyPrice }: MortgageCalculatorProps) => {
     setScenarios([...scenarios, newScenario]);
   };
 
-  // Create new scenario
   const createNewScenario = () => {
     setCurrentScenario({
       id: "default",
@@ -149,28 +140,31 @@ const MortgageCalculator = ({ propertyPrice }: MortgageCalculatorProps) => {
     });
   };
 
-  // Delete a scenario
   const deleteScenario = (id: string) => {
     setScenarios(scenarios.filter(scenario => scenario.id !== id));
   };
 
   return (
-    <Card className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Mortgage Calculator</h2>
-        <Tabs defaultValue={activeTab} value={activeTab} onValueChange={setActiveTab} className="w-full max-w-md">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="calculator" className="flex items-center gap-2">
-              <Home className="h-4 w-4" />
-              <span>Calculator</span>
+    <Card className="p-8 space-y-8 max-w-6xl mx-auto">
+      <div className="flex flex-col space-y-4">
+        <h2 className="text-3xl font-bold">Mortgage Calculator</h2>
+        <p className="text-muted-foreground mb-4">
+          Calculate mortgage payments and analyze potential cash flow for your investment property.
+        </p>
+        
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-6">
+            <TabsTrigger value="calculator" className="flex items-center gap-2 py-3">
+              <Home className="h-5 w-5" />
+              <span className="text-base">Calculator</span>
             </TabsTrigger>
-            <TabsTrigger value="compare" className="flex items-center gap-2">
-              <RefreshCw className="h-4 w-4" />
-              <span>Compare ({scenarios.length})</span>
+            <TabsTrigger value="compare" className="flex items-center gap-2 py-3">
+              <RefreshCw className="h-5 w-5" />
+              <span className="text-base">Compare ({scenarios.length})</span>
             </TabsTrigger>
           </TabsList>
         
-          <TabsContent value="calculator" className="pt-2">
+          <TabsContent value="calculator" className="space-y-8 pt-4">
             <MortgageInputs 
               homePrice={currentScenario.homePrice}
               term={currentScenario.term}
@@ -197,22 +191,30 @@ const MortgageCalculator = ({ propertyPrice }: MortgageCalculatorProps) => {
               onRentalIncomeChange={(value) => setCurrentScenario(prev => ({ ...prev, rentalIncome: value }))}
             />
 
-            <div className="flex justify-end mt-6">
-              <Button onClick={saveScenario} className="flex items-center gap-2">
-                <PlusCircle className="h-4 w-4" />
+            <div className="flex justify-end mt-8">
+              <Button 
+                onClick={saveScenario} 
+                className="flex items-center gap-2 text-base py-6 px-6"
+                size="lg"
+              >
+                <PlusCircle className="h-5 w-5" />
                 Save Scenario
               </Button>
             </div>
           </TabsContent>
           
-          <TabsContent value="compare" className="pt-2">
+          <TabsContent value="compare" className="space-y-8 pt-4">
             {scenarios.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground mb-4">No scenarios to compare yet.</p>
-                <Button onClick={() => {
-                  createNewScenario();
-                  setActiveTab("calculator");
-                }}>
+              <div className="text-center py-16">
+                <p className="text-xl text-muted-foreground mb-6">No scenarios to compare yet.</p>
+                <Button 
+                  onClick={() => {
+                    createNewScenario();
+                    setActiveTab("calculator");
+                  }}
+                  size="lg"
+                  className="py-6 px-8 text-base"
+                >
                   Create First Scenario
                 </Button>
               </div>

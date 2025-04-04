@@ -7,7 +7,7 @@ const MortgageCalculatorPage = () => {
   const [propertyPrice, setPropertyPrice] = useState<number>(350000); // Default starting price
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-12">
       <Helmet>
         <title>Mortgage Calculator | TransacZen Haven</title>
         <meta 
@@ -16,9 +16,9 @@ const MortgageCalculatorPage = () => {
         />
       </Helmet>
 
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6">Mortgage Calculator</h1>
-        <p className="text-muted-foreground mb-8">
+      <div className="mx-auto">
+        <h1 className="text-4xl font-bold mb-6">Mortgage Calculator</h1>
+        <p className="text-xl text-muted-foreground mb-10 max-w-4xl">
           Plan your home purchase with our advanced mortgage calculator. 
           Customize your loan terms, compare different scenarios, and analyze potential cash flow.
         </p>
