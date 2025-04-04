@@ -1,8 +1,8 @@
-
 import React from "react";
 import { Helmet } from "react-helmet-async";
 import { Home, Users, Award, MessageSquare, Check } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 const AboutPage: React.FC = () => {
   return (
@@ -135,51 +135,48 @@ const AboutPage: React.FC = () => {
           </p>
           
           <div className="grid md:grid-cols-3 gap-8">
-            {/* Team Member 1 */}
+            {/* CEO */}
             <div className="text-center">
               <div className="w-48 h-48 bg-gray-200 rounded-full mx-auto mb-4 overflow-hidden">
-                <img 
-                  src="/placeholder.svg" 
-                  alt="CEO" 
-                  className="w-full h-full object-cover"
-                />
+                <Avatar className="w-full h-full">
+                  <AvatarImage src="/placeholder.svg" alt="CEO" />
+                  <AvatarFallback>JR</AvatarFallback>
+                </Avatar>
               </div>
-              <h3 className="text-xl font-bold text-zen-gray-900">Alexandra Chen</h3>
+              <h3 className="text-xl font-bold text-zen-gray-900">Justin Redmond</h3>
               <p className="text-primary font-medium mb-2">Chief Executive Officer</p>
               <p className="text-zen-gray-600 text-sm">
-                With over 15 years in real estate and technology, Alexandra leads our vision to transform the industry.
+                With over 15 years in real estate and technology, Justin leads our vision to transform the industry.
               </p>
             </div>
             
-            {/* Team Member 2 */}
+            {/* CTO */}
             <div className="text-center">
               <div className="w-48 h-48 bg-gray-200 rounded-full mx-auto mb-4 overflow-hidden">
-                <img 
-                  src="/placeholder.svg" 
-                  alt="CTO" 
-                  className="w-full h-full object-cover"
-                />
+                <Avatar className="w-full h-full">
+                  <AvatarImage src="/placeholder.svg" alt="CTO" />
+                  <AvatarFallback>JM</AvatarFallback>
+                </Avatar>
               </div>
-              <h3 className="text-xl font-bold text-zen-gray-900">Marcus Johnson</h3>
+              <h3 className="text-xl font-bold text-zen-gray-900">John Mortal</h3>
               <p className="text-primary font-medium mb-2">Chief Technology Officer</p>
               <p className="text-zen-gray-600 text-sm">
-                Marcus brings extensive experience in building scalable platforms that simplify complex processes.
+                John brings extensive experience in building scalable platforms that simplify complex processes.
               </p>
             </div>
             
-            {/* Team Member 3 */}
+            {/* COO */}
             <div className="text-center">
               <div className="w-48 h-48 bg-gray-200 rounded-full mx-auto mb-4 overflow-hidden">
-                <img 
-                  src="/placeholder.svg" 
-                  alt="COO" 
-                  className="w-full h-full object-cover"
-                />
+                <Avatar className="w-full h-full">
+                  <AvatarImage src="/placeholder.svg" alt="COO" />
+                  <AvatarFallback>KC</AvatarFallback>
+                </Avatar>
               </div>
-              <h3 className="text-xl font-bold text-zen-gray-900">Sophia Rodriguez</h3>
+              <h3 className="text-xl font-bold text-zen-gray-900">Kirsti Champoux</h3>
               <p className="text-primary font-medium mb-2">Chief Operating Officer</p>
               <p className="text-zen-gray-600 text-sm">
-                Sophia ensures our day-to-day operations deliver exceptional value to all our users.
+                Kirsti ensures our day-to-day operations deliver exceptional value to all our users.
               </p>
             </div>
           </div>
