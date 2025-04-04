@@ -42,10 +42,10 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
     >
       <Heart
         className={cn(
-          "h-[1.2em] w-[1.2em] transition-colors",
+          "h-[1.2em] w-[1.2em] transition-colors stroke-[2px]",
           isFavorited 
             ? "fill-red-500 text-red-500" 
-            : "fill-transparent group-hover:text-red-500"
+            : "fill-transparent text-red-500 group-hover:text-red-500"
         )}
       />
       {showText && (
