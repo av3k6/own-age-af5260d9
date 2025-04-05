@@ -12,14 +12,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 const logger = createLogger("FavoritePropertiesSection");
 
 const FavoritePropertiesSection = () => {
-  const [favoriteProperties, setFavoriteProperties] = useState<PropertyListing[]>([]);
+  const [favouriteProperties, setFavouriteProperties] = useState<PropertyListing[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { favorites, isLoading: favoritesLoading } = useFavorites();
   const { supabase } = useSupabase();
   const { toast } = useToast();
 
   useEffect(() => {
-    const fetchFavoriteProperties = async () => {
+    const fetchFavouriteProperties = async () => {
       if (favoritesLoading || !favorites || favorites.length === 0) {
         setIsLoading(false);
         return;
@@ -33,10 +33,10 @@ const FavoritePropertiesSection = () => {
           .in("id", favorites);
 
         if (error) {
-          logger.error("Error fetching favorite properties:", error);
+          logger.error("Error fetching favourite properties:", error);
           toast({
             title: "Error",
-            description: "Failed to load favorite properties",
+            description: "Failed to load favourite properties",
             variant: "destructive"
           });
           return;
@@ -66,23 +66,23 @@ const FavoritePropertiesSection = () => {
             roomDetails: {}
           }));
           
-          setFavoriteProperties(formattedProperties);
+          setFavouriteProperties(formattedProperties);
         }
       } catch (error) {
-        logger.error("Exception fetching favorite properties:", error);
+        logger.error("Exception fetching favourite properties:", error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchFavoriteProperties();
+    fetchFavouriteProperties();
   }, [favorites, favoritesLoading, supabase, toast]);
 
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle className="text-xl">Favorite Properties</CardTitle>
-        <CardDescription>Properties you've marked as favorites</CardDescription>
+        <CardTitle className="text-xl">Favourite Properties</CardTitle>
+        <CardDescription>Properties you've marked as favourites</CardDescription>
       </CardHeader>
       
       <CardContent>
@@ -99,19 +99,19 @@ const FavoritePropertiesSection = () => {
               </div>
             ))}
           </div>
-        ) : favoriteProperties.length > 0 ? (
+        ) : favouriteProperties.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {favoriteProperties.map((property) => (
+            {favouriteProperties.map((property) => (
               <PropertyCard key={property.id} property={property} />
             ))}
           </div>
         ) : (
           <div className="text-center py-12">
             <p className="text-muted-foreground mb-2">
-              You haven't added any properties to your favorites yet
+              You haven't added any properties to your favourites yet
             </p>
             <p className="text-sm text-muted-foreground">
-              Click the heart icon on any property to add it to your favorites
+              Click the heart icon on any property to add it to your favourites
             </p>
           </div>
         )}

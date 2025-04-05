@@ -38,7 +38,7 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
         className
       )}
       onClick={handleClick}
-      aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
+      aria-label={isFavorited ? "Remove from favourites" : "Add to favourites"}
     >
       <Heart
         className={cn(
@@ -50,7 +50,7 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
       />
       {showText && (
         <span className="ml-2">
-          {isFavorited ? "Favorited" : "Favorite"}
+          {isFavorited ? "Favourited" : "Favourite"}
         </span>
       )}
     </Button>
