@@ -97,9 +97,10 @@ export const usePropertyDetail = (propertyId: string | undefined) => {
           dbProperty.roomDetails = {};
         }
         
-        // Ensure sellerName has a value if available from seller_name property
-        if (!dbProperty.sellerName && dbProperty.seller_name) {
-          dbProperty.sellerName = dbProperty.seller_name as string;
+        // Handle database field naming mismatch
+        // The database returns seller_name but our type uses sellerName
+        if (!dbProperty.sellerName && (dbProperty as any).seller_name) {
+          dbProperty.sellerName = (dbProperty as any).seller_name;
         }
         
         // If we still don't have a seller name, try to fetch it
