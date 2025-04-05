@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { Link } from "react-router-dom";
@@ -49,6 +48,8 @@ const Dashboard = () => {
   useEffect(() => {
     if (!user?.id) return;
 
+    console.log("Dashboard: Fetching counts for user", user.id, user.email);
+
     const fetchCounts = async () => {
       setIsLoading(true);
       try {
@@ -67,6 +68,7 @@ const Dashboard = () => {
           });
         } else {
           setPropertyCount(propertiesCount || 0);
+          console.log("Found properties for user:", propertiesCount);
         }
         
         // Fetch documents count
@@ -144,7 +146,7 @@ const Dashboard = () => {
       </p>
       
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-12">
-        <Link to="/dashboard/listings">
+        <Link to="/user/listings">
           <Card className="h-full transition-all hover:shadow-md">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">My Properties</CardTitle>

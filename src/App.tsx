@@ -1,4 +1,3 @@
-
 import React from "react";
 import {
   createBrowserRouter,
@@ -30,6 +29,7 @@ import Professionals from "./pages/Professionals";
 import Buy from "./pages/buy";
 import MortgageCalculator from "./pages/MortgageCalculator";
 import { AuthProvider } from "./contexts/AuthContext";
+import UserListings from "./components/user/UserListings";
 
 function App() {
   return (
@@ -69,8 +69,12 @@ function App() {
                       element: <Dashboard />,
                     },
                     {
+                      path: "/user/listings",
+                      element: <UserListings />,
+                    },
+                    {
                       path: "/dashboard/listings",
-                      element: <Dashboard />,
+                      element: <UserListings />,
                     },
                     {
                       path: "/profile",

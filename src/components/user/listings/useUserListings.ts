@@ -26,6 +26,7 @@ export const useUserListings = () => {
       if (!user) return;
       
       logger.info("Fetching listings for user:", user.id, user.email);
+      console.log("useUserListings: Current user:", user.id, user.email);
       setDebugInfo(`Logged in user: ID=${user.id || 'unknown'}, Email=${user.email || 'unknown'}`);
       
       try {
@@ -51,6 +52,7 @@ export const useUserListings = () => {
         } else {
           // Log all listings for debugging
           logger.info("All listings found in Supabase:", allDbListings?.length || 0);
+          console.log("All listings in DB:", JSON.stringify(allDbListings));
           setDebugInfo(prev => `${prev}\n📊 Total listings in Supabase: ${allDbListings?.length || 0}`);
           
           if (allDbListings && allDbListings.length > 0) {
@@ -72,17 +74,13 @@ export const useUserListings = () => {
                 
                 if (matchesId) {
                   logger.info(`Found listing ${listing.id} matching user ID ${user.id}`);
+                  console.log(`Found listing matching user ID ${user.id}:`, listing.id);
                   setDebugInfo(prev => `${prev}\n✅ Found listing matching your ID: ${listing.id}`);
                 }
                 if (matchesEmail) {
                   logger.info(`Found listing ${listing.id} matching user email ${user.email}`);
+                  console.log(`Found listing matching user email ${user.email}:`, listing.id);
                   setDebugInfo(prev => `${prev}\n✅ Found listing matching your email: ${listing.id}`);
-                }
-                
-                // Look for your specific listing ID
-                if (listing.id === "74f46615-8c3d-4e68-8704-212ffe40d454") {
-                  logger.info(`Found your specific listing: ${listing.id}, seller_id: ${listing.seller_id}`);
-                  setDebugInfo(prev => `${prev}\n🎯 Found your specific listing! Owner: ${listing.seller_id}`);
                 }
                 
                 return matchesId || matchesEmail;
@@ -113,6 +111,8 @@ export const useUserListings = () => {
                 features: listing.features || [],
                 images: listing.images || [],
                 sellerId: listing.seller_id || user.id,
+                sellerEmail: listing.seller_email,
+                sellerName: listing.seller_name,
                 status: (listing.status as ListingStatus) || ListingStatus.ACTIVE,
                 createdAt: new Date(listing.created_at),
                 updatedAt: new Date(listing.updated_at),
@@ -128,11 +128,11 @@ export const useUserListings = () => {
         // Import the mock data directly to avoid circular dependencies
         import("@/data/mockData").then(({ mockListings }) => {
           // Find mock listings "owned" by this user
-          const userMockListings = mockListings.filter(listing => 
-            listing.sellerId === user.id || 
-            // Since mock data doesn't have seller_email, we can't match by email
-            false
-          );
+          const userMockListings = mockListings.filter(listing => {
+            const matchesId = listing.sellerId === user.id;
+            console.log("Checking mock listing:", listing.id, "User ID:", user.id, "Match?", matchesId);
+            return matchesId;
+          });
           
           mockListingsFound = userMockListings.length;
           logger.info("Mock listings found for this user:", mockListingsFound);
