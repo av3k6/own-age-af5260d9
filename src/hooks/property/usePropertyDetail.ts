@@ -97,6 +97,30 @@ export const usePropertyDetail = (propertyId: string | undefined) => {
           dbProperty.roomDetails = {};
         }
         
+        // Ensure sellerName has a value if available
+        if (!dbProperty.sellerName && dbProperty.seller_name) {
+          dbProperty.sellerName = dbProperty.seller_name;
+        }
+        
+        // If we still don't have a seller name, try to fetch it
+        if (!dbProperty.sellerName && dbProperty.sellerId) {
+          try {
+            // Try to fetch the seller's user info if we don't have their name
+            const { data: userData, error: userError } = await supabase
+              .from('profiles')
+              .select('full_name')
+              .eq('id', dbProperty.sellerId)
+              .single();
+              
+            if (!userError && userData && userData.full_name) {
+              dbProperty.sellerName = userData.full_name;
+            }
+          } catch (userErr) {
+            // Non-fatal, continue with the property data we have
+            logger.error("Error fetching seller info:", userErr);
+          }
+        }
+        
         setProperty(dbProperty);
       } catch (err) {
         logger.error("Failed to fetch property:", err);

@@ -37,105 +37,29 @@ const PropertyFloorPlans: React.FC<PropertyFloorPlansProps> = ({ propertyId }) =
       try {
         logger.info("Fetching floor plans for property:", propertyId);
         
-        // Try first with more specific query for property_documents table with "floor_plans" category
+        // First try to get floor plans from property_documents table
         let { data: floorPlansData, error: floorPlansError } = await supabase
           .from("property_documents")
           .select("id, name, url, type, size")
-          .eq("property_id", propertyId)
-          .eq("category", "floor_plans");
+          .eq("property_id", propertyId);
         
-        logger.info(`Floor plans query result (plural): ${floorPlansData?.length || 0} documents found, error: ${floorPlansError?.message || 'none'}`);
+        logger.info(`Floor plans query result: ${floorPlansData?.length || 0} documents found`);
           
-        // If no data, try alternative query with category "floor_plan" (singular)
-        if (!floorPlansData || floorPlansData.length === 0) {
-          logger.info("No data with 'floor_plans', trying with 'floor_plan' (singular)");
-          const { data: altData, error: altError } = await supabase
-            .from("property_documents")
-            .select("id, name, url, type, size")
-            .eq("property_id", propertyId)
-            .eq("category", "floor_plan");
-          
-          logger.info(`Floor plans query result (singular): ${altData?.length || 0} documents found, error: ${altError?.message || 'none'}`);
-            
-          if (!altError && altData && altData.length > 0) {
-            floorPlansData = altData;
-            floorPlansError = null;
-          }
+        if (floorPlansError) {
+          logger.error("Error fetching floor plans:", floorPlansError);
+          throw floorPlansError;
         }
         
-        // Try with document_type field as fallback
-        if (!floorPlansData || floorPlansData.length === 0) {
-          logger.info("No data with categories, trying with document_type field");
-          const { data: typeData, error: typeError } = await supabase
-            .from("property_documents")
-            .select("id, name, url, type, size")
-            .eq("property_id", propertyId)
-            .eq("document_type", "floor_plan");
-          
-          logger.info(`Floor plans query result (document_type): ${typeData?.length || 0} documents found, error: ${typeError?.message || 'none'}`);
-            
-          if (!typeError && typeData && typeData.length > 0) {
-            floorPlansData = typeData;
-            floorPlansError = null;
-          }
-        }
+        // Filter for floor plans only (if category field exists)
+        const filteredPlans = floorPlansData?.filter(doc => 
+          (doc.category && doc.category.toLowerCase().includes('floor')) || 
+          (doc.name && doc.name.toLowerCase().includes('floor')) ||
+          (doc.name && doc.name.toLowerCase().includes('plan'))
+        ) || [];
         
-        // Fallback to any documents with "floor" or "plan" in their name
-        if (!floorPlansData || floorPlansData.length === 0) {
-          logger.info("No floor plans found with specific categories, checking for any documents");
-          const { data: anyDocsData, error: anyDocsError } = await supabase
-            .from("property_documents")
-            .select("id, name, url, type, size")
-            .eq("property_id", propertyId);
-          
-          logger.info(`Any documents query result: ${anyDocsData?.length || 0} documents found, error: ${anyDocsError?.message || 'none'}`);
-            
-          if (!anyDocsError && anyDocsData && anyDocsData.length > 0) {
-            // Filter for file names that might be floor plans
-            floorPlansData = anyDocsData.filter(doc => 
-              doc.name.toLowerCase().includes('floor') || 
-              doc.name.toLowerCase().includes('plan')
-            );
-            
-            logger.info(`After filtering for floor plans: ${floorPlansData?.length || 0} documents found`);
-          }
+        if (filteredPlans.length > 0) {
+          floorPlansData = filteredPlans;
         }
-        
-        // Fallback to try the property_listings.documents field if it's an array
-        if (!floorPlansData || floorPlansData.length === 0) {
-          logger.info("Checking property_listings.documents field as a last resort");
-          const { data: listingData, error: listingError } = await supabase
-            .from("property_listings")
-            .select("documents")
-            .eq("id", propertyId)
-            .single();
-          
-          if (!listingError && listingData && Array.isArray(listingData.documents) && listingData.documents.length > 0) {
-            // Filter documents that might be floor plans
-            const possibleFloorPlans = listingData.documents.filter((doc: any) => {
-              if (!doc || typeof doc !== 'object') return false;
-              
-              const nameMatch = doc.name && typeof doc.name === 'string' && (
-                doc.name.toLowerCase().includes('floor') || 
-                doc.name.toLowerCase().includes('plan')
-              );
-              
-              const categoryMatch = doc.category && typeof doc.category === 'string' && (
-                doc.category.toLowerCase() === 'floor_plan' || 
-                doc.category.toLowerCase() === 'floor_plans'
-              );
-              
-              return nameMatch || categoryMatch;
-            });
-            
-            if (possibleFloorPlans.length > 0) {
-              floorPlansData = possibleFloorPlans;
-              logger.info(`Found ${possibleFloorPlans.length} floor plans in property_listings.documents`);
-            }
-          }
-        }
-        
-        logger.info(`Final floor plans count: ${floorPlansData?.length || 0}`);
         
         if (floorPlansData && floorPlansData.length > 0) {
           // Validate URLs before setting the data
@@ -147,7 +71,7 @@ const PropertyFloorPlans: React.FC<PropertyFloorPlansProps> = ({ propertyId }) =
             typeof plan.name === 'string'
           );
           
-          logger.info(`After validation: ${validatedPlans.length} floor plans with valid URLs`);
+          logger.info(`Valid floor plans: ${validatedPlans.length}`);
           setFloorPlans(validatedPlans);
         } else {
           setFloorPlans([]);

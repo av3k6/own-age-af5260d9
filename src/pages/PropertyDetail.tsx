@@ -13,12 +13,13 @@ const PropertyDetail = () => {
   const { id } = useParams<{ id: string }>();
   const { property, isLoading, errorType } = usePropertyDetail(id);
 
-  // Add additional debugging for floor plans issues
+  // Add additional debugging for property data issues
   useEffect(() => {
     if (property) {
       logger.info("Property data loaded successfully:", {
         id: property.id,
-        hasRoomDetails: !!property.roomDetails,
+        hasSellerInfo: !!property.sellerName,
+        sellerId: property.sellerId,
         status: property.status
       });
     }

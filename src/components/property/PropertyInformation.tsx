@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { PropertyListing, ListingStatus } from "@/types";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/formatters";
-import { Edit, Mail, MessageSquare, Phone, User, EyeOff, Eye } from "lucide-react";
+import { Edit, Mail, Phone, User, EyeOff, Eye } from "lucide-react";
 import ScheduleShowingDialog from "./showing/ScheduleShowingDialog";
 import ContactSellerDialog from "./contact/ContactSellerDialog";
 import { useAuth } from "@/contexts/AuthContext";
@@ -23,8 +23,10 @@ export default function PropertyInformation({ property }: PropertyInformationPro
   const [status, setStatus] = useState<ListingStatus>(property.status);
   const [isUpdating, setIsUpdating] = useState(false);
 
-  // Determine seller display name based on ownership
-  const sellerDisplayName = isOwner ? "You (Property Owner)" : property.sellerName || "Property Owner";
+  // Determine seller display name based on ownership and available data
+  const sellerDisplayName = isOwner 
+    ? "You (Property Owner)" 
+    : property.sellerName || "Property Owner";
 
   // Function to toggle listing status
   const toggleListingStatus = async () => {
@@ -58,6 +60,10 @@ export default function PropertyInformation({ property }: PropertyInformationPro
       setIsUpdating(false);
     }
   };
+
+  // In a full implementation, these would be fetched from user preferences
+  const showCallButton = true; // This would be from user preferences
+  const showTextButton = true; // This would be from user preferences
 
   return (
     <div className="bg-white border rounded-lg shadow-sm p-6">
@@ -175,19 +181,22 @@ export default function PropertyInformation({ property }: PropertyInformationPro
         
         {!isOwner && (
           <div className="flex space-x-2">
-            <Button variant="outline" size="sm" className="flex-1">
-              <Phone className="h-4 w-4 mr-2" />
-              Call
-            </Button>
+            {showCallButton && (
+              <Button variant="outline" size="sm" className="flex-1">
+                <Phone className="h-4 w-4 mr-2" />
+                Call
+              </Button>
+            )}
             
-            <Button variant="outline" size="sm" className="flex-1">
-              <MessageSquare className="h-4 w-4 mr-2" />
-              Message
-            </Button>
+            {showTextButton && (
+              <Button variant="outline" size="sm" className="flex-1">
+                <Mail className="h-4 w-4 mr-2" />
+                Text
+              </Button>
+            )}
           </div>
         )}
       </div>
     </div>
   );
 }
-
