@@ -28,13 +28,25 @@ const UserMenu = ({ isMobile = false }: UserMenuProps) => {
 
   const handleSignOut = async () => {
     try {
-      await signOut();
+      const { error } = await signOut();
+      
+      if (error) {
+        console.error("Error signing out:", error);
+        toast({
+          title: "Error",
+          description: "An error occurred while signing out.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       toast({
         title: "Signed out",
         description: "You have been successfully signed out.",
       });
       navigate("/");
     } catch (error) {
+      console.error("Sign out error:", error);
       toast({
         title: "Error",
         description: "An error occurred while signing out.",

@@ -8,6 +8,9 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import ProvinceSelector from "./ProvinceSelector";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/components/ui/use-toast";
+import { useNavigate } from "react-router-dom";
+import UserMenu from "./UserMenu";
 
 interface MobileMenuProps {
   isAuthenticated: boolean;
@@ -20,10 +23,39 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
 }) => {
   const [open, setOpen] = useState(false);
   const { signOut } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
   
   const handleSignOut = async () => {
     setOpen(false); // Close menu first
-    await signOut();
+    
+    try {
+      const { error } = await signOut();
+      
+      if (error) {
+        console.error("Error signing out:", error);
+        toast({
+          title: "Error",
+          description: "An error occurred while signing out.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      toast({
+        title: "Signed out",
+        description: "You have been successfully signed out.",
+      });
+      
+      navigate("/");
+    } catch (error) {
+      console.error("Sign out error:", error);
+      toast({
+        title: "Error",
+        description: "An error occurred while signing out.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (

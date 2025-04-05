@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from 'react';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { getAuthErrorMessage } from '@/utils/authErrorUtils';
@@ -80,11 +81,14 @@ export const useAuthOperations = ({ supabase, setLoading }: UseAuthOperationsPro
   const signOut = useCallback(async () => {
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signOut();
-      console.log('Sign out request sent');
+      console.log('Sign out request started');
       
       // Clear all session timers
       clearAllTimers();
+      
+      const { error } = await supabase.auth.signOut();
+      
+      console.log('Sign out request sent');
       
       if (error) {
         console.error('Error signing out:', error);
