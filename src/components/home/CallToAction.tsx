@@ -20,7 +20,7 @@ const CallToAction = () => {
                   Get Started
                 </Button>
                 <Link to="/how-it-works">
-                  <Button variant="outline" className="border-white text-white hover:bg-blue-600 dark:border-gray-400 dark:hover:bg-blue-700 transition-colors duration-300 font-medium">
+                  <Button variant="outline" className="border-white text-zen-blue-600 bg-white hover:bg-blue-50 dark:border-gray-400 dark:hover:bg-blue-700 transition-colors duration-300 font-medium">
                     Learn More
                   </Button>
                 </Link>
