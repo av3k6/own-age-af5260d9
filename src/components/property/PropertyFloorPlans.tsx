@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useSupabase } from "@/hooks/useSupabase";
 import { Button } from "@/components/ui/button";
-import { FileIcon, Download, File } from "lucide-react";
+import { Download, File } from "lucide-react";
 import { formatFileSize, getFileIconColor } from "@/utils/fileUtils"; 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { createLogger } from "@/utils/logger";
@@ -19,6 +19,7 @@ interface FloorPlanDocument {
   url: string;
   type: string;
   size: number;
+  category?: string; // Make category optional since it might not exist in all documents
 }
 
 const PropertyFloorPlans: React.FC<PropertyFloorPlansProps> = ({ propertyId }) => {
@@ -40,7 +41,7 @@ const PropertyFloorPlans: React.FC<PropertyFloorPlansProps> = ({ propertyId }) =
         // First try to get floor plans from property_documents table
         let { data: floorPlansData, error: floorPlansError } = await supabase
           .from("property_documents")
-          .select("id, name, url, type, size")
+          .select("id, name, url, type, size, category")
           .eq("property_id", propertyId);
         
         logger.info(`Floor plans query result: ${floorPlansData?.length || 0} documents found`);
@@ -50,7 +51,7 @@ const PropertyFloorPlans: React.FC<PropertyFloorPlansProps> = ({ propertyId }) =
           throw floorPlansError;
         }
         
-        // Filter for floor plans only (if category field exists)
+        // Filter for floor plans - check name if category doesn't exist
         const filteredPlans = floorPlansData?.filter(doc => 
           (doc.category && doc.category.toLowerCase().includes('floor')) || 
           (doc.name && doc.name.toLowerCase().includes('floor')) ||

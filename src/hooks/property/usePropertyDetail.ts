@@ -97,9 +97,9 @@ export const usePropertyDetail = (propertyId: string | undefined) => {
           dbProperty.roomDetails = {};
         }
         
-        // Ensure sellerName has a value if available
+        // Ensure sellerName has a value if available from seller_name property
         if (!dbProperty.sellerName && dbProperty.seller_name) {
-          dbProperty.sellerName = dbProperty.seller_name;
+          dbProperty.sellerName = dbProperty.seller_name as string;
         }
         
         // If we still don't have a seller name, try to fetch it
