@@ -6,6 +6,7 @@ import HeaderLogo from "./header/HeaderLogo";
 import UserMenu from "./header/UserMenu";
 import MobileMenu from "./header/MobileMenu";
 import ProvinceSelector from "./header/ProvinceSelector";
+import ThemeToggle from "@/components/theme/ThemeToggle";
 
 const Header = () => {
   const { user } = useAuth();
@@ -26,6 +27,7 @@ const Header = () => {
         />
         
         <div className="flex items-center gap-4">
+          <ThemeToggle />
           <UserMenu />
           <MobileMenu 
             isAuthenticated={isAuthenticated}
