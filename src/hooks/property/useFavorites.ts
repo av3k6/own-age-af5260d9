@@ -5,9 +5,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { createLogger } from "@/utils/logger";
 
-const logger = createLogger("useFavorites");
+const logger = createLogger("useFavourites");
 
-export interface Favorite {
+export interface Favourite {
   id: string;
   user_id: string;
   property_id: string;
@@ -21,7 +21,7 @@ export const useFavorites = () => {
   const { user } = useAuth();
   const { toast } = useToast();
 
-  // Fetch user favorites
+  // Fetch user favourites
   const fetchFavorites = async () => {
     if (!user?.id) return;
 
@@ -33,25 +33,25 @@ export const useFavorites = () => {
         .eq("user_id", user.id);
 
       if (error) {
-        logger.error("Error fetching favorites:", error);
+        logger.error("Error fetching favourites:", error);
         return;
       }
 
       const propertyIds = data.map(fav => fav.property_id);
       setFavorites(propertyIds);
     } catch (error) {
-      logger.error("Exception fetching favorites:", error);
+      logger.error("Exception fetching favourites:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Toggle favorite status for a property
+  // Toggle favourite status for a property
   const toggleFavorite = async (propertyId: string) => {
     if (!user?.id) {
       toast({
         title: "Authentication required",
-        description: "Please log in to save favorites",
+        description: "Please log in to save favourites",
         variant: "destructive"
       });
       return;
@@ -61,7 +61,8 @@ export const useFavorites = () => {
       const isFavorite = favorites.includes(propertyId);
 
       if (isFavorite) {
-        // Remove from favorites
+        // Remove from favourites
+        logger.info("Removing from favourites:", propertyId);
         const { error } = await supabase
           .from("property_favorites")
           .delete()
@@ -69,10 +70,10 @@ export const useFavorites = () => {
           .eq("property_id", propertyId);
 
         if (error) {
-          logger.error("Error removing favorite:", error);
+          logger.error("Error removing favourite:", error);
           toast({
             title: "Error",
-            description: "Failed to remove from favorites",
+            description: "Failed to remove from favourites",
             variant: "destructive"
           });
           return;
@@ -80,12 +81,13 @@ export const useFavorites = () => {
 
         setFavorites(prev => prev.filter(id => id !== propertyId));
         toast({
-          title: "Removed from favorites",
-          description: "Property removed from your favorites",
+          title: "Removed from favourites",
+          description: "Property removed from your favourites",
           variant: "default"
         });
       } else {
-        // Add to favorites
+        // Add to favourites
+        logger.info("Adding to favourites:", propertyId);
         const { error } = await supabase
           .from("property_favorites")
           .insert({
@@ -94,10 +96,10 @@ export const useFavorites = () => {
           });
 
         if (error) {
-          logger.error("Error adding favorite:", error);
+          logger.error("Error adding favourite:", error);
           toast({
             title: "Error",
-            description: "Failed to add to favorites",
+            description: "Failed to add to favourites",
             variant: "destructive"
           });
           return;
@@ -105,13 +107,13 @@ export const useFavorites = () => {
 
         setFavorites(prev => [...prev, propertyId]);
         toast({
-          title: "Added to favorites",
-          description: "Property added to your favorites",
+          title: "Added to favourites",
+          description: "Property added to your favourites",
           variant: "default"
         });
       }
     } catch (error) {
-      logger.error("Exception toggling favorite:", error);
+      logger.error("Exception toggling favourite:", error);
       toast({
         title: "Error",
         description: "An unexpected error occurred",
@@ -120,12 +122,12 @@ export const useFavorites = () => {
     }
   };
 
-  // Check if a property is in favorites
+  // Check if a property is in favourites
   const isFavorite = (propertyId: string) => {
     return favorites.includes(propertyId);
   };
 
-  // Load favorites when user changes
+  // Load favourites when user changes
   useEffect(() => {
     fetchFavorites();
   }, [user?.id]);
