@@ -13,7 +13,17 @@ const DocumentUpload = () => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
     
-    const newDocuments = [...formData.documents, ...files];
+    const newDocuments = [...formData.documents, ...files.map(file => {
+      // Add metadata to identify floor plans
+      const isFloorPlan = file.name.toLowerCase().includes('floor') || 
+                          file.name.toLowerCase().includes('plan');
+      
+      return {
+        ...file,
+        category: isFloorPlan ? 'floor_plans' : 'other'
+      };
+    })];
+    
     const newDocumentNames = [...formData.documentNames, ...files.map(f => f.name)];
     
     updateFormData({ 
@@ -87,6 +97,9 @@ const DocumentUpload = () => {
                     <div>
                       <p className="font-medium truncate max-w-[200px] sm:max-w-xs">{doc.name}</p>
                       <p className="text-xs text-muted-foreground">{formatFileSize(doc.size)}</p>
+                      {doc.name.toLowerCase().includes('floor') || doc.name.toLowerCase().includes('plan') ? (
+                        <span className="text-xs text-emerald-600 font-medium">Floor Plan</span>
+                      ) : null}
                     </div>
                   </div>
                   <Button

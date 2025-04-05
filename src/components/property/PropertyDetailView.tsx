@@ -92,7 +92,7 @@ const PropertyDetailView = ({ property }: { property: PropertyListing }) => {
             <PropertyRoomDetails propertyId={property.id} roomDetails={property.roomDetails} />
           )}
           
-          {/* Floor Plans Section */}
+          {/* Floor Plans Section - Always show to all users */}
           <div className="bg-card rounded-lg p-6 shadow-sm">
             <PropertyFloorPlans propertyId={property.id} />
           </div>
